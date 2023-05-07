@@ -2,10 +2,10 @@
 
 INSTALL_DIR=$HOME/test
 
-if [ ! -d ${INSTALL_DIR} ]; then
+if [ ! -d $INSTALL_DIR ]; then
     REPO_URL="https://github.com/Hiro-mackay/dotfiles/archive/main.tar.gz"
-    mkdir -p ${INSTALL_DIR}
-    curl -L ${REPO_URL} | tar xz --strip 1 -C ${INSTALL_DIR}
+    mkdir -p $INSTALL_DIR
+    curl -L $REPO_URL | tar xz --strip 1 -C $INSTALL_DIR
     ${INSTALL_DIR}/env.sh
 else
     echo "dotfiles already exists"

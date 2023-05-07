@@ -1,0 +1,51 @@
+{
+  "workbench.colorTheme": "Default Dark+",
+  "files.autoSave": "afterDelay",
+  "workbench.panel.defaultLocation": "right",
+  "explorer.confirmDelete": false,
+  "workbench.iconTheme": "vscode-great-icons",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.lineNumbers": "on",
+  "editor.minimap.enabled": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "html.format.wrapLineLength": 0,
+  "html.format.enable": false,
+  "html.format.indentInnerHtml": true,
+  "csscomb.preset": "~/.vscode/.csscomb.json",
+  "csscomb.formatOnSave": true,
+  "files.autoSaveDelay": 3000,
+  "explorer.confirmDragAndDrop": false,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "[rust]": {
+    "editor.defaultFormatter": "matklad.rust-analyzer"
+  },
+  "reactSnippets.settings.prettierEnabled": true,
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "redhat.telemetry.enabled": true,
+  "git.confirmSync": false,
+  "[python]": {
+    "editor.wordBasedSuggestions": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.formatOnType": true
+  },
+  "haskell.manageHLS": "GHCup",
+  "workbench.editor.enablePreview": false,
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true,
+  "python.formatting.autopep8Path": "autopep8",
+  "python.formatting.autopep8Args": ["--aggressive", "--aggressive"],
+  "editor.indentSize": "tabSize",
+  "python.linting.flake8Args": ["--ignore=E501"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.inlineSuggest.enabled": true,
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
+}

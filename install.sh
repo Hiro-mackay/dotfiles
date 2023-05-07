@@ -1,14 +1,15 @@
 #!/bin/sh
 
-INSTALL_DIR=$HOME/test
-BOOTSTRAP_DIR=$HOME/test/tmp
+INSTALL_DIR=$HOME/.dotfiles
+BOOTSTRAP_DIR=$INSTALL_DIR/bootstrap
 
 if [ ! -d $INSTALL_DIR ]; then
     REPO_URL="https://github.com/Hiro-mackay/dotfiles/archive/main.tar.gz"
     mkdir -p $INSTALL_DIR
     curl -L $REPO_URL | tar xz --strip 1 -C $INSTALL_DIR
     chmod -R 755 $BOOTSTRAP_DIR
-    ${BOOTSTRAP_DIR}/run.sh
+    ${BOOTSTRAP_DIR}/setup.sh
+    chmod -R 644 $BOOTSTRAP_DIR
 else
     echo "dotfiles already exists"
     exit 1

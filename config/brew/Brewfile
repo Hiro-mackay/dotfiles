@@ -1,0 +1,68 @@
+# Homebrew taps
+tap "homebrew/bundle"
+tap "homebrew/cask"
+tap "homebrew/cask-fonts"
+tap "homebrew/core"
+
+# Git tools
+brew "git"
+brew "git-secrets"
+brew "gh"
+brew "ghq"
+
+# Text editor
+brew "emacs"
+
+# Package managers
+brew "pnpm"
+brew "volta"
+
+# Programming languages and tools
+brew "deno"
+brew "pyenv"
+brew "rustup"
+brew "pipenv"
+
+# Multimedia tools
+brew "ffmpeg"
+
+# Shell enhancements
+brew "starship"
+brew "fzf"
+
+# File utilities
+brew "wget"
+brew "bat"
+brew "exa"
+
+# System monitoring tools
+brew "htop"
+
+# Databases
+brew "postgresql"
+brew "sqlite"
+
+# Data manipulation tools
+brew "jq"
+
+# Desktop applications
+cask "docker"
+cask "discord"
+cask "google-chrome"
+cask "notion"
+cask "zoom"
+cask "slack"
+cask "spotify"
+cask "appcleaner"
+cask "visual-studio-code"
+cask "karabiner-elements"
+cask "kindle"
+cask "deepl"
+cask "iina"
+cask "keyboardcleantool"
+cask "maccy"
+cask "monitorcontrol"
+cask "runjs"
+cask "bettertouchtool"
+cask "gitify"
+cask "wrap"

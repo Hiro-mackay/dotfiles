@@ -2,16 +2,18 @@
 
 set -x
 
-script_dir="$(dirname "$(realpath "$0")")"
+INSTALL_DIR=$HOME/.dotfiles
+BOOTSTRAP_DIR=$INSTALL_DIR/bootstrap
 
-source $script_dir/env.sh
+
+source $BOOTSTRAP_DIR/env.sh
 
 echo "Start Xcode install..."
 xcode-select --install
 
 
-$script_dir/setup-dir.sh
-$script_dir/setup-link.sh
-$script_dir/setup-brew.sh
-$script_dir/setup-lang.sh
-$script_dir/setup-macos.sh
+$BOOTSTRAP_DIR/setup-dir.sh
+$BOOTSTRAP_DIR/setup-link.sh
+$BOOTSTRAP_DIR/setup-brew.sh
+$BOOTSTRAP_DIR/setup-lang.sh
+$BOOTSTRAP_DIR/setup-macos.sh

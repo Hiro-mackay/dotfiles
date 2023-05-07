@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env zsh
 
 INSTALL_DIR=$HOME/.dotfiles
 BOOTSTRAP_DIR=$INSTALL_DIR/bootstrap

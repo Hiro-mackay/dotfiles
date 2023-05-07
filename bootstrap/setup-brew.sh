@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env zsh
 
 if type brew >/dev/null; then
     echo "Homebrew is already installed."

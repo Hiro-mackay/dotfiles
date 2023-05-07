@@ -1,6 +1,6 @@
 #!/bin/sh
 
-INSTALL_DIR="${INSTALL_DIR:-$HOME/test}"
+INSTALL_DIR=$HOME/test
 
 if [ ! -d ${INSTALL_DIR} ]; then
     REPO_URL="https://github.com/Hiro-mackay/dotfiles/archive/main.tar.gz"

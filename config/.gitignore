@@ -6,7 +6,8 @@
 # Allowlist
 !.gitignore
 !brew/*
-!zsh/*
+!zsh/.zshenv
+!zsh/.zshrc
 !bttpreset/*
 !git/*
 !karabiner/karabiner.json

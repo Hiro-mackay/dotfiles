@@ -9,7 +9,6 @@ if [ ! -d $INSTALL_DIR ]; then
     curl -L $REPO_URL | tar xz --strip 1 -C $INSTALL_DIR
     chmod -R 755 $BOOTSTRAP_DIR
     ${BOOTSTRAP_DIR}/setup.sh
-    chmod -R 644 $BOOTSTRAP_DIR
 else
     echo "dotfiles already exists"
     exit 1

@@ -1,0 +1,10 @@
+*
+*/
+
+!.gitignore
+!brew
+!zsh
+!bttpreset
+!git
+!karabiner/karabiner.json
+!vscode

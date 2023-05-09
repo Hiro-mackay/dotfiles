@@ -1,10 +1,13 @@
+# .gitignore
+# Ignore All
 *
-*/
+!*/
 
+# Allowlist
 !.gitignore
-!brew
-!zsh
-!bttpreset
-!git
+!brew/*
+!zsh/*
+!bttpreset/*
+!git/*
 !karabiner/karabiner.json
-!vscode
+!vscode/*

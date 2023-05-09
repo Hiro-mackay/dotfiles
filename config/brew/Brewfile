@@ -13,16 +13,6 @@ brew "ghq"
 # Text editor
 brew "emacs"
 
-# Package managers
-brew "pnpm"
-brew "volta"
-
-# Programming languages and tools
-brew "deno"
-brew "pyenv"
-brew "rustup"
-brew "pipenv"
-
 # Multimedia tools
 brew "ffmpeg"
 
@@ -49,20 +39,16 @@ brew "jq"
 cask "docker"
 cask "discord"
 cask "google-chrome"
-cask "notion"
 cask "zoom"
 cask "slack"
 cask "spotify"
 cask "appcleaner"
 cask "visual-studio-code"
 cask "karabiner-elements"
-cask "kindle"
 cask "deepl"
 cask "iina"
-cask "keyboardcleantool"
 cask "maccy"
 cask "monitorcontrol"
 cask "runjs"
-cask "bettertouchtool"
 cask "gitify"
-cask "wrap"
+cask "warp"

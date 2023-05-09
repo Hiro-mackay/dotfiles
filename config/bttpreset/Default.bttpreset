@@ -23,6 +23,7 @@
     "BTTTouchBarAnimateGroups" : true,
     "BTTNotchBarNotchMenubarModeHideRightScrollable" : true,
     "BTTEnableUsageLogging" : true,
+    "BTTForcedHidden" : false,
     "SIRIMouseSpeed" : 1,
     "BTTForceNormalClickPressure" : 150,
     "BTTForceForceClickPressure4F" : 650,
@@ -180,36 +181,51 @@
     "BSTSnapAreaDefaultShowPictogram" : false,
     "BSTSnapAreaDefaultPictoDistanceFromBottom" : 0.10000000149011612
   },
-  "BTTPresetUUID" : "895F5609-9F8C-4C93-9D64-5231D3A198D8",
+  "BTTPresetUUID" : "082363CC-65BB-4C21-AB7B-51367F8C8AD0",
   "BTTPresetContent" : [
+    {
+      "BTTAppBundleIdentifier" : "com.google.Chrome",
+      "BTTAppName" : "Google Chrome",
+      "BTTAppAutoInvertIcon" : 1,
+      "BTTTriggers" : [
+        {
+          "BTTGestureNotes" : "TipTap Left (1 Finger Fix)",
+          "BTTLastUpdatedAt" : 1683642563.9605231,
+          "BTTTriggerType" : 113,
+          "BTTTriggerTypeDescription" : "TipTap Left (1 Finger Fix)",
+          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
+          "BTTLayoutIndependentActionChar" : "LEFT",
+          "BTTAutoAdaptActionToKeyboardLayout" : true,
+          "BTTGenericActionConfig" : "autoAdapt",
+          "BTTShortcutToSend" : "58,55,123",
+          "BTTUUID" : "165B4948-4A2F-4334-A4FA-E07DB10442E1",
+          "BTTEnabled" : 1,
+          "BTTEnabled2" : 1
+        },
+        {
+          "BTTGestureNotes" : "TipTap Right (1 Finger Fix)",
+          "BTTLastUpdatedAt" : 1683642563.960228,
+          "BTTTriggerType" : 114,
+          "BTTTriggerTypeDescription" : "TipTap Right (1 Finger Fix)",
+          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
+          "BTTLayoutIndependentActionChar" : "RIGHT",
+          "BTTAutoAdaptActionToKeyboardLayout" : true,
+          "BTTGenericActionConfig" : "autoAdapt",
+          "BTTShortcutToSend" : "58,55,124",
+          "BTTUUID" : "6E0D82A7-8E67-467D-BF3B-8E8829ACEB89",
+          "BTTEnabled" : 1,
+          "BTTEnabled2" : 1,
+          "BTTOrder" : 1
+        }
+      ]
+    },
     {
       "BTTAppBundleIdentifier" : "BT.G",
       "BTTAppName" : "Global",
       "BTTAppAutoInvertIcon" : 1,
       "BTTTriggers" : [
         {
-          "BTTTriggerType" : 136,
-          "BTTTriggerTypeDescription" : "TipTap Left (3 Fingers Fix)",
-          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
-          "BTTPredefinedActionType" : 174,
-          "BTTPredefinedActionName" : "Resize window to Left Two Thirds",
-          "BTTUUID" : "DC0EBADB-95CB-42B1-ACF4-D8A80B2C0399",
-          "BTTEnabled" : 1,
-          "BTTEnabled2" : 1,
-          "BTTOrder" : 5
-        },
-        {
-          "BTTTriggerType" : 138,
-          "BTTTriggerTypeDescription" : "TipTap Middle (2 Fingers Fix)",
-          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
-          "BTTPredefinedActionType" : 109,
-          "BTTPredefinedActionName" : "Resize window to Middle Third",
-          "BTTUUID" : "89789AEE-947C-43BC-8951-999FA6E05AF3",
-          "BTTEnabled" : 1,
-          "BTTEnabled2" : 1,
-          "BTTOrder" : 1
-        },
-        {
+          "BTTLastUpdatedAt" : 1683642563.957932,
           "BTTTriggerType" : 0,
           "BTTTriggerClass" : "BTTTriggerTypeKeyboardShortcut",
           "BTTPredefinedActionType" : 48,
@@ -226,17 +242,33 @@
           "BTTAutoAdaptToKeyboardLayout" : 0
         },
         {
-          "BTTTriggerType" : 112,
-          "BTTTriggerTypeDescription" : "3 Finger Click",
+          "BTTLastUpdatedAt" : 1683642707.4067822,
+          "BTTTriggerType" : 103,
+          "BTTTriggerTypeDescription" : "3 Finger Swipe Down",
           "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
-          "BTTPredefinedActionType" : 5,
-          "BTTPredefinedActionName" : "Mission Control",
-          "BTTUUID" : "740B58A7-7E06-4881-AA79-0017905E5374",
+          "BTTLayoutIndependentActionChar" : "w",
+          "BTTAutoAdaptActionToKeyboardLayout" : true,
+          "BTTShortcutToSend" : "55,13",
+          "BTTUUID" : "03189581-01F1-40AF-8142-959BAA14DDB4",
           "BTTEnabled" : 1,
           "BTTEnabled2" : 1,
-          "BTTOrder" : 9
+          "BTTOrder" : 8
         },
         {
+          "BTTGestureNotes" : "TipTap Middle (2 Fingers Fix)",
+          "BTTLastUpdatedAt" : 1683642707.4067988,
+          "BTTTriggerType" : 138,
+          "BTTTriggerTypeDescription" : "TipTap Middle (2 Fingers Fix)",
+          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
+          "BTTPredefinedActionType" : 109,
+          "BTTPredefinedActionName" : "Resize window to Middle Third",
+          "BTTUUID" : "89789AEE-947C-43BC-8951-999FA6E05AF3",
+          "BTTEnabled" : 1,
+          "BTTEnabled2" : 1
+        },
+        {
+          "BTTGestureNotes" : "Corner Click Top Right",
+          "BTTLastUpdatedAt" : 1683642707.406858,
           "BTTTriggerType" : 183,
           "BTTTriggerTypeDescription" : "Corner Click Top Right",
           "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
@@ -245,20 +277,24 @@
           "BTTUUID" : "00CF6C50-7922-4EC8-9959-6E6E31C0BE4F",
           "BTTEnabled" : 1,
           "BTTEnabled2" : 1,
+          "BTTOrder" : 3
+        },
+        {
+          "BTTGestureNotes" : "TipTap Left (3 Fingers Fix)",
+          "BTTLastUpdatedAt" : 1683642707.4067709,
+          "BTTTriggerType" : 136,
+          "BTTTriggerTypeDescription" : "TipTap Left (3 Fingers Fix)",
+          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
+          "BTTPredefinedActionType" : 174,
+          "BTTPredefinedActionName" : "Resize window to Left Two Thirds",
+          "BTTUUID" : "DC0EBADB-95CB-42B1-ACF4-D8A80B2C0399",
+          "BTTEnabled" : 1,
+          "BTTEnabled2" : 1,
           "BTTOrder" : 4
         },
         {
-          "BTTTriggerType" : 133,
-          "BTTTriggerTypeDescription" : "TipTap Right (2 Fingers Fix)",
-          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
-          "BTTPredefinedActionType" : 110,
-          "BTTPredefinedActionName" : "Resize window to Right Third",
-          "BTTUUID" : "FDC6A4D8-60B2-466A-97FE-BE56CBF33778",
-          "BTTEnabled" : 1,
-          "BTTEnabled2" : 1,
-          "BTTOrder" : 2
-        },
-        {
+          "BTTGestureNotes" : "TipTap Right (3 Fingers Fix)",
+          "BTTLastUpdatedAt" : 1683642707.4067931,
           "BTTTriggerType" : 137,
           "BTTTriggerTypeDescription" : "TipTap Right (3 Fingers Fix)",
           "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
@@ -267,9 +303,24 @@
           "BTTUUID" : "FBF07877-13A9-4AD8-AFEC-8EACBC918BC2",
           "BTTEnabled" : 1,
           "BTTEnabled2" : 1,
-          "BTTOrder" : 6
+          "BTTOrder" : 5
         },
         {
+          "BTTGestureNotes" : "TipTap Right (2 Fingers Fix)",
+          "BTTLastUpdatedAt" : 1683642707.406806,
+          "BTTTriggerType" : 133,
+          "BTTTriggerTypeDescription" : "TipTap Right (2 Fingers Fix)",
+          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
+          "BTTPredefinedActionType" : 110,
+          "BTTPredefinedActionName" : "Resize window to Right Third",
+          "BTTUUID" : "FDC6A4D8-60B2-466A-97FE-BE56CBF33778",
+          "BTTEnabled" : 1,
+          "BTTEnabled2" : 1,
+          "BTTOrder" : 1
+        },
+        {
+          "BTTGestureNotes" : "3 Finger Swipe Up",
+          "BTTLastUpdatedAt" : 1683642707.406826,
           "BTTTriggerType" : 102,
           "BTTTriggerTypeDescription" : "3 Finger Swipe Up",
           "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
@@ -278,9 +329,11 @@
           "BTTUUID" : "4D65A271-EAC4-47B5-809A-B3FBEB782D50",
           "BTTEnabled" : 1,
           "BTTEnabled2" : 1,
-          "BTTOrder" : 7
+          "BTTOrder" : 6
         },
         {
+          "BTTGestureNotes" : "Corner Click Top Left",
+          "BTTLastUpdatedAt" : 1683642707.4068332,
           "BTTTriggerType" : 182,
           "BTTTriggerTypeDescription" : "Corner Click Top Left",
           "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
@@ -289,7 +342,33 @@
           "BTTUUID" : "CA365776-9825-4BAF-9A62-890837864B29",
           "BTTEnabled" : 1,
           "BTTEnabled2" : 1,
-          "BTTOrder" : 3
+          "BTTOrder" : 2
+        },
+        {
+          "BTTLastUpdatedAt" : 1683642722.491163,
+          "BTTTriggerType" : 107,
+          "BTTTriggerTypeDescription" : "4 Finger Swipe Down",
+          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
+          "BTTLayoutIndependentActionChar" : "q",
+          "BTTAutoAdaptActionToKeyboardLayout" : true,
+          "BTTShortcutToSend" : "55,12",
+          "BTTUUID" : "80BD6ACA-70D9-472C-8368-64A6AFFF0B5E",
+          "BTTEnabled" : 1,
+          "BTTEnabled2" : 1,
+          "BTTOrder" : 9
+        },
+        {
+          "BTTGestureNotes" : "3 Finger Click",
+          "BTTLastUpdatedAt" : 1683642707.4068511,
+          "BTTTriggerType" : 112,
+          "BTTTriggerTypeDescription" : "3 Finger Click",
+          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
+          "BTTPredefinedActionType" : 5,
+          "BTTPredefinedActionName" : "Mission Control",
+          "BTTUUID" : "740B58A7-7E06-4881-AA79-0017905E5374",
+          "BTTEnabled" : 1,
+          "BTTEnabled2" : 1,
+          "BTTOrder" : 7
         }
       ]
     },
@@ -299,38 +378,6 @@
       "BTTAppAutoInvertIcon" : 1,
       "BTTTriggers" : [
 
-      ]
-    },
-    {
-      "BTTAppBundleIdentifier" : "com.google.Chrome",
-      "BTTAppName" : "Google Chrome",
-      "BTTAppAutoInvertIcon" : 1,
-      "BTTTriggers" : [
-        {
-          "BTTTriggerType" : 114,
-          "BTTTriggerTypeDescription" : "TipTap Right (1 Finger Fix)",
-          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
-          "BTTLayoutIndependentActionChar" : "RIGHT",
-          "BTTAutoAdaptActionToKeyboardLayout" : true,
-          "BTTGenericActionConfig" : "autoAdapt",
-          "BTTShortcutToSend" : "58,55,124",
-          "BTTUUID" : "6E0D82A7-8E67-467D-BF3B-8E8829ACEB89",
-          "BTTEnabled" : 1,
-          "BTTEnabled2" : 1,
-          "BTTOrder" : 1
-        },
-        {
-          "BTTTriggerType" : 113,
-          "BTTTriggerTypeDescription" : "TipTap Left (1 Finger Fix)",
-          "BTTTriggerClass" : "BTTTriggerTypeTouchpadAll",
-          "BTTLayoutIndependentActionChar" : "LEFT",
-          "BTTAutoAdaptActionToKeyboardLayout" : true,
-          "BTTGenericActionConfig" : "autoAdapt",
-          "BTTShortcutToSend" : "58,55,123",
-          "BTTUUID" : "165B4948-4A2F-4334-A4FA-E07DB10442E1",
-          "BTTEnabled" : 1,
-          "BTTEnabled2" : 1
-        }
       ]
     }
   ],

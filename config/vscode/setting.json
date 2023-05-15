@@ -47,5 +47,6 @@
   "editor.inlineSuggest.enabled": true,
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
-  }
+  },
+  "git.openRepositoryInParentFolders": "always"
 }

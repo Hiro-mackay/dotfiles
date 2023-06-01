@@ -38,9 +38,14 @@
   "python.linting.flake8Enabled": true,
   "python.linting.enabled": true,
   "python.formatting.autopep8Path": "autopep8",
-  "python.formatting.autopep8Args": ["--aggressive", "--aggressive"],
+  "python.formatting.autopep8Args": [
+    "--aggressive",
+    "--aggressive"
+  ],
   "editor.indentSize": "tabSize",
-  "python.linting.flake8Args": ["--ignore=E501"],
+  "python.linting.flake8Args": [
+    "--ignore=E501"
+  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },

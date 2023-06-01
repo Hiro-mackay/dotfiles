@@ -50,6 +50,7 @@ alias lt2="ls --tree --level=2"
 alias lt3="ls --tree --level=3"
 alias cat="bat"
 alias c="clear"
+alias e="exit"
 alias op="open ."
 alias sudo="sudo "
 

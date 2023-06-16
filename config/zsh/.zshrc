@@ -1,6 +1,20 @@
 #!/usr/bin/env zsh
 
 # -----------------
+#  PATH
+# -----------------
+typeset -U path
+path=(
+    ${BREW_HOME}/bin(N-/)
+    ${CARGO_HOME}/bin(N-/)
+    ${VOLTA_HOME}/bin(N-/)
+    ${PYENV_ROOT}/bin(N-/)
+    ${GOPATH}/bin(N-/)
+    ${DENO_INSTALL}/bin(N-/)
+    $path
+)
+
+# -----------------
 #  zsh option
 # -----------------
 # Automatically change to a directory when the name is entered

@@ -53,5 +53,28 @@
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
   },
-  "git.openRepositoryInParentFolders": "always"
+  "git.openRepositoryInParentFolders": "always",
+  "liveSassCompile.settings.formats": [
+    {
+      "format": "expanded",
+      "extensionName": ".css",
+      "savePath": "~/../css",
+      "savePathReplacementPairs": null
+    },
+    {
+      "format": "compressed",
+      "extensionName": ".min.css",
+      "savePath": "~/../css"
+    }
+  ],
+  "liveSassCompile.settings.generateMap": false,
+  "liveSassCompile.settings.autoprefix": [
+    "ie 11",
+    "android 4.4",
+    "> 3%",
+    "last 1 versions"
+  ],
+  "window.zoomLevel": -1,
+  "liveSassCompile.settings.showOutputWindowOn": "None",
+  "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?"
 }

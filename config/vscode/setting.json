@@ -76,5 +76,9 @@
   ],
   "window.zoomLevel": -1,
   "liveSassCompile.settings.showOutputWindowOn": "None",
-  "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?"
+  "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
+  "git.ignoreLegacyWarning": true,
+  "gitlens.advanced.messages": {
+    "suppressGitVersionWarning": true
+  }
 }

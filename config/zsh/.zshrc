@@ -157,13 +157,14 @@ alias gl="git log --graph"
 alias gco="git checkout"
 alias gcb="git checkout -b"
 alias gca="git checkout ."
+alias gbm="git branch -m"
 alias push="git push origin $(git rev-parse --abbrev-ref HEAD)"
 alias pull="git pull origin"
 alias gurl="git remote -v"
 alias gseturl="git remote set-url origin"
 alias gaddurl="git remote add origin"
 alias gtrunk="git fetch origin main && git pull --rebase origin main && git push origin HEAD"
-
+alias greset="git reset --hard HEAD"
 
 # -----------------
 #  Starship

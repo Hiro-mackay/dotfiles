@@ -80,5 +80,6 @@
   "git.ignoreLegacyWarning": true,
   "gitlens.advanced.messages": {
     "suppressGitVersionWarning": true
-  }
+  },
+  "diffEditor.ignoreTrimWhitespace": false,
 }

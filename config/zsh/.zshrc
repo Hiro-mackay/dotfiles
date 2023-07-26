@@ -76,6 +76,7 @@ alias em="emacs"
 
 # zsh
 alias editzsh="code $ZDOTDIR"
+alias re='exec $SHELL -l'
 
 # Directory
 alias dl="cd ~/Downloads"

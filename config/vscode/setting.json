@@ -74,7 +74,6 @@
     "> 3%",
     "last 1 versions"
   ],
-  "window.zoomLevel": -1,
   "liveSassCompile.settings.showOutputWindowOn": "None",
   "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
   "git.ignoreLegacyWarning": true,

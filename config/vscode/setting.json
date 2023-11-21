@@ -81,4 +81,6 @@
     "suppressGitVersionWarning": true
   },
   "diffEditor.ignoreTrimWhitespace": false,
+  "window.zoomLevel": -1,
+  "security.promptForLocalFileProtocolHandling": false,
 }

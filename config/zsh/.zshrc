@@ -76,6 +76,7 @@ alias em="emacs"
 
 # zsh
 alias editzsh="code $ZDOTDIR"
+alias sourcezsh="source $ZDOTDIR/.zshrc"
 alias re='exec $SHELL -l'
 
 # Directory
@@ -85,7 +86,7 @@ alias doc="cd ~/Documents"
 alias pro="cd ~/Projects"
 alias atc="cd ~/Projects/atcoder"
 alias ac="cd ~/Projects/acompany"
-
+alias dotconf="cd $XDG_CONFIG_HOME"
 
 
 # -----------------
@@ -156,7 +157,7 @@ alias gs="git status"
 alias gcamend="git commit --amend --no-edit"
 alias gl="git log --graph"
 alias gco="git checkout"
-alias gcb="git checkout -b"
+alias gcb="git checkout -t -b"
 alias gca="git checkout ."
 alias gcom="git checkout main"
 alias gb="git branch"
@@ -166,8 +167,15 @@ alias pull="git pull origin"
 alias gurl="git remote -v"
 alias gseturl="git remote set-url origin"
 alias gaddurl="git remote add origin"
-alias gtrunk="git fetch origin main && git pull --rebase origin main && git push origin HEAD"
+alias rebase="git fetch --all --prune && git rebase origin/main"
 alias greset="git reset --hard HEAD"
+
+
+# -----------------
+#  Docker
+# -----------------
+alias dc="docker-compose"
+
 
 # -----------------
 #  Starship

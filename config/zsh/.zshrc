@@ -173,8 +173,6 @@ alias rebase="git fetch --all --prune && git rebase origin/main"
 alias greset="git reset --hard HEAD"
 
 
-
-
 # -----------------
 #  Starship
 # -----------------

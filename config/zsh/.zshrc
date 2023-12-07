@@ -111,7 +111,6 @@ alias pyr="pipenv run"
 alias pyfreeze="pipenv run pip freeze > requirements.txt"
 
 
-
 # -----------------
 #  Node.js
 # -----------------
@@ -145,7 +144,6 @@ alias pnx="pnpx"
 alias compete="cargo compete"
 
 
-
 # -----------------
 #  Git
 # -----------------
@@ -173,14 +171,11 @@ alias rebase="git fetch --all --prune && git rebase origin/main"
 alias greset="git reset --hard HEAD"
 
 
-
-
 # -----------------
 #  Starship
 # -----------------
 export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship.toml"
 eval "$(starship init zsh)"
-
 
 
 # -----------------
@@ -192,7 +187,6 @@ alias dp="docker ps"
 alias dcu="docker-compose up -d"
 alias dcd="docker-compose down --volumes"
 alias dce="docker-compose exec"
-
 
 
 # -----------------

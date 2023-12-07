@@ -173,10 +173,6 @@ alias rebase="git fetch --all --prune && git rebase origin/main"
 alias greset="git reset --hard HEAD"
 
 
-# -----------------
-#  Docker
-# -----------------
-alias dc="docker-compose"
 
 
 # -----------------
@@ -186,10 +182,12 @@ export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship.toml"
 eval "$(starship init zsh)"
 
 
+
 # -----------------
 #  Docker
 # -----------------
 # alias
+alias dc="docker-compose"
 alias dp="docker ps"
 alias dcu="docker-compose up -d"
 alias dcd="docker-compose down --volumes"

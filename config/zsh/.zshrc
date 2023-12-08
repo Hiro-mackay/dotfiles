@@ -170,7 +170,7 @@ alias pull="git pull origin"
 alias gurl="git remote -v"
 alias gseturl="git remote set-url origin"
 alias gaddurl="git remote add origin"
-alias rebase="git fetch --all --prune && git rebase origin/main"
+alias rebase="git fetch origin -p && git checkout main && git reset --hard origin/main && git checkout - && git pull --rebase origin main"
 alias greset="git reset --hard HEAD"
 
 

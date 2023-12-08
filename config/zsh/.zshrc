@@ -75,8 +75,8 @@ alias co="code ."
 alias em="emacs"
 
 # zsh
-alias editzsh="code $ZDOTDIR"
-alias sourcezsh="source $ZDOTDIR/.zshrc"
+alias edzsh="code $ZDOTDIR"
+alias sozsh="source $ZDOTDIR/.zshrc"
 alias re='exec $SHELL -l'
 
 # Directory

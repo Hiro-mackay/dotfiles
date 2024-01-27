@@ -4,36 +4,27 @@ tap "homebrew/cask"
 tap "homebrew/cask-fonts"
 tap "homebrew/core"
 
-# Git tools
-brew "git"
-brew "git-secrets"
+# Homebrew formulae
+brew "act"
+brew "bat"
+brew "emacs"
+brew "exa"
+brew "ffmpeg"
+brew "fzf"
 brew "gh"
 brew "ghq"
-
-# Text editor
-brew "emacs"
-
-# Multimedia tools
-brew "ffmpeg"
-
-# Shell enhancements
-brew "starship"
-brew "fzf"
-
-# File utilities
-brew "wget"
-brew "bat"
-brew "exa"
-
-# System monitoring tools
+brew "git"
+brew "git-secrets"
 brew "htop"
-
-# Databases
-brew "postgresql"
-brew "sqlite"
-
-# Data manipulation tools
 brew "jq"
+brew "kubernetes-cli"
+brew "mise"
+brew "postgresql@14"
+brew "sqlite"
+brew "starship"
+brew "telnet"
+brew "tfenv"
+brew "wget"
 
 # Desktop applications
 cask "docker"
@@ -49,6 +40,6 @@ cask "deepl"
 cask "iina"
 cask "maccy"
 cask "monitorcontrol"
-cask "runjs"
 cask "gitify"
 cask "warp"
+cask "notion"

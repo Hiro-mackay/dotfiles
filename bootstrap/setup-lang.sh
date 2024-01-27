@@ -1,5 +1,11 @@
 #!/usr/bin/env zsh
 
+
+# All runtimes, tools and services necessary for development will be managed using RTX (https://github.com/jdx/rtx).
+# RTX reads ${XDG_CONFIG_HOME}/rtx/config.toml and configures the runtime environment.
+# Rust is an exception because the community has a mature package manager called Cargo, which does not use rtx and installs directly
+
+
 echo "Start language install..."
 
 # ----------------------
@@ -9,35 +15,9 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 
 # ----------------------
-# Volta
+# RTX
 # ----------------------
-curl https://get.volta.sh | bash
-
-
-# ----------------------
-# Pyenv
-# ----------------------
-curl https://pyenv.run | bash
-eval "$(pyenv init -)"
-eval "$(pyenv init --path)"
-
-
-# ----------------------
-# Pipenv
-# ----------------------
-PYTHON_VERSION=$(pyenv install --list | grep --extended-regexp "^\s*[0-9][0-9.]*[0-9]\s*$" | tail -1)
-pyenv install $PYTHON_VERSION
-pyenv global $PYTHON_VERSION
-pip install pipenv
-
-
-# ----------------------
-# Golang
-# ----------------------
-curl https://golang.org/dl/$(curl https://go.dev/VERSION?m=text).darwin-amd64.tar.gz | tar xz --strip 1 -C $GOPATH
-
-
-# ---------------------- 
-# Deno
-# ----------------------
-curl -fsSL https://deno.land/x/install/install.sh | sh
+if [ -x "$(command -v rtx)" ]; then
+    # RTX install by ${XDG_CONFIG_HOME}/rtx/config.toml
+    rtx install
+fi

@@ -7,10 +7,6 @@ typeset -U path
 path=(
     ${BREW_HOME}/bin(N-/)
     ${CARGO_HOME}/bin(N-/)
-    ${VOLTA_HOME}/bin(N-/)
-    ${PYENV_ROOT}/bin(N-/)
-    ${GOPATH}/bin(N-/)
-    ${DENO_INSTALL}/bin(N-/)
     $path
 )
 
@@ -98,8 +94,6 @@ autoload -U compinit; compinit
 # -----------------
 #  Python
 # -----------------
-eval "$(pyenv init --path)"
-eval "$(pyenv init -)"
 
 # alias
 alias pyp="pipenv run python"
@@ -190,8 +184,9 @@ eval "$(starship init zsh)"
 # alias
 alias dc="docker-compose"
 alias dp="docker ps"
-alias dcu="docker-compose up -d"
-alias dcd="docker-compose down --volumes"
+alias dcud="docker-compose up -d"
+alias dcd="docker-compose down"
+alias dcdv="docker-compose down --volumes"
 alias dce="docker-compose exec"
 
 

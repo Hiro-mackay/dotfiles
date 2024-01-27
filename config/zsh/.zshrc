@@ -79,9 +79,9 @@ alias re='exec $SHELL -l'
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias doc="cd ~/Documents"
-alias pro="cd ~/Projects"
-alias atc="cd ~/Projects/atcoder"
-alias ac="cd ~/Projects/acompany"
+alias repo="cd ~/Repository/github.com"
+alias ac="cd ~/Repository/github.com/acompany-develop"
+alias g='cd $(ghq list -p | fzf)'
 alias dotconf="cd $XDG_CONFIG_HOME"
 
 
@@ -90,6 +90,11 @@ alias dotconf="cd $XDG_CONFIG_HOME"
 # -----------------
 autoload -U compinit; compinit
 
+
+# -----------------
+#  mise activate
+# -----------------
+eval "$(~/.local/bin/mise activate zsh)"
 
 # -----------------
 #  Python

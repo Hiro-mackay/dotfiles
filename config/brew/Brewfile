@@ -25,6 +25,7 @@ brew "starship"
 brew "telnet"
 brew "tfenv"
 brew "wget"
+brew "pnpm"
 
 # Desktop applications
 cask "docker"

@@ -81,6 +81,7 @@ alias dt="cd ~/Desktop"
 alias doc="cd ~/Documents"
 alias repo="cd ~/Repository/github.com"
 alias ac="cd ~/Repository/github.com/acompany-develop"
+alias mackay="~/Repository/github.com/Hiro-mackay"
 alias g='cd $(ghq list -p | fzf)'
 alias dotconf="cd $XDG_CONFIG_HOME"
 

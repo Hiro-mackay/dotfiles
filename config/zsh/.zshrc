@@ -63,6 +63,7 @@ alias c="clear"
 alias e="exit"
 alias op="open ."
 alias sudo="sudo "
+alias pwdcp="pwd | tr -d '\n' | pbcopy"
 
 # VS Code
 alias co="code ."

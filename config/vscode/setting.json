@@ -77,5 +77,6 @@
   },
   "diffEditor.ignoreTrimWhitespace": false,
   "security.promptForLocalFileProtocolHandling": false,
-  "jupyter.askForKernelRestart": false
+  "jupyter.askForKernelRestart": false,
+  "prisma.showPrismaDataPlatformNotification": false
 }

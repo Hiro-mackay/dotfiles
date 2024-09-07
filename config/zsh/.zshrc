@@ -49,7 +49,7 @@ setopt +o nomatch
 # -----------------
 #  basic alias
 # -----------------
-alias ls="exa  --group-directories-first --icons"
+alias ls="eza  --group-directories-first --icons"
 alias l="ls"
 alias la="ls -a"
 alias ll="ls -l"

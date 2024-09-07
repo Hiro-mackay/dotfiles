@@ -21,6 +21,11 @@
   "[rust]": {
     "editor.defaultFormatter": "matklad.rust-analyzer"
   },
+  "[go]": {
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "golang.go"
+  },
   "reactSnippets.settings.prettierEnabled": true,
   "[jsonc]": {
     "editor.defaultFormatter": "vscode.json-language-features"
@@ -38,9 +43,14 @@
   "python.linting.flake8Enabled": true,
   "python.linting.enabled": true,
   "python.formatting.autopep8Path": "autopep8",
-  "python.formatting.autopep8Args": ["--aggressive", "--aggressive"],
+  "python.formatting.autopep8Args": [
+    "--aggressive",
+    "--aggressive"
+  ],
   "editor.indentSize": "tabSize",
-  "python.linting.flake8Args": ["--ignore=E501"],
+  "python.linting.flake8Args": [
+    "--ignore=E501"
+  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
@@ -78,5 +88,6 @@
   "diffEditor.ignoreTrimWhitespace": false,
   "security.promptForLocalFileProtocolHandling": false,
   "jupyter.askForKernelRestart": false,
-  "prisma.showPrismaDataPlatformNotification": false
+  "prisma.showPrismaDataPlatformNotification": false,
+  "github.copilot.editor.enableAutoCompletions": true,
 }

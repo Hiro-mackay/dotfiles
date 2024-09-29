@@ -189,12 +189,12 @@ eval "$(starship init zsh)"
 #  Docker
 # -----------------
 # alias
-alias dc="docker-compose"
+alias dc="docker compose"
 alias dp="docker ps"
-alias dcud="docker-compose up -d"
-alias dcd="docker-compose down"
-alias dcdv="docker-compose down --volumes"
-alias dce="docker-compose exec"
+alias dcud="docker compose up -d"
+alias dcd="docker compose down"
+alias dcdv="docker compose down --volumes"
+alias dce="docker compose exec"
 
 
 

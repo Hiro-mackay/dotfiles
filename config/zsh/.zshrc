@@ -66,13 +66,13 @@ alias sudo="sudo "
 alias pwdcp="pwd | tr -d '\n' | pbcopy"
 
 # VS Code
-alias co="code ."
+alias co="cursor ."
 
 # emacs
 alias em="emacs"
 
 # zsh
-alias edzsh="code $ZDOTDIR"
+alias edzsh="cursor $ZDOTDIR"
 alias sozsh="source $ZDOTDIR/.zshrc"
 alias re='exec $SHELL -l'
 
@@ -103,13 +103,13 @@ eval "$(~/.local/bin/mise activate zsh)"
 # -----------------
 
 # alias
-alias pyp="pipenv run python"
-alias pyin="pipenv install"
-alias pyel="ls -d1 $XDG_DATA_HOME/virtualenvs/*"
-alias pyshell="pipenv shell"
-alias pyrm="pipenv --rm"
-alias pyr="pipenv run"
-alias pyfreeze="pipenv run pip freeze > requirements.txt"
+alias pyrun="uv run"
+alias pyadd="uv add"
+alias pyinit="uv init"
+alias pyin="uv sync"
+alias pyshell="uv shell"
+alias pyrm="uv rm .venv"
+alias pyfreeze="uv pip freeze > requirements.txt"
 
 
 

@@ -1,8 +1,12 @@
 [tools]
-node = "22.11.0"
+node = "latest"
 go = "latest"
 python = "latest"
 uv = "latest"
+bun = "latest"
+deno = "latest"
+ni = "25.0.0"
+pnpm = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

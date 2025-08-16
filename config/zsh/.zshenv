@@ -45,6 +45,11 @@ export CARGO_HOME="$XDG_DATA_HOME/.cargo"
 export RUSTUP_HOME="$XDG_DATA_HOME/.rustup"
 
 
+# -----------------
+#  ni - use the right package manager
+# -----------------
+export NI_CONFIG_FILE="$XDG_CONFIG_HOME/ni/nirc"
+
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/mackay/.google-cloud-sdk/path.zsh.inc' ]; then . '/Users/mackay/.google-cloud-sdk/path.zsh.inc'; fi
 

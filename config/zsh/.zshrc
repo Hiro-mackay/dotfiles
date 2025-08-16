@@ -120,23 +120,6 @@ alias pyfreeze="uv pip freeze > requirements.txt"
 alias v="volta"
 alias vin="volta install"
 
-# npm alias
-alias n="npm"
-alias nin="npm init"
-alias ni="npm install"
-alias nid="npm install --save-dev"
-alias nrm="npm uninstall"
-alias nr="npm run"
-alias nx="npx"
-
-# pnpm alias
-alias pn="pnpm"
-alias pninit="pnpm init"
-alias pna="pnpm add"
-alias pnad="pnpm add -D"
-alias pnrm="pnpm remove"
-alias pnr="pnpm run"
-alias pnx="pnpx"
 
 
 # -----------------
@@ -196,6 +179,13 @@ alias dcd="docker compose down"
 alias dcdv="docker compose down --volumes"
 alias dce="docker compose exec"
 
+
+
+# -----------------
+#  ni
+# -----------------
+export NI_DEFAULT_AGENT="pnpm"
+export NI_GLOBAL_AGENT="pnpm"
 
 
 # -----------------

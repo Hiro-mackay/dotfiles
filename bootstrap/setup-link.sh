@@ -18,11 +18,11 @@ fi
 
 # .config -> .dotfiles/config
 echo "⏳ Linking .config -> .dotfiles/config..."
-ln -sfv "$DOTFILES_CONFIG_DIR" "$XDG_CONFIG_HOME"
+ln -sfv ".dotfiles/config" ".config"
 
 # .zshenv -> .dotfiles/config/zsh/.zshenv
 echo "⏳ Linking .zshenv -> .dotfiles/config/zsh/.zshenv..."
-ln -sfv "$XDG_CONFIG_HOME/zsh/.zshenv" "$HOME/.zshenv" 
+ln -sfv ".dotfiles/config/zsh/.zshenv" ".zshenv" 
 
 echo "--------------------------------"
 echo "✅ All link setup is complete!"

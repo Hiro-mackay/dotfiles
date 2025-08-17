@@ -1,5 +1,9 @@
 #!/usr/bin/env zsh
 
+echo "--------------------------------"
+echo "⏳ Setting up macOS..."
+echo "--------------------------------"
+
 # Close any open System Preferences panes, to prevent them from overriding
 # settings we’re about to change
 osascript -e 'tell application "System Preferences" to quit'
@@ -141,3 +145,7 @@ defaults write com.apple.finder _FXSortFoldersFirst -bool true
 # Privacy: don’t send search queries to Apple
 defaults write com.apple.Safari UniversalSearchEnabled -bool false
 defaults write com.apple.Safari SuppressSearchSuggestions -bool true
+
+echo "--------------------------------"
+echo "✅ All macOS setup is complete!"
+echo "--------------------------------"

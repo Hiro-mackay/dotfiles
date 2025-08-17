@@ -91,5 +91,5 @@
   "prisma.showPrismaDataPlatformNotification": false,
   "github.copilot.editor.enableAutoCompletions": true,
   "go.toolsManagement.autoUpdate": true,
-  "hediet.vscode-drawio.resizeImages": null,
+  "hediet.vscode-drawio.resizeImages": null
 }

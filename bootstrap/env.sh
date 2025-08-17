@@ -2,4 +2,5 @@
 
 set -x
 
+echo "Load .zshenv"
 source $HOME/.dotfiles/config/zsh/.zshenv

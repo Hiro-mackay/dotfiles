@@ -6,6 +6,7 @@
 typeset -U path
 path=(
     ${BREW_HOME}/bin(N-/)
+    ${BREW_HOME}/sbin(N-/)
     ${CARGO_HOME}/bin(N-/)
     $path
 )

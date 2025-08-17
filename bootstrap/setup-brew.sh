@@ -10,7 +10,7 @@ else
     echo "⏳ Installing Homebrew..."
     # Homebrewのインストールスクリプトを実行
     # sudoで実行
-    sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | sh
 
     # インストール後に設定を読み込む
     # これがないと、同じスクリプト内で`brew`コマンドが認識されない場合がある

@@ -5,7 +5,7 @@ echo "⏳ Setting up link..."
 echo "--------------------------------"
 
 # Remove existing ~/.config directory if it exists (not a symlink)
-if [ -d "$XDG_CONFIG_HOME" ] && [ -L "$XDG_CONFIG_HOME" ]; then
+if [ -d "$XDG_CONFIG_HOME" ] && [ ! -L "$XDG_CONFIG_HOME" ]; then
     echo "Removing existing ~/.config directory..."
     rm -rf "$XDG_CONFIG_HOME"
 fi

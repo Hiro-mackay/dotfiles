@@ -9,7 +9,8 @@ if command -v brew >/dev/null; then
 else
     echo "⏳ Installing Homebrew..."
     # Homebrewのインストールスクリプトを実行
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # sudoで実行
+    sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
     # インストール後に設定を読み込む
     # これがないと、同じスクリプト内で`brew`コマンドが認識されない場合がある

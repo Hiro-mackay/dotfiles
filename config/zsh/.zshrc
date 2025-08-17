@@ -62,7 +62,6 @@ alias cat="bat"
 alias c="clear"
 alias e="exit"
 alias op="open ."
-alias sudo="sudo "
 alias pwdcp="pwd | tr -d '\n' | pbcopy"
 
 # VS Code
@@ -74,7 +73,6 @@ alias em="emacs"
 # zsh
 alias edzsh="cursor $ZDOTDIR"
 alias sozsh="source $ZDOTDIR/.zshrc"
-alias re='exec $SHELL -l'
 
 # Directory
 alias dl="cd ~/Downloads"
@@ -139,6 +137,7 @@ alias gaa="git add ."
 alias gc="git commit"
 alias gcm="git commit -m"
 alias gs="git status"
+alias gst="git stash"
 alias gcamend="git commit --amend --no-edit"
 alias gl="git log --graph"
 alias glo="git log --oneline"
@@ -156,16 +155,6 @@ alias gseturl="git remote set-url origin"
 alias gaddurl="git remote add origin"
 alias rebase="git fetch origin -p && git checkout main && git reset --hard origin/main && git checkout - && git pull --rebase origin main"
 alias greset="git reset --hard HEAD"
-
-
-
-
-# -----------------
-#  Starship
-# -----------------
-export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship.toml"
-eval "$(starship init zsh)"
-
 
 
 # -----------------
@@ -200,30 +189,72 @@ function mkcd() {
   fi
 }
 
-function create-next-app(){
-    if [ -z $1 ]; then
-        echo "Please specify the project name"
-    elif [[ -d $1 ]]; then
-	echo "$1 already exists!"
-    else
-	npx create-next-app $1 --example https://github.com/Hiro-mackay/next-js-boilertemplate
-	cd $1
-	yarn
-    fi
-}
-
-function create-vite-app(){
-    if [ -z $1 ]; then
-        echo "Please specify the project name"
-    elif [[ -d $1 ]]; then
-        echo "$1 already exists!"
-    else
-	npx degit Hiro-mackay/react-template $1
-	cd $1
-	yarn
-    fi
-}
-
 function killport(){
     kill $(lsof -t -i:$1)
+}
+
+
+# curl wrapper for GET request
+cget() {
+  local url=""
+  local show_headers=false
+  local show_body=false
+
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --head|-I) show_headers=true ;;
+      --body|-b) show_body=true ;;
+      --show-headers|-i) 
+        show_headers=true
+        show_body=true
+        ;;
+      *)
+        if [[ "$1" == "http"* ]]; then
+          url="$1"
+        else
+          echo "Invalid option: -$OPTARG"
+          return 1
+        fi
+    esac
+    shift
+  done
+
+  local headers=""
+  local body=""
+
+  if $show_headers && $show_body; then
+    response_body=$(curl -sL -D /tmp/headers.txt "$url")
+  elif $show_headers; then
+    $(curl -sL -D /tmp/headers.txt "$url" > /dev/null)
+  elif $show_body; then
+    response_body=$(curl -sL "$url")
+  else
+    curl "$url" -o /dev/null -w '%{scheme}/%{http_version} %{response_code}\ntime_total: %{time_total}\nsize_header: %{size_header}\nsize_download: %{size_download}\n' -s
+
+  fi
+
+  if $show_headers; then
+    # ヘッダーをファイルから読み込む
+    response_headers=$(cat /tmp/headers.txt)
+    # 一時ファイルを削除
+    rm /tmp/headers.txt
+
+    echo "$response_headers"
+  fi
+
+  if $show_body; then
+    # JSONの場合 jqを使用、htmlの場合はhtmlqを使用、textの場合そのまま出力、それ以外はcontent typeとファイルサイズを出力
+    if echo "$response_headers" | grep -q "application/json"; then
+      echo "$response_body" | jq .
+    elif echo "$response_headers" | grep -q "text/html"; then
+      echo "$response_body" | htmlq --remove-nodes script,style,svg,link -p
+      echo "\n\n ---"
+      echo "Ignore <script>, <style>, <svg>, <link>"
+    elif echo "$response_headers" | grep -q "text/.*"; then
+      echo "$response_body"
+    else
+      echo "File Size: $(echo "$response_body" | wc -c) bytes"
+    fi
+  fi
+
 }

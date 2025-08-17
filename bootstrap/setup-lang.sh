@@ -19,7 +19,7 @@ if command -v rustup >/dev/null 2>&1; then
 else
     echo "⏳ Installing Rust..."
     # rustup をインストール
-    if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh; then
+    if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; then
         echo "✅ Rust installed successfully."
         rustup default stable
     else

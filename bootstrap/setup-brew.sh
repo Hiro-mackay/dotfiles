@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 echo "--------------------------------"
-echo "⏳ Installing Homebrew..."
+echo "⏳ Setting up Homebrew..."
 echo "--------------------------------"
 # Homebrewがインストールされているか確認
 if command -v brew >/dev/null; then

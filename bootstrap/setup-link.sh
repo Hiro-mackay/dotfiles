@@ -5,13 +5,13 @@ echo "⏳ Setting up link..."
 echo "--------------------------------"
 
 # Remove existing ~/.config directory if it exists (not a symlink)
-if [ -d "$XDG_CONFIG_HOME" ] && [ ! -L "$XDG_CONFIG_HOME" ]; then
+if [ -d "$XDG_CONFIG_HOME" ] && [ -L "$XDG_CONFIG_HOME" ]; then
     echo "Removing existing ~/.config directory..."
     rm -rf "$XDG_CONFIG_HOME"
 fi
 
 # Remove existing ~/.zshenv if it exists
-if [ -f "$HOME/.zshenv" ]; then
+if [ -f "$HOME/.zshenv" ] && [ -L "$HOME/.zshenv" ]; then
     echo "Removing existing ~/.zshenv..."
     rm "$HOME/.zshenv"
 fi

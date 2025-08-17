@@ -5,7 +5,7 @@ set -x
 INSTALL_DIR=$HOME/.dotfiles
 BOOTSTRAP_DIR=$INSTALL_DIR/bootstrap
 
-
+# 環境変数を最初に読み込む
 source $BOOTSTRAP_DIR/env.sh
 
 

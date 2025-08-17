@@ -36,13 +36,7 @@ echo "⏳ Setting up mise..."
 if command -v mise >/dev/null 2>&1; then
     echo "✅ mise is already installed. Updating mise..."
     # インストール後に現在のシェルにパスを設定
-    eval "$(~/.local/bin/mise activate zsh)"
-    # mise を更新
-    if mise update; then
-        echo "✅ mise updated successfully."
-    else
-        echo "❌ Failed to update mise. Continuing..."
-    fi
+    eval "$(mise activate zsh)"
 else
     echo "❌ mise is not installed. Exiting."
     exit 1

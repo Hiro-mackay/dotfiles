@@ -51,8 +51,8 @@ export RUSTUP_HOME="$XDG_DATA_HOME/.rustup"
 export NI_CONFIG_FILE="$XDG_CONFIG_HOME/ni/nirc"
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/mackay/.google-cloud-sdk/path.zsh.inc' ]; then . '/Users/mackay/.google-cloud-sdk/path.zsh.inc'; fi
+if [ -f "$HOME/.google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/.google-cloud-sdk/path.zsh.inc"; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/mackay/.google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/mackay/.google-cloud-sdk/completion.zsh.inc'; fi
-. "/Users/mackay/.local/share/.cargo/env"
+if [ -f "$HOME/.google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/.google-cloud-sdk/completion.zsh.inc"; fi
+. "$HOME/.local/share/.cargo/env"

@@ -96,7 +96,7 @@ autoload -U compinit; compinit
 # -----------------
 #  mise activate
 # -----------------
-eval "$(~/.local/bin/mise activate zsh)"
+eval "$(mise activate zsh)"
 
 # -----------------
 #  Python

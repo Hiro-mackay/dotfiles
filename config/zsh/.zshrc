@@ -84,6 +84,7 @@ alias ac="cd ~/Repository/github.com/acompany-develop"
 alias mackay="~/Repository/github.com/Hiro-mackay"
 alias g='cd $(ghq list -p | fzf)'
 alias dotconf="cd $XDG_CONFIG_HOME"
+alias dotfiles="cd $DOTFILES_DIR"
 
 
 # -----------------

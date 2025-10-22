@@ -236,16 +236,16 @@ cget() {
   fi
 
   if $show_headers; then
-    # ヘッダーをファイルから読み込む
+    # Read headers from file
     response_headers=$(cat /tmp/headers.txt)
-    # 一時ファイルを削除
+    # Delete temporary file
     rm /tmp/headers.txt
 
     echo "$response_headers"
   fi
 
   if $show_body; then
-    # JSONの場合 jqを使用、htmlの場合はhtmlqを使用、textの場合そのまま出力、それ以外はcontent typeとファイルサイズを出力
+    # If JSON, use jq, if HTML, use htmlq, if text, output as is, otherwise output content type and file size
     if echo "$response_headers" | grep -q "application/json"; then
       echo "$response_body" | jq .
     elif echo "$response_headers" | grep -q "text/html"; then
@@ -260,66 +260,59 @@ cget() {
   fi
 
 }
-# -----------------
-#  password generation function
-# -----------------
-function rand() {
-  local length=32
-  local include_symbols=false
-  local charset=""
-  
-  # 引数の解析
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-      -l|--length)
-        length="$2"
-        shift 2
-        ;;
-      -s|--symbols)
-        include_symbols=true
-        shift
-        ;;
-      -h|--help)
-        echo "Usage: genpass [OPTIONS]"
+
+# Secure random string generation function
+rand() {
+    # Help display
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: rand [OPTIONS] [LENGTH]"
+        echo ""
         echo "Options:"
-        echo "  -l, --length NUM    パスワードの文字数 (デフォルト: 32)"
-        echo "  -s, --symbols       記号を含める"
-        echo "  -h, --help          このヘルプを表示"
+        echo "  -s, --symbols    Include symbols in the string"
+        echo "  -h, --help       Show this help message"
+        echo ""
+        echo "Examples:"
+        echo "  rand                   # Generate 32-character alphanumeric string (default)"
+        echo "  rand 20                # Generate 20-character alphanumeric string"
+        echo "  rand -s                # Generate 32-character alphanumeric + symbols string"
+        echo "  rand -s 20             # Generate 20-character alphanumeric + symbols string"
         return 0
-        ;;
-      *)
-        echo "Unknown option: $1"
-        echo "Use -h or --help for usage information"
-        return 1
-        ;;
-    esac
-  done
-  
-  # 文字数が正の整数かチェック
-  if ! [[ "$length" =~ ^[0-9]+$ ]] || [ "$length" -le 0 ]; then
-    echo "Error: 文字数は正の整数である必要があります"
-    return 1
-  fi
-  
-  # 文字セットの設定
-  charset="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-  if $include_symbols; then
-    charset="${charset}!@#$%^&*()"
-  fi
-  
-  # 暗号学的に安全なランダムなパスワードを生成
-  local password=""
-  local charset_length=${#charset}
-  
-  # /dev/urandomを使用して暗号学的に安全なランダムバイトを生成
-  for ((i=0; i<length; i++)); do
-    # 1バイトのランダムデータを読み取り、文字セットの長さでモジュロ演算
-    local random_byte=$(od -An -N1 -tu1 /dev/urandom | tr -d ' ')
-    local index=$((random_byte % charset_length))
-    password="${password}${charset:$index:1}"
-  done
-  
-  echo "$password"
+    fi
+
+    local length=32
+    local include_symbols=false
+    local base_charset='a-zA-Z0-9'
+    local symbols='!@#$%^&*()_+'
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -s|--symbols)
+                include_symbols=true
+                shift
+                ;;
+            *)
+                if [[ "$1" =~ ^[0-9]+$ ]]; then
+                    length=$1
+                else
+                    echo "Error: Invalid argument '$1'. Use -h for help"
+                    return 1
+                fi
+                shift
+                ;;
+        esac
+    done
+    
+    # Preparing character set
+    local charset="$base_charset"
+    if $include_symbols; then
+        charset="${charset}${symbols}"
+    fi
+
+    # Read necessary bytes from /dev/urandom and generate string
+    # LC_ALL=C is the magic incantation needed for macOS
+    # If you are not using macOS, you can remove LC_ALL=C
+    echo $(cat /dev/urandom | LC_ALL=C tr -dc $charset | head -c $length)
 }
 
 # pnpm

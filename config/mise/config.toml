@@ -1,5 +1,5 @@
 [tools]
-node = "latest"
+node = "22"
 go = "latest"
 python = "latest"
 uv = "latest"
@@ -7,6 +7,7 @@ bun = "latest"
 deno = "latest"
 ni = "25.0.0"
 pnpm = "latest"
+terraform = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

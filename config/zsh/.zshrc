@@ -262,20 +262,20 @@ cget() {
 }
 
 # Secure random string generation function
-rand() {
+randal() {
     # Help display
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: rand [OPTIONS] [LENGTH]"
+        echo "Usage: randal [OPTIONS] [LENGTH]"
         echo ""
         echo "Options:"
         echo "  -s, --symbols    Include symbols in the string"
         echo "  -h, --help       Show this help message"
         echo ""
         echo "Examples:"
-        echo "  rand                   # Generate 32-character alphanumeric string (default)"
-        echo "  rand 20                # Generate 20-character alphanumeric string"
-        echo "  rand -s                # Generate 32-character alphanumeric + symbols string"
-        echo "  rand -s 20             # Generate 20-character alphanumeric + symbols string"
+        echo "  randal           # Generate 32-character alphanumeric string (default)"
+        echo "  randal 20        # Generate 20-character alphanumeric string"
+        echo "  randal -s        # Generate 32-character alphanumeric + symbols string"
+        echo "  randal -s 20     # Generate 20-character alphanumeric + symbols string"
         return 0
     fi
 
@@ -312,7 +312,7 @@ rand() {
     # Read necessary bytes from /dev/urandom and generate string
     # LC_ALL=C is the magic incantation needed for macOS
     # If you are not using macOS, you can remove LC_ALL=C
-    echo $(cat /dev/urandom | LC_ALL=C tr -dc $charset | head -c $length)
+    echo "$(LC_ALL=C tr -dc "$charset" < /dev/urandom | head -c "$length")"
 }
 
 # pnpm

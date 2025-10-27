@@ -68,6 +68,9 @@ alias pwdcp="pwd | tr -d '\n' | pbcopy"
 # VS Code
 alias co="cursor ."
 
+# Note
+alias note="cursor '~/Google\ Drive/My\ Drive/ObsidianVault'"
+
 # emacs
 alias em="emacs"
 
@@ -85,7 +88,7 @@ alias mackay="~/Repository/github.com/Hiro-mackay"
 alias g='cd $(ghq list -p | fzf)'
 alias dotconf="cd $XDG_CONFIG_HOME"
 alias dotfiles="cd $DOTFILES_DIR"
-
+alias drive="cd ~/Google\ Drive/My\ Drive"
 
 # -----------------
 #  autoload and initialize completion
@@ -170,6 +173,8 @@ alias dcd="docker compose down"
 alias dcdv="docker compose down --volumes"
 alias dce="docker compose exec"
 
+# kubectl
+alias k="kubectl"
 
 
 # -----------------
@@ -322,3 +327,10 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=($HOME/.docker/completions $fpath)
+autoload -Uz compinit
+compinit
+# End of Docker CLI completions

@@ -1,11 +1,11 @@
 [tools]
-node = "22"
+node = "latest"
 go = "latest"
 python = "latest"
 uv = "latest"
 bun = "latest"
 deno = "latest"
-ni = "25.0.0"
+ni = "latest"
 pnpm = "latest"
 terraform = "latest"
 

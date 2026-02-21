@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
@@ -11,26 +12,49 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(echo:*)",
-      "Bash(do)",
-      "Bash(then)",
-      "Bash(else)",
-      "Bash(fi)",
-      "Bash(done)",
-      "Bash(for:*)",
       "Bash(npm:*)",
       "Bash(npx:*)",
       "Bash(pnpm:*)",
       "Bash(curl:*)",
       "Bash(pkill:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git branch:*)",
+      "Bash(git stash:*)",
+      "Bash(git worktree:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git show:*)",
+      "Bash(git fetch:*)",
+      "Bash(git commit:*)",
+      "Bash(brew:*)",
+      "Bash(go:*)",
+      "Bash(docker:*)",
+      "Bash(stow:*)",
+      "Bash(which:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(diff:*)",
+      "Bash(chmod:*)",
+      "Bash(gh:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(bun:*)"
     ],
     "deny": [
       "Bash(sudo:*)",
       "Bash(git reset:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
       "Bash(git rebase:*)",
-      "Bash(git push:*)",
-      "Read(.env)",
-      "Read(.env.*)",
+      "Bash(git clean:*)",
+      "Bash(rm -rf:*)",
       "Read(id_rsa)",
       "Read(id_ed25519)",
       "Write(**/secrets/**)"
@@ -58,13 +82,56 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/script/hooks/detect-console-log.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/script/hooks/go-vet.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/script/hooks/block-dev-server.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/script/hooks/block-arbitrary-md.sh"
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "context7@claude-plugins-official": true
   },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
-  "skipDangerousModePermissionPrompt": true
+  }
 }

@@ -13,4 +13,6 @@
 !karabiner/karabiner.json
 !vscode/*
 !mise/*
-!gh/*
+!gh/config.yml
+!claude/settings.json
+!claude/script/*

@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+set -e
 
 echo "--------------------------------"
 echo "⏳ Setting up Homebrew..."
@@ -14,7 +15,7 @@ else
 
     # インストール後に設定を読み込む
     # これがないと、同じスクリプト内で`brew`コマンドが認識されない場合がある
-    if [ -f "/opt/homebrew/bin/brew" ]; then
+    if [[ -f "/opt/homebrew/bin/brew" ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
 
@@ -39,7 +40,7 @@ fi
 
 # Brewfileの存在確認
 BREWFILE_PATH="${DOTFILES_CONFIG_DIR}/brew/Brewfile"
-if [ ! -f "${BREWFILE_PATH}" ]; then
+if [[ ! -f "${BREWFILE_PATH}" ]]; then
     echo "❌ Brewfile not found at ${BREWFILE_PATH}. Exiting."
     exit 1
 fi

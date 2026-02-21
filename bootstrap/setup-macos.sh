@@ -1,12 +1,13 @@
 #!/usr/bin/env zsh
+set -e
 
 echo "--------------------------------"
 echo "⏳ Setting up macOS..."
 echo "--------------------------------"
 
-# Close any open System Preferences panes, to prevent them from overriding
-# settings we’re about to change
-osascript -e 'tell application "System Preferences" to quit'
+# Close any open System Settings panes, to prevent them from overriding
+# settings we're about to change
+osascript -e 'tell application "System Settings" to quit' 2>/dev/null || true
 
 
 # -----------------
@@ -22,7 +23,7 @@ sudo defaults write /Library/Preferences/com.apple.loginwindow AdminHostInfo Hos
 # Increase window resize speed for Cocoa applications
 defaults write NSGlobalDomain NSWindowResizeTime -float 0.1
 
-# Disable the “Are you sure you want to open this application?” dialog
+# Disable the "Are you sure you want to open this application?" dialog
 defaults write com.apple.LaunchServices LSQuarantine -bool false
 
 # Disable the crash reporter
@@ -31,13 +32,13 @@ defaults write com.apple.CrashReporter DialogType -string none
 # Disable Resume system-wide
 defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bool false
 
-# Disable smart dashes as they’re annoying when typing code
+# Disable smart dashes as they're annoying when typing code
 defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
 
-# Disable automatic period substitution as it’s annoying when typing code
+# Disable automatic period substitution as it's annoying when typing code
 defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
 
-# Disable smart quotes as they’re annoying when typing code
+# Disable smart quotes as they're annoying when typing code
 defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
 
 # Set sidebar icon size to small
@@ -73,7 +74,7 @@ defaults write com.apple.dock show-process-indicators -int 1
 # Wipe all (default) app icons from the Dock
 defaults write com.apple.dock persistent-apps -array
 
-# Don’t show recent applications in Dock
+# Don't show recent applications in Dock
 defaults write com.apple.dock show-recents -int 0
 
 # Set the hot corner
@@ -97,14 +98,6 @@ defaults write com.apple.AppleMultitouchTrackpad FirstClickThreshold -int 0
 defaults write com.apple.AppleMultitouchTrackpad SecondClickThreshold -int 0
 
 # Set the trackpad swipe actions
-defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0
-
-
-# Set the trackpad click power 
-defaults write com.apple.AppleMultitouchTrackpad FirstClickThreshold -int 0
-defaults write com.apple.AppleMultitouchTrackpad SecondClickThreshold -int 0
-
-# Set the trackpad gesture
 defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0 # Disable three finger swipe down because it's used for BTT
 
 
@@ -142,9 +135,15 @@ defaults write com.apple.finder _FXSortFoldersFirst -bool true
 # Safari & WebKit
 # -----------------
 
-# Privacy: don’t send search queries to Apple
+# Privacy: don't send search queries to Apple
 defaults write com.apple.Safari UniversalSearchEnabled -bool false
 defaults write com.apple.Safari SuppressSearchSuggestions -bool true
+
+# -----------------
+# Apply changes
+# -----------------
+killall Dock 2>/dev/null || true
+killall Finder 2>/dev/null || true
 
 echo "--------------------------------"
 echo "✅ All macOS setup is complete!"

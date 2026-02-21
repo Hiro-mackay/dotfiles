@@ -29,12 +29,14 @@ export DOTFILES_CONFIG_DIR="$DOTFILES_DIR/config"
 #  zsh
 # -----------------
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
-export HISTFILE="$ZDOTDIR"/history
+export HISTFILE="$XDG_STATE_HOME/zsh/history"
+export HISTSIZE=10000
+export SAVEHIST=10000
 
 
 # -----------------
 #  Homebrew
-# ----------------- 
+# -----------------
 export BREW_HOME=/opt/homebrew
 
 
@@ -51,8 +53,9 @@ export RUSTUP_HOME="$XDG_DATA_HOME/.rustup"
 export NI_CONFIG_FILE="$XDG_CONFIG_HOME/ni/nirc"
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f "$HOME/.google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/.google-cloud-sdk/path.zsh.inc"; fi
+if [[ -f "$HOME/.google-cloud-sdk/path.zsh.inc" ]]; then . "$HOME/.google-cloud-sdk/path.zsh.inc"; fi
 
-# The next line enables shell command completion for gcloud.
-if [ -f "$HOME/.google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/.google-cloud-sdk/completion.zsh.inc"; fi
-. "$HOME/.local/share/.cargo/env"
+# Cargo
+if [[ -f "${CARGO_HOME:-$HOME/.cargo}/env" ]]; then
+    . "${CARGO_HOME:-$HOME/.cargo}/env"
+fi

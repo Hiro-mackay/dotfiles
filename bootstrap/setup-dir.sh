@@ -1,15 +1,15 @@
 #!/usr/bin/env zsh
+set -e
 
 echo "--------------------------------"
 echo "⏳ Creating XDG directories..."
 echo "--------------------------------"
-mkdir -p \
+if mkdir -p \
     "$XDG_CONFIG_HOME" \
     "$XDG_DATA_HOME" \
     "$XDG_STATE_HOME" \
-    "$XDG_CACHE_HOME"
-
-if [ $? -eq 0 ]; then
+    "$XDG_STATE_HOME/zsh" \
+    "$XDG_CACHE_HOME"; then
     echo "✅ XDG directories created successfully."
 else
     echo "❌ Failed to create XDG directories. Exiting."
@@ -23,7 +23,7 @@ echo "--------------------------------"
 echo "⏳ Setting up SSH directory..."
 echo "--------------------------------"
 SSH_DIR="$HOME/.ssh"
-if [ ! -d "$SSH_DIR" ]; then
+if [[ ! -d "$SSH_DIR" ]]; then
     mkdir -p "$SSH_DIR"
     chmod 700 "$SSH_DIR"
     echo "✅ SSH directory created and permissions set."
@@ -41,9 +41,8 @@ echo "--------------------------------"
 CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}
 RUSTUP_HOME=${RUSTUP_HOME:-$HOME/.rustup}
 
-mkdir -p "$CARGO_HOME" "$RUSTUP_HOME"
-
-if [ $? -eq 0 ]; then
+if mkdir -p "$CARGO_HOME" "$RUSTUP_HOME"; then
+    chmod 700 "$CARGO_HOME" "$RUSTUP_HOME"
     echo "✅ Cargo and Rust directories created successfully."
 else
     echo "❌ Failed to create Cargo and Rust directories. Exiting."

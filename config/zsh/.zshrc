@@ -3,11 +3,13 @@
 # -----------------
 #  PATH
 # -----------------
+export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 typeset -U path
 path=(
     ${BREW_HOME}/bin(N-/)
     ${BREW_HOME}/sbin(N-/)
     ${CARGO_HOME}/bin(N-/)
+    ${PNPM_HOME}(N-/)
     $path
 )
 
@@ -31,9 +33,6 @@ setopt share_history
 
 # Ignore commands starting with a space in the command history
 setopt hist_ignore_space
-
-# Do not store duplicate commands in history
-setopt hist_ignore_dups
 
 # Do not store all duplicate commands in history
 setopt hist_ignore_all_dups
@@ -73,7 +72,7 @@ alias co="cursor ."
 alias note="cursor '~/Google\ Drive/My\ Drive/ObsidianVault'"
 alias ob="cd ~/Google\ Drive/My\ Drive/ObsidianVault"
 
-# Cluade
+# Claude
 alias cc="claude --dangerously-skip-permissions"
 
 # emacs
@@ -89,7 +88,7 @@ alias dt="cd ~/Desktop"
 alias doc="cd ~/Documents"
 alias repo="cd ~/Repository/github.com"
 alias ac="cd ~/Repository/github.com/acompany-develop"
-alias mackay="~/Repository/github.com/Hiro-mackay"
+alias mackay="cd ~/Repository/github.com/Hiro-mackay"
 alias g='cd $(ghq list -p | fzf)'
 alias dotconf="cd $XDG_CONFIG_HOME"
 alias dotfiles="cd $DOTFILES_DIR"
@@ -98,7 +97,21 @@ alias drive="cd ~/Google\ Drive/My\ Drive"
 # -----------------
 #  autoload and initialize completion
 # -----------------
-autoload -U compinit; compinit
+# Docker CLI completions
+if [[ -d "$HOME/.docker/completions" ]]; then
+  fpath=($HOME/.docker/completions $fpath)
+fi
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
+
+# Google Cloud SDK completion
+if [[ -f "$HOME/.google-cloud-sdk/completion.zsh.inc" ]]; then
+  source "$HOME/.google-cloud-sdk/completion.zsh.inc"
+fi
 
 # -----------------
 #  mise activate
@@ -116,13 +129,6 @@ alias pyin="uv sync"
 alias pyshell="uv shell"
 alias pyrm="uv rm .venv"
 alias pyfreeze="uv pip freeze > requirements.txt"
-
-# -----------------
-#  Node.js
-# -----------------
-# volta alias
-alias v="volta"
-alias vin="volta install"
 
 # -----------------
 #  Rust
@@ -150,12 +156,9 @@ alias gcd="git checkout . && git clean -df ."
 alias gcom="git checkout main"
 alias gb="git branch"
 alias gbm="git branch -m"
-alias push="git push origin $(git branch --show-current)"
-alias pull="git pull origin $(git branch --show-current)"
 alias gurl="git remote -v"
 alias gseturl="git remote set-url origin"
 alias gaddurl="git remote add origin"
-alias rebase="git fetch origin -p && git checkout main && git reset --hard origin/main && git checkout - && git pull --rebase origin main"
 alias greset="git reset --hard HEAD"
 alias gundo="git reset --soft HEAD^"
 alias gwa="_gwt_create_core"
@@ -163,6 +166,18 @@ alias gwab="_gwt_create_core"
 alias gwaf='_gwt_create_core "$(git branch --format="%(refname:short)" | fzf)"'
 alias gwr="_gwt_remove_core"
 alias gws="_gwt_switch"
+
+push() { git push origin "$(git branch --show-current)" }
+pull() { git pull origin "$(git branch --show-current)" }
+
+rebase() {
+  local current_branch=$(git branch --show-current)
+  git fetch origin -p
+  git checkout main
+  git pull --ff-only origin main
+  git checkout "$current_branch"
+  git rebase main
+}
 
 # メインworktreeのパスを取得（git worktree listから正確に特定）
 _gwt_main_path() {
@@ -307,11 +322,6 @@ export NI_DEFAULT_AGENT="pnpm"
 export NI_GLOBAL_AGENT="pnpm"
 
 # -----------------
-#  claude
-# -----------------
-alias cc='claude --dangerously-skip-permissions'
-
-# -----------------
 # Gemini CLI
 # -----------------
 alias gem="gemini"
@@ -321,16 +331,25 @@ alias gem="gemini"
 #  utility function
 # -----------------
 function mkcd() {
-  if [[ -d $1 ]]; then
+  if [[ -d "$1" ]]; then
     echo "$1 already exists!"
-    cd $1
+    cd "$1"
   else
-    mkdir -p $1 && cd $1
+    mkdir -p "$1" && cd "$1"
   fi
 }
 
 function killport() {
-    kill $(lsof -t -i:$1)
+    if [[ -z "$1" ]]; then
+        echo "Usage: killport <port>"
+        return 1
+    fi
+    local pids=$(lsof -t -i:"$1")
+    if [[ -z "$pids" ]]; then
+        echo "No process found on port $1"
+        return 1
+    fi
+    kill $pids && echo "Killed processes on port $1: $pids"
 }
 
 # curl wrapper for GET request
@@ -418,7 +437,7 @@ rndl() {
     local include_symbols=false
     local base_charset='a-zA-Z0-9'
     local symbols='!@#$%^&*()_+'
-    
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -437,7 +456,7 @@ rndl() {
                 ;;
         esac
     done
-    
+
     # Preparing character set
     local charset="$base_charset"
     if $include_symbols; then
@@ -449,18 +468,3 @@ rndl() {
     # If you are not using macOS, you can remove LC_ALL=C
     echo "$(LC_ALL=C tr -dc "$charset" < /dev/urandom | head -c "$length")"
 }
-
-# pnpm
-export PNPM_HOME="$XDG_DATA_HOME/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
-
-# The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=($HOME/.docker/completions $fpath)
-autoload -Uz compinit
-compinit
-# End of Docker CLI completions
-

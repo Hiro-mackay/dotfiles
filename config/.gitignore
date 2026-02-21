@@ -15,4 +15,9 @@
 !mise/*
 !gh/config.yml
 !claude/settings.json
-!claude/script/*
+!claude/script/**
+!claude/.gitignore
+!claude/CLAUDE.md
+!claude/agents/**
+!claude/commands/**
+!claude/contexts/**

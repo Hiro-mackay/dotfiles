@@ -1,0 +1,26 @@
+# Plugin marketplace clones (installed via `claude plugin`)
+plugins/
+
+# Cache and runtime data
+cache/
+debug/
+paste-cache/
+session-env/
+shell-snapshots/
+stats-cache.json
+statsig/
+telemetry/
+history.jsonl
+file-history/
+
+# Task and todo tracking (session-specific)
+tasks/
+teams/
+todos/
+plans/
+
+# Backups
+backups/
+
+# Project-specific data (contains per-project settings and memory)
+projects/

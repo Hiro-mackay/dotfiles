@@ -74,6 +74,12 @@ alias ob="cd ~/Google\ Drive/My\ Drive/ObsidianVault"
 
 # Claude
 alias cc="claude --dangerously-skip-permissions"
+alias ccconfig="cd $XDG_CONFIG_HOME/claude"
+
+# Claude Code mode aliases
+alias claude-dev='claude --system-prompt "$(cat ~/.claude/contexts/dev.md)"'
+alias claude-review='claude --system-prompt "$(cat ~/.claude/contexts/review.md)"'
+alias claude-research='claude --system-prompt "$(cat ~/.claude/contexts/research.md)"'
 
 # emacs
 alias em="emacs"
@@ -318,12 +324,6 @@ alias k="kubectl"
 # -----------------
 export NI_DEFAULT_AGENT="pnpm"
 export NI_GLOBAL_AGENT="pnpm"
-
-# -----------------
-# Gemini CLI
-# -----------------
-alias gem="gemini"
-
 
 # -----------------
 #  utility function

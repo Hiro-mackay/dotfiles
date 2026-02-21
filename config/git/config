@@ -12,5 +12,6 @@
 	rebase = true
 [push]
 	default = current
+	autoSetupRemote = true
 [ghq]
 	root = ~/Repository

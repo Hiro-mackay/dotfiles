@@ -127,7 +127,7 @@ alias pyadd="uv add"
 alias pyinit="uv init"
 alias pyin="uv sync"
 alias pyshell="uv shell"
-alias pyrm="uv rm .venv"
+alias pyrm="rm -rf .venv"
 alias pyfreeze="uv pip freeze > requirements.txt"
 
 # -----------------
@@ -149,11 +149,11 @@ alias gst="git stash"
 alias gcamend="git commit --amend --no-edit"
 alias gl="git log --graph"
 alias glo="git log --oneline"
-alias gco="git checkout"
-alias gca="git checkout ."
-alias gcb="git checkout -t -b"
-alias gcd="git checkout . && git clean -df ."
-alias gcom="git checkout main"
+alias gco="git switch"
+alias gca="git restore ."
+alias gcb="git switch -c --track"
+alias gcd="git restore . && git clean -df ."
+alias gcom="git switch main"
 alias gb="git branch"
 alias gbm="git branch -m"
 alias gurl="git remote -v"
@@ -162,20 +162,18 @@ alias gaddurl="git remote add origin"
 alias greset="git reset --hard HEAD"
 alias gundo="git reset --soft HEAD^"
 alias gwa="_gwt_create_core"
-alias gwab="_gwt_create_core"
 alias gwaf='_gwt_create_core "$(git branch --format="%(refname:short)" | fzf)"'
 alias gwr="_gwt_remove_core"
 alias gws="_gwt_switch"
-
-push() { git push origin "$(git branch --show-current)" }
-pull() { git pull origin "$(git branch --show-current)" }
+alias push="git push"
+alias pull="git pull"
 
 rebase() {
   local current_branch=$(git branch --show-current)
   git fetch origin -p
-  git checkout main
+  git switch main
   git pull --ff-only origin main
-  git checkout "$current_branch"
+  git switch "$current_branch"
   git rebase main
 }
 
@@ -370,20 +368,20 @@ cget() {
         if [[ "$1" == "http"* ]]; then
           url="$1"
         else
-          echo "Invalid option: -$OPTARG"
+          echo "Invalid option: $1"
           return 1
         fi
     esac
     shift
   done
 
-  local headers=""
-  local body=""
+  local response_headers=""
+  local response_body=""
 
   if $show_headers && $show_body; then
     response_body=$(curl -sL -D /tmp/headers.txt "$url")
   elif $show_headers; then
-    $(curl -sL -D /tmp/headers.txt "$url" > /dev/null)
+    curl -sL -D /tmp/headers.txt "$url" > /dev/null
   elif $show_body; then
     response_body=$(curl -sL "$url")
   else

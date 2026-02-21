@@ -71,6 +71,7 @@ alias co="cursor ."
 
 # Note
 alias note="cursor '~/Google\ Drive/My\ Drive/ObsidianVault'"
+alias ob="cd ~/Google\ Drive/My\ Drive/ObsidianVault"
 
 # Cluade
 alias cc="claude --dangerously-skip-permissions"
@@ -290,6 +291,11 @@ alias dcud="docker compose up -d"
 alias dcd="docker compose down"
 alias dcdv="docker compose down --volumes"
 alias dce="docker compose exec"
+alias dpip="docker ps -q | xargs -n 1 docker inspect --format '{{ .Name }}: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'"
+
+dexec() {
+    docker exec -it "$1" bash
+}
 
 # kubectl
 alias k="kubectl"
@@ -299,6 +305,17 @@ alias k="kubectl"
 # -----------------
 export NI_DEFAULT_AGENT="pnpm"
 export NI_GLOBAL_AGENT="pnpm"
+
+# -----------------
+#  claude
+# -----------------
+alias cc='claude --dangerously-skip-permissions'
+
+# -----------------
+# Gemini CLI
+# -----------------
+alias gem="gemini"
+
 
 # -----------------
 #  utility function

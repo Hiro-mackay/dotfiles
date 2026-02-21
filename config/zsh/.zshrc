@@ -50,7 +50,7 @@ setopt +o nomatch
 # -----------------
 #  basic alias
 # -----------------
-alias ls="eza  --group-directories-first --icons"
+alias ls="eza --group-directories-first --icons"
 alias l="ls"
 alias la="ls -a"
 alias ll="ls -l"
@@ -64,12 +64,16 @@ alias c="clear"
 alias e="exit"
 alias op="open ."
 alias pwdcp="pwd | tr -d '\n' | pbcopy"
+alias cpb="tee >(ghead -c -1 | pbcopy)"
 
 # VS Code
 alias co="cursor ."
 
 # Note
 alias note="cursor '~/Google\ Drive/My\ Drive/ObsidianVault'"
+
+# Cluade
+alias cc="claude --dangerously-skip-permissions"
 
 # emacs
 alias em="emacs"
@@ -95,7 +99,6 @@ alias drive="cd ~/Google\ Drive/My\ Drive"
 # -----------------
 autoload -U compinit; compinit
 
-
 # -----------------
 #  mise activate
 # -----------------
@@ -104,7 +107,6 @@ eval "$(mise activate zsh)"
 # -----------------
 #  Python
 # -----------------
-
 # alias
 alias pyrun="uv run"
 alias pyadd="uv add"
@@ -114,8 +116,6 @@ alias pyshell="uv shell"
 alias pyrm="uv rm .venv"
 alias pyfreeze="uv pip freeze > requirements.txt"
 
-
-
 # -----------------
 #  Node.js
 # -----------------
@@ -123,15 +123,11 @@ alias pyfreeze="uv pip freeze > requirements.txt"
 alias v="volta"
 alias vin="volta install"
 
-
-
 # -----------------
 #  Rust
 # -----------------
 # alias
 alias compete="cargo compete"
-
-
 
 # -----------------
 #  Git
@@ -160,7 +156,129 @@ alias gseturl="git remote set-url origin"
 alias gaddurl="git remote add origin"
 alias rebase="git fetch origin -p && git checkout main && git reset --hard origin/main && git checkout - && git pull --rebase origin main"
 alias greset="git reset --hard HEAD"
+alias gundo="git reset --soft HEAD^"
+alias gwa="_gwt_create_core"
+alias gwab="_gwt_create_core"
+alias gwaf='_gwt_create_core "$(git branch --format="%(refname:short)" | fzf)"'
+alias gwr="_gwt_remove_core"
+alias gws="_gwt_switch"
 
+# メインworktreeのパスを取得（git worktree listから正確に特定）
+_gwt_main_path() {
+  local main_path
+  main_path=$(git worktree list 2>/dev/null | head -1 | awk '{print $1}')
+  if [[ -z "$main_path" ]]; then
+    echo "❌ Not in a git repository." >&2
+    return 1
+  fi
+  echo "$main_path"
+}
+
+_gwt_create_core() {
+  local full_branch="${1%/}"
+  if [[ -z "$full_branch" ]]; then
+    echo "Usage: gwa <branch-name>"
+    return 1
+  fi
+
+  local main_path
+  main_path=$(_gwt_main_path) || return 1
+  local base=$(basename "$main_path")
+  local suffix="${full_branch##*/}"
+  local worktree_path="../${base}_${suffix}"
+
+  # 既に存在する場合は移動のみ
+  if [[ -d "$worktree_path" ]]; then
+    echo "📂 Worktree already exists. Moving there..."
+    cd "$worktree_path"
+    return 0
+  fi
+
+  # staleな登録を事前クリーンアップ
+  git worktree prune 2>/dev/null
+
+  echo "🚀 Creating worktree at $worktree_path ..."
+  if git show-ref --verify --quiet "refs/heads/$full_branch"; then
+    echo "🌿 Linking existing branch '$full_branch'..."
+    git worktree add "$worktree_path" "$full_branch"
+  else
+    echo "✨ Creating new branch '$full_branch'..."
+    git worktree add -b "$full_branch" "$worktree_path"
+  fi
+
+  if [[ $? -ne 0 ]]; then
+    echo "❌ Failed to create worktree."
+    return 1
+  fi
+
+  cd "$worktree_path"
+
+  # .env系ファイルをメインworktreeから再帰的にコピー
+  local env_files
+  env_files=$(cd "$main_path" && find . -name '.env*' ! -name '*.sample' ! -name '*.example' -type f 2>/dev/null)
+  if [[ -n "$env_files" ]]; then
+    echo "$env_files" | rsync -a --files-from=- "$main_path/" "./" 2>/dev/null
+    echo "📋 Copied .env files from main worktree"
+  fi
+
+  echo "----------------------------------------"
+  echo "✅ Success! Moved to: $PWD"
+  echo "🌿 Branch: $(git branch --show-current)"
+  echo "----------------------------------------"
+}
+
+_gwt_remove_core() {
+  local branch="${1:-$(git branch --show-current)}"
+  local main_path
+  main_path=$(_gwt_main_path) || return 1
+  local base=$(basename "$main_path")
+
+  # メインworktreeは削除対象外
+  if [[ "$(realpath "$PWD")" == "$main_path" && -z "$1" ]]; then
+    echo "⚠️  Cannot remove the main worktree."
+    return 1
+  fi
+
+  local suffix="${branch##*/}"
+  local worktree_dir="${base}_${suffix}"
+
+  # ターゲットの特定（隣のディレクトリ or 子ディレクトリ）
+  local abs_target
+  if [[ -d "../${worktree_dir}" ]]; then
+    abs_target=$(realpath "../${worktree_dir}")
+  elif [[ -d "./${worktree_dir}" ]]; then
+    abs_target=$(realpath "./${worktree_dir}")
+  else
+    # ディレクトリは消えているが登録が残っていれば掃除
+    git worktree prune 2>/dev/null
+    echo "✅ Worktree for '$branch' is already clean."
+    return 0
+  fi
+
+  # 削除対象の中にいる場合はメインリポジトリへ退避
+  if [[ "$(realpath "$PWD")" == "$abs_target"* ]]; then
+    cd "../${base}"
+  fi
+
+  echo "🗑️  Removing worktree: $branch"
+  git worktree remove "$abs_target" && echo "🏠 Current directory: $PWD"
+}
+
+_gwt_switch() {
+  local line
+  line=$(git worktree list 2>/dev/null | awk '{
+    n = split($1, a, "/")
+    branch = $3; gsub(/[\[\]]/, "", branch)
+    printf "%-25s %s\t%s\n", branch, a[n], $1
+  }' | fzf --prompt="worktree> " --delimiter='\t' --with-nth=1)
+
+  if [[ -z "$line" ]]; then
+    return 0
+  fi
+
+  cd "${line##*$'\t'}"
+  echo "🔀 $(basename "$PWD") [$(git branch --show-current)]"
+}
 
 # -----------------
 #  Docker
@@ -176,13 +294,11 @@ alias dce="docker compose exec"
 # kubectl
 alias k="kubectl"
 
-
 # -----------------
 #  ni
 # -----------------
 export NI_DEFAULT_AGENT="pnpm"
 export NI_GLOBAL_AGENT="pnpm"
-
 
 # -----------------
 #  utility function
@@ -196,10 +312,9 @@ function mkcd() {
   fi
 }
 
-function killport(){
+function killport() {
     kill $(lsof -t -i:$1)
 }
-
 
 # curl wrapper for GET request
 cget() {
@@ -211,7 +326,7 @@ cget() {
     case $1 in
       --head|-I) show_headers=true ;;
       --body|-b) show_body=true ;;
-      --show-headers|-i) 
+      --show-headers|-i)
         show_headers=true
         show_body=true
         ;;
@@ -237,7 +352,6 @@ cget() {
     response_body=$(curl -sL "$url")
   else
     curl "$url" -o /dev/null -w '%{scheme}/%{http_version} %{response_code}\ntime_total: %{time_total}\nsize_header: %{size_header}\nsize_download: %{size_download}\n' -s
-
   fi
 
   if $show_headers; then
@@ -263,11 +377,10 @@ cget() {
       echo "File Size: $(echo "$response_body" | wc -c) bytes"
     fi
   fi
-
 }
 
 # Secure random string generation function
-randal() {
+rndl() {
     # Help display
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: randal [OPTIONS] [LENGTH]"
@@ -328,9 +441,9 @@ case ":$PATH:" in
 esac
 # pnpm end
 
-
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
 fpath=($HOME/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
 # End of Docker CLI completions
+

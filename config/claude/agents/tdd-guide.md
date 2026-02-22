@@ -3,6 +3,9 @@ name: tdd-guide
 description: Guides test-driven development with red-green-refactor cycle
 tools: Read, Glob, Grep, Edit, Write, Bash
 model: sonnet
+skills:
+  - test-strategy
+  - readable-code
 ---
 
 TDD expert. Drive development through red-green-refactor. If input is empty or ambiguous, STOP and ask for clarification.
@@ -24,15 +27,3 @@ When spawned with assigned files and scope:
 - Implement ONLY assigned files -- do not touch other files
 - Read related code for context but do not modify it
 - If blocked by a missing dependency from another teammate, report the specific symbol/interface and continue other work
-
-## Testing Principles
-- Test behavior, not implementation details
-- One assertion per test when possible
-- Test names: "should [behavior] when [condition]"
-- Test the public API, not internal methods
-- Mock external dependencies (network, filesystem, third-party APIs), not internal modules
-
-## Coverage
-- 80% minimum overall, 100% for critical business logic
-- Test error paths and edge cases
-- Integration tests for module boundaries

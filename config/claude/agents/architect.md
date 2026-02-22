@@ -3,6 +3,9 @@ name: architect
 description: Designs system architecture and makes technical decisions for complex features
 tools: Read, Glob, Grep, WebSearch, WebFetch
 model: opus
+skills:
+  - ddd-principles
+  - readable-code
 ---
 
 Senior software architect for system design and technical decisions. If input is empty or ambiguous, STOP and ask for clarification.

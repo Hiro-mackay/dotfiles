@@ -10,8 +10,9 @@ Claude Code's global settings managed via dotfiles + GNU Stow.
 claude/
   CLAUDE.md              # Global instructions (auto-loaded in all projects)
   settings.json          # Permissions, hooks, plugins
-  agents/                # Specialized agents (invoked on demand)
+  agents/                # Specialized agents -- process (invoked on demand)
   commands/              # Slash commands (invoked on demand)
+  skills/                # Knowledge skills -- design principles (auto-loaded on trigger)
   contexts/              # System prompts for shell aliases (ccdev, ccreview, ccsearch)
 ```
 
@@ -22,7 +23,7 @@ claude/
 | `/plan` | Create an implementation plan | `/plan add user auth` |
 | `/verify` | 6-step pre-commit verification (build, type, lint, test, secrets, git) | `/verify` |
 | `/review-local` | Review latest commit for bugs and security | `/review-local` |
-| `/build-fix` | Auto-fix build and type errors one at a time | `/build-fix` |
+| `/check-fix` | Run all static analysis tools and fix errors | `/check-fix` |
 | `/tdd` | RED-GREEN-REFACTOR workflow | `/tdd implement password validation` |
 | `/test-coverage` | Analyze coverage, generate missing tests | `/test-coverage` or `/test-coverage src/auth/` |
 | `/orchestrate` | Run multi-agent workflows | `/orchestrate feature login page` |
@@ -48,7 +49,23 @@ claude/
 | `react-reviewer` | sonnet | React: components, hooks, Server Components, state |
 | `security-reviewer` | sonnet | Vulnerability analysis (OWASP Top 10) |
 | `tdd-guide` | sonnet | Test-driven development with red-green-refactor |
+| `python-reviewer` | sonnet | Python: type safety, error handling, modern patterns |
 | `refactor-cleaner` | sonnet | Dead code detection and safe removal |
+
+## Skills
+
+| Skill | Trigger | Preloaded By |
+|-------|---------|-------------|
+| `go-principles` | Go code | go-reviewer |
+| `typescript-principles` | TypeScript code | typescript-reviewer |
+| `react-principles` | React code | react-reviewer |
+| `python-principles` | Python code | python-reviewer |
+| `test-strategy` | Testing tasks | tdd-guide |
+| `ddd-principles` | Domain modeling | architect |
+| `readable-code` | Any code | architect, planner, all reviewers, tdd-guide |
+| `api-design` | REST/HTTP API design | (auto-load) |
+| `sql-principles` | Database/SQL work | (auto-load) |
+| `team-conventions` | Team operations | (auto-load) |
 
 ## Team Mode
 
@@ -58,7 +75,7 @@ Claude automatically decides when to use agent teams based on task complexity:
 - **Single agent**: Simple tasks (bug fixes, single-file changes) run normally
 - **Opt-out**: Say "single agent" or "no team" to force single mode
 
-Protocol details: [`agents/team-protocol.md`](agents/team-protocol.md)
+Protocol details: [`skills/team-conventions/SKILL.md`](skills/team-conventions/SKILL.md)
 
 Key rules:
 - Each file belongs to exactly one teammate (no concurrent edits)

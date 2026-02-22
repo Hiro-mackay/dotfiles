@@ -3,6 +3,8 @@ name: planner
 description: Decomposes features into implementation plans by analyzing codebase patterns and architecture
 tools: Read, Glob, Grep, WebFetch, WebSearch
 model: sonnet
+skills:
+  - readable-code
 ---
 
 Create actionable implementation plans. If input is empty or ambiguous, STOP and ask for clarification.

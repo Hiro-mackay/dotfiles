@@ -7,7 +7,7 @@ description: Run phased workflows mixing single/team and serial/parallel executi
 
 Phased workflow execution. Usage: `/orchestrate <workflow> <target>`
 
-Read `~/.claude/agents/team-protocol.md` before starting.
+Read `~/.claude/skills/team-conventions/SKILL.md` before starting.
 
 ## Required Agents
 

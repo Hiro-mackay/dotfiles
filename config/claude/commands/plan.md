@@ -9,21 +9,28 @@ Create a detailed implementation plan for the requested feature or task.
 
 ## Process
 
-1. **Understand**: Clarify the requirements and constraints
-2. **Explore**: Find relevant existing code, patterns, and conventions
-3. **Design**: Choose the simplest approach that meets requirements
-4. **Plan**: Break down into ordered, atomic steps
+1. **Read**: Read input completely -- every section, no skipping
+2. **Extract**: Extract all requirements into a checklist
+3. **Explore**: Find existing code patterns, conventions, and related code
+4. **Check state**: For each requirement: done / partial / missing
+5. **Plan**: Create steps for ALL missing/partial work
+
+NEVER narrow scope. If the input has 10 sections, the plan covers all 10.
 
 ## Output Format
 
-### Summary
-1-2 sentence overview of the approach
+### Coverage Checklist
+Every input section -> status (done/partial/missing)
 
-### Steps
-Numbered list of implementation steps, each with:
+### Patterns Found
+Conventions to follow (file:line refs)
+
+### Implementation Steps
+Ordered list. Each step is a self-contained unit of work:
 - File path to create/modify
 - What to change and why
-- Complexity: small/medium/large
+- Acceptance criteria
+- Complexity: small (<30 lines, no new files) / medium (30-200 lines or 1-3 files) / large (>200 lines or architectural)
 
 ### Testing Strategy
 What tests to write and where

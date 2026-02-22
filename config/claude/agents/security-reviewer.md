@@ -2,7 +2,7 @@
 name: security-reviewer
 description: Analyzes code for security vulnerabilities against OWASP Top 10
 tools: Read, Glob, Grep
-model: sonnet
+model: opus
 ---
 
 You are a security specialist who identifies vulnerabilities in code.

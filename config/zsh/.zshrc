@@ -322,17 +322,49 @@ _gwt_switch() {
 # -----------------
 #  Docker
 # -----------------
-# alias
+# compose: lifecycle
 alias dc="docker compose"
-alias dp="docker ps"
-alias dcud="docker compose up -d"
-alias dcd="docker compose down"
-alias dcdv="docker compose down --volumes"
-alias dce="docker compose exec"
-alias dpip="docker ps -q | xargs -n 1 docker inspect --format '{{ .Name }}: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'"
-
+alias dcu="dc up"
+alias dcud="dcu -d"
+alias dcw="dcu --watch"
+alias dcd="dc down"
+alias dcdv="dc down --volumes"
+alias dcr="dc restart"
+alias dce="dc exec"
+alias dcdry="dcu --dry-run"
+# compose: logs
+alias dcl="dc logs --tail=50"
+alias dclf="dc logs -f --tail=50"
+# container: status
+alias dp="docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+alias dpa="docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'"
+# container: monitoring
+alias dstats="docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}'"
+# build & security
+alias dlint="docker build --check ."
+alias dscout="docker scout cves --only-severity critical,high"
+# cleanup
+alias dprune="docker system prune -f"
+alias dprunea="docker system prune -af --volumes"
+# fzf: exec into container
 dexec() {
-    docker exec -it "$1" bash
+  local cid
+  cid=$(docker ps --format '{{.Names}}' | fzf --height=40% --reverse) || return
+  docker exec -it "$cid" sh -c 'if command -v bash >/dev/null; then bash; else sh; fi'
+}
+# fzf: compose logs for selected service
+dclz() {
+  local svc
+  svc=$(dc ps --format '{{.Service}}' | fzf --height=40% --reverse) || return
+  dc logs -f --tail=100 "$svc"
+}
+# debug distroless/scratch containers
+ddebug() {
+  local cid
+  if [ -n "$1" ]; then cid="$1"; else
+    cid=$(docker ps --format '{{.Names}}' | fzf --height=40% --reverse) || return
+  fi
+  docker debug "$cid"
 }
 
 # kubectl

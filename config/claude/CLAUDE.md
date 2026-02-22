@@ -7,10 +7,12 @@
 
 ## Workflow
 - Explore -> Plan -> Code -> Verify -> Commit
+- If something goes sideways, STOP and re-plan immediately -- don't keep pushing
 - Run /verify before committing significant changes
 - Use /compact at logical phase boundaries, not mid-task
 - Use subagents for investigation to preserve main context
 - /clear between unrelated tasks
+- After ANY correction from the user, update memory files with the pattern to prevent recurrence
 - Auto-team: default to team. Single only when 1 file AND 1 concern. Read ~/.claude/agents/team-protocol.md first
 - Team file ownership: each file belongs to exactly one teammate, no overlap
 

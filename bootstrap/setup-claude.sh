@@ -48,16 +48,6 @@ if ! command -v terminal-notifier &> /dev/null; then
     echo "   Install via 'brew install terminal-notifier'."
 fi
 
-# ----------------------
-# プラグインのインストール
-# ----------------------
-echo "⏳ Installing Claude Code plugins..."
-if claude plugins install gopls-lsp 2>/dev/null; then
-    echo "✅ Plugin gopls-lsp installed."
-else
-    echo "⚠️  Failed to install plugin gopls-lsp. Skipping."
-fi
-
 echo "--------------------------------"
 echo "✅ Claude Code setup complete!"
 echo "--------------------------------"

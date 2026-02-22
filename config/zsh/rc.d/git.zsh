@@ -1,0 +1,237 @@
+# -----------------
+#  Git: basic
+# -----------------
+alias ga="git add"
+alias gaa="git add ."
+alias gc="git commit"
+alias gcm="git commit -m"
+alias gs="git status"
+alias gcamend="git commit --amend --no-edit"
+alias push="git push"
+alias pull="git pull"
+
+# -----------------
+#  Git: diff
+# -----------------
+alias gd="git diff"
+alias gds="git diff --staged"
+alias gdw="git diff --word-diff"
+
+# -----------------
+#  Git: stash
+# -----------------
+alias gst="git stash"
+alias gstp="git stash pop"
+alias gstl="git stash list"
+alias gsts="git stash show -p"
+
+# -----------------
+#  Git: log
+# -----------------
+# graph
+alias gl="git log --graph --oneline --decorate --all"
+alias gll="git log --graph --pretty=format:'%C(auto)%h%d %s %C(dim)(%ar) <%an>%C(reset)' --all"
+# filter
+alias glme='git log --oneline --author="$(git config user.name)"'
+alias glf="git log --oneline --follow --"
+alias glt="git log --oneline --since='midnight'"
+alias today='git log --oneline --since="midnight" --author="$(git config user.name)" --all'
+gln() { git log --oneline --graph -"${1:-10}"; }
+# diff
+alias gls="git log --oneline --stat"
+alias glnum="git log --oneline --shortstat"
+# search
+glg() { git log --oneline --grep="$1"; }
+glS() { git log --oneline -S "$1"; }
+# fzf interactive
+glz() {
+  git log --oneline --graph --all --color=always |
+    fzf --ansi --no-sort --reverse --preview \
+      'echo {} | grep -o "[a-f0-9]\{7,\}" | head -1 | xargs git show --color=always' |
+    grep -o "[a-f0-9]\{7,\}" | head -1
+}
+
+# -----------------
+#  Git: branch & switch
+# -----------------
+alias gco="git switch"
+alias gcb="git switch -c --track"
+alias gcom="git switch main"
+alias gb="git branch"
+alias gbm="git branch -m"
+alias gbclean='git fetch -p && git branch -vv | grep "gone]" | awk "{print \$1}" | xargs git branch -d'
+
+gfb() {
+  local branch
+  branch=$(git branch --all --format='%(refname:short)' |
+    fzf --height=40% --reverse --preview 'git log --oneline -10 {}') || return
+  git switch "${branch#origin/}"
+}
+
+# -----------------
+#  Git: restore (with safety)
+# -----------------
+alias gca="git restore ."
+
+gcd() {
+  echo "Will discard ALL uncommitted changes and untracked files:"
+  git status -s
+  echo ""
+  read "reply?Proceed? [y/N] "
+  [[ "$reply" =~ ^[Yy]$ ]] && git restore . && git clean -df .
+}
+
+greset() {
+  echo "Will hard reset to HEAD:"
+  git diff --stat
+  echo ""
+  read "reply?Proceed? [y/N] "
+  [[ "$reply" =~ ^[Yy]$ ]] && git reset --hard HEAD
+}
+
+alias gundo="git reset --soft HEAD^"
+
+# -----------------
+#  Git: remote
+# -----------------
+alias gurl="git remote -v"
+alias gseturl="git remote set-url origin"
+alias gaddurl="git remote add origin"
+alias ghopen='open $(git remote get-url origin | sed "s/git@github.com:/https:\/\/github.com\//" | sed "s/\.git$//")'
+
+# -----------------
+#  Git: rebase
+# -----------------
+rebase() {
+  local current_branch=$(git branch --show-current)
+  if [[ "$current_branch" == "main" ]]; then
+    echo "Already on main. Nothing to rebase."
+    return 1
+  fi
+  git fetch origin -p || return 1
+  git switch main || return 1
+  git pull --ff-only origin main || {
+    echo "Failed to fast-forward main"
+    git switch "$current_branch"
+    return 1
+  }
+  git switch "$current_branch" || return 1
+  git rebase main
+}
+
+# -----------------
+#  Git: worktree
+# -----------------
+alias gwa="_gwt_create_core"
+alias gwaf='_gwt_create_core "$(git branch --format="%(refname:short)" | fzf)"'
+alias gwr="_gwt_remove_core"
+alias gws="_gwt_switch"
+
+_gwt_main_path() {
+  local main_path
+  main_path=$(git worktree list 2>/dev/null | head -1 | awk '{print $1}')
+  if [[ -z "$main_path" ]]; then
+    echo "Not in a git repository." >&2
+    return 1
+  fi
+  echo "$main_path"
+}
+
+_gwt_create_core() {
+  local full_branch="${1%/}"
+  if [[ -z "$full_branch" ]]; then
+    echo "Usage: gwa <branch-name>"
+    return 1
+  fi
+
+  local main_path
+  main_path=$(_gwt_main_path) || return 1
+  local base=$(basename "$main_path")
+  local suffix="${full_branch##*/}"
+  local worktree_path="../${base}_${suffix}"
+
+  if [[ -d "$worktree_path" ]]; then
+    echo "Worktree already exists. Moving there..."
+    cd "$worktree_path"
+    return 0
+  fi
+
+  git worktree prune 2>/dev/null
+
+  echo "Creating worktree at $worktree_path ..."
+  if git show-ref --verify --quiet "refs/heads/$full_branch"; then
+    echo "Linking existing branch '$full_branch'..."
+    git worktree add "$worktree_path" "$full_branch"
+  else
+    echo "Creating new branch '$full_branch'..."
+    git worktree add -b "$full_branch" "$worktree_path"
+  fi
+
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to create worktree."
+    return 1
+  fi
+
+  cd "$worktree_path"
+
+  local env_files
+  env_files=$(cd "$main_path" && find . -name '.env*' ! -name '*.sample' ! -name '*.example' -type f 2>/dev/null)
+  if [[ -n "$env_files" ]]; then
+    echo "$env_files" | rsync -a --files-from=- "$main_path/" "./" 2>/dev/null
+    echo "Copied .env files from main worktree"
+  fi
+
+  echo "----------------------------------------"
+  echo "Moved to: $PWD"
+  echo "Branch: $(git branch --show-current)"
+  echo "----------------------------------------"
+}
+
+_gwt_remove_core() {
+  local branch="${1:-$(git branch --show-current)}"
+  local main_path
+  main_path=$(_gwt_main_path) || return 1
+  local base=$(basename "$main_path")
+
+  if [[ "$(realpath "$PWD")" == "$main_path" && -z "$1" ]]; then
+    echo "Cannot remove the main worktree."
+    return 1
+  fi
+
+  local suffix="${branch##*/}"
+  local worktree_dir="${base}_${suffix}"
+
+  local abs_target
+  if [[ -d "../${worktree_dir}" ]]; then
+    abs_target=$(realpath "../${worktree_dir}")
+  elif [[ -d "./${worktree_dir}" ]]; then
+    abs_target=$(realpath "./${worktree_dir}")
+  else
+    git worktree prune 2>/dev/null
+    echo "Worktree for '$branch' is already clean."
+    return 0
+  fi
+
+  if [[ "$(realpath "$PWD")" == "$abs_target"* ]]; then
+    cd "../${base}"
+  fi
+
+  echo "Removing worktree: $branch"
+  git worktree remove "$abs_target" && echo "Current directory: $PWD"
+}
+
+_gwt_switch() {
+  local line
+  line=$(git worktree list 2>/dev/null | awk '{
+    n = split($1, a, "/")
+    branch = $3; gsub(/[\[\]]/, "", branch)
+    printf "%-25s %s\t%s\n", branch, a[n], $1
+  }' | fzf --prompt="worktree> " --delimiter='\t' --with-nth=1)
+
+  if [[ -z "$line" ]]; then
+    return 0
+  fi
+
+  cd "${line##*$'\t'}"
+  echo "$(basename "$PWD") [$(git branch --show-current)]"
+}

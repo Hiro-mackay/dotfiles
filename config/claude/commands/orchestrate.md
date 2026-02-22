@@ -8,7 +8,7 @@ description: Run phased workflows mixing single/team and serial/parallel executi
 Phased workflow execution. Each phase uses the optimal execution mode.
 Usage: `/orchestrate <workflow> <target>`
 
-**Read agents/team-protocol.md before starting.**
+**Read `~/.claude/agents/team-protocol.md` before starting.**
 
 ## Required Agents (Guardrails)
 
@@ -46,7 +46,7 @@ Output:
 | **security** | `tdd-guide` per remediation item |
 
 - Each teammate owns a set of files -- no overlap
-- Follow spawn prompt template from team-protocol.md (Role, Files, Context, Steps, Boundary, Done)
+- Follow spawn prompt template from `~/.claude/agents/team-protocol.md` (Role, Files, Context, Steps, Boundary, Done)
 - All impl teammates run in parallel
 
 ### Phase 3: Review -- team, parallel (blocked by all Phase 2)

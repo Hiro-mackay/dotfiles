@@ -153,8 +153,27 @@ alias gcm="git commit -m"
 alias gs="git status"
 alias gst="git stash"
 alias gcamend="git commit --amend --no-edit"
-alias gl="git log --graph"
-alias glo="git log --oneline"
+# log: graph
+alias gl="git log --graph --oneline --decorate --all"
+alias gll="git log --graph --pretty=format:'%C(auto)%h%d %s %C(dim)(%ar) <%an>%C(reset)' --all"
+# log: filter
+alias glme='git log --oneline --author="$(git config user.name)"'
+alias glf="git log --oneline --follow --"
+alias glt="git log --oneline --since='midnight'"
+gln() { git log --oneline --graph -"${1:-10}"; }
+# log: diff
+alias gls="git log --oneline --stat"
+alias glnum="git log --oneline --shortstat"
+# log: search
+glg() { git log --oneline --grep="$1"; }
+glS() { git log --oneline -S "$1"; }
+# log: fzf interactive
+glz() {
+  git log --oneline --graph --all --color=always |
+    fzf --ansi --no-sort --reverse --preview \
+      'echo {} | grep -o "[a-f0-9]\{7,\}" | head -1 | xargs git show --color=always' |
+    grep -o "[a-f0-9]\{7,\}" | head -1
+}
 alias gco="git switch"
 alias gca="git restore ."
 alias gcb="git switch -c --track"

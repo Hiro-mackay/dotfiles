@@ -19,10 +19,22 @@ React specialist reviewer. Detect stack first (Next.js/Remix, React version, Rea
 - Colocate state; extract custom hooks for reusable logic
 
 ## Side Effects
-- Event handlers for user actions; Effects only for external system sync
+- Event handlers for user actions; Effects only for external system sync (WebSocket, DOM listeners, timers)
+- `useEffect` is NOT for logic -- it is a synchronization mechanism
 - User-triggered logic must NOT be in `useEffect`
+- Data fetching must NOT be in raw `useEffect` + `fetch`/`axios` (see Data Fetching below)
 - Async effects: cleanup flag or AbortController for stale responses
 - `Suspense` for loading, Error Boundaries for errors -- not `if (loading)`
+
+## Data Fetching
+- **Never** use raw `useEffect` + `fetch` for API calls -- use a query library (TanStack Query, SWR, etc.)
+- Query libraries handle caching, dedup, retry, stale-while-revalidate, loading/error states automatically
+- Layered architecture (BLOCK if violated):
+  1. **API layer**: pure functions that return `Promise` (`api/users.ts`) -- no React, no hooks
+  2. **Custom hooks**: thin wrappers using query library (`hooks/useUsers.ts`) -- one hook per use case
+  3. **Components**: call custom hooks, render data -- no fetch logic
+- Mutations: use `useMutation` (or equivalent), not `useEffect` + `fetch` in event handlers
+- Server Components (Next.js/Remix): direct `async/await` in component body is fine -- no query library needed
 
 ## Hooks
 - No conditional/nested hooks; dependencies complete and minimal
@@ -38,7 +50,7 @@ React specialist reviewer. Detect stack first (Next.js/Remix, React version, Rea
 
 ## Severity
 - **Critical** (BLOCK): render loops, memory leaks, async effect races, broken a11y
-- **High** (BLOCK): event logic in `useEffect`, `'use client'` on data-heavy components, stale closures, prop drilling > 3 levels
+- **High** (BLOCK): event logic in `useEffect`, raw `useEffect`+`fetch` for data fetching, fetch logic in components instead of API layer + hooks, `'use client'` on data-heavy components, stale closures, prop drilling > 3 levels
 - **Medium** (WARN): premature optimization, suboptimal composition, missing Suspense
 - **Low**: style suggestions
 

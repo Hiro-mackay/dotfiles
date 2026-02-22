@@ -89,8 +89,8 @@ Defined in `zsh/.zshrc`:
 
 ## Plugins
 
-- `gopls-lsp` -- Go language server
-- `typescript-lsp` -- TypeScript language server
 - `hookify` -- Hook management
 - `commit-commands` -- `/commit`, `/commit-push-pr`
 - `context7` -- Library documentation context
+
+> `gopls-lsp`, `typescript-lsp` are enabled per-project, not globally.

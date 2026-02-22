@@ -11,7 +11,7 @@
 - Use /compact at logical phase boundaries, not mid-task
 - Use subagents for investigation to preserve main context
 - /clear between unrelated tasks
-- Auto-team: default to team. Single only when 1 file AND 1 concern. Read agents/team-protocol.md first
+- Auto-team: default to team. Single only when 1 file AND 1 concern. Read ~/.claude/agents/team-protocol.md first
 - Team file ownership: each file belongs to exactly one teammate, no overlap
 
 ## Git

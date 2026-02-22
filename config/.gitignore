@@ -8,6 +8,8 @@
 !brew/*
 !zsh/.zshenv
 !zsh/.zshrc
+!zsh/rc.d/**
+!zsh/README.md
 !bttpreset/*
 !git/*
 !karabiner/karabiner.json

@@ -5,15 +5,16 @@ echo "--------------------------------"
 echo "⏳ Setting up link..."
 echo "--------------------------------"
 
-# Remove existing ~/.config directory if it exists (not a symlink)
+# Backup and replace existing ~/.config directory if it exists (not a symlink)
 if [[ -d "$XDG_CONFIG_HOME" ]] && [[ ! -L "$XDG_CONFIG_HOME" ]]; then
-    echo "Removing existing ~/.config directory..."
-    rm -rf "$XDG_CONFIG_HOME"
+    local backup_dir="$HOME/.config.backup.$(date +%Y%m%d%H%M%S)"
+    echo "⚠️  Backing up existing ~/.config to $backup_dir ..."
+    mv "$XDG_CONFIG_HOME" "$backup_dir"
 fi
 
 # Remove existing ~/.zshenv if it exists
 if [[ -f "$HOME/.zshenv" ]] && [[ -L "$HOME/.zshenv" ]]; then
-    echo "Removing existing ~/.zshenv..."
+    echo "Removing existing ~/.zshenv symlink..."
     rm "$HOME/.zshenv"
 fi
 
@@ -25,10 +26,11 @@ ln -sfv "$HOME/.dotfiles/config" "$HOME/.config"
 echo "⏳ Linking .zshenv -> .dotfiles/config/zsh/.zshenv..."
 ln -sfv "$HOME/.dotfiles/config/zsh/.zshenv" "$HOME/.zshenv"
 
-# Remove existing ~/.claude directory if it exists (not a symlink)
+# Backup and replace existing ~/.claude directory if it exists (not a symlink)
 if [[ -d "$HOME/.claude" ]] && [[ ! -L "$HOME/.claude" ]]; then
-    echo "Removing existing ~/.claude directory..."
-    rm -rf "$HOME/.claude"
+    local backup_dir="$HOME/.claude.backup.$(date +%Y%m%d%H%M%S)"
+    echo "⚠️  Backing up existing ~/.claude to $backup_dir ..."
+    mv "$HOME/.claude" "$backup_dir"
 fi
 
 # .claude -> .config/claude

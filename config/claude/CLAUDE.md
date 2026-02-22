@@ -11,6 +11,8 @@
 - Use /compact at logical phase boundaries, not mid-task
 - Use subagents for investigation to preserve main context
 - /clear between unrelated tasks
+- Auto-team: 3+ independent concerns / 4+ files -> create team; else single. Read agents/team-protocol.md first
+- Team file ownership: each file belongs to exactly one teammate, no overlap
 
 ## Git
 - Conventional commits: type(scope): description
@@ -22,10 +24,3 @@
 - IMPORTANT: Keep files under 300 lines
 - IMPORTANT: Remove console.log / fmt.Println before committing
 - IMPORTANT: No hardcoded secrets — use environment variables
-
-## Available Agents
-- planner — Task decomposition and implementation planning
-- architect — System design decisions (Opus)
-- code-reviewer — Quality and security review
-- security-reviewer — Vulnerability analysis (OWASP Top 10)
-- tdd-guide — Test-driven development with red-green-refactor

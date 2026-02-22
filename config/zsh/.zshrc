@@ -77,9 +77,9 @@ alias cc="claude --dangerously-skip-permissions"
 alias ccconfig="cd $XDG_CONFIG_HOME/claude"
 
 # Claude Code mode aliases
-alias claude-dev='claude --system-prompt "$(cat ~/.claude/contexts/dev.md)"'
-alias claude-review='claude --system-prompt "$(cat ~/.claude/contexts/review.md)"'
-alias claude-research='claude --system-prompt "$(cat ~/.claude/contexts/research.md)"'
+alias ccdev='cc --system-prompt "$(cat ~/.claude/contexts/dev.md)"'
+alias ccreview='cc --system-prompt "$(cat ~/.claude/contexts/review.md)"'
+alias ccsearch='cc --system-prompt "$(cat ~/.claude/contexts/research.md)"'
 
 # emacs
 alias em="emacs"

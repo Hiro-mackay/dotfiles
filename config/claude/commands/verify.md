@@ -15,7 +15,7 @@ Detect project type and run appropriate build:
 
 ### Step 2: Type Check
 - Go: `go vet ./...`
-- TypeScript: `npx tsc --noEmit --strict`
+- TypeScript: covered by Step 1 (`tsc --noEmit`) -- skip
 - Python: `mypy` (if configured)
 
 ### Step 3: Lint

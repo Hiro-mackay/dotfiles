@@ -18,6 +18,7 @@
 !claude/script/**
 !claude/.gitignore
 !claude/CLAUDE.md
+!claude/README.md
 !claude/agents/**
 !claude/commands/**
 !claude/contexts/**

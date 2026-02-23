@@ -99,6 +99,65 @@ alias gseturl="git remote set-url origin"
 alias gaddurl="git remote add origin"
 alias ghopen='open $(git remote get-url origin | sed "s/git@github.com:/https:\/\/github.com\//" | sed "s/\.git$//")'
 
+gcreate() {
+  local visibility="--public"
+  local repo_name=""
+
+  for arg in "$@"; do
+    case "$arg" in
+      --private) visibility="--private" ;;
+      --public)  visibility="--public" ;;
+      *)         repo_name="$arg" ;;
+    esac
+  done
+
+  if [[ -z "$repo_name" ]]; then
+    echo "Usage: gcreate [--private] <repo-name>"
+    return 1
+  fi
+
+  local ghq_root
+  ghq_root="$(git config --global ghq.root 2>/dev/null)"
+  ghq_root="${ghq_root/#\~/$HOME}"
+  if [[ -z "$ghq_root" ]]; then
+    echo "ghq.root is not configured in git config."
+    return 1
+  fi
+
+  if ! gh auth status &>/dev/null; then
+    echo "gh is not authenticated. Run: gh auth login"
+    return 1
+  fi
+
+  local github_user
+  github_user=$(gh api user -q .login)
+  if [[ -z "$github_user" ]]; then
+    echo "Failed to get GitHub username."
+    return 1
+  fi
+
+  local repo_path="${ghq_root}/github.com/${github_user}/${repo_name}"
+
+  if [[ -d "$repo_path" ]]; then
+    echo "Directory already exists: $repo_path"
+    return 1
+  fi
+
+  mkdir -p "$repo_path" && cd "$repo_path" || return 1
+  git init || return 1
+
+  echo "# ${repo_name}" > README.md
+  git add README.md
+  git commit -m "Initial commit" || return 1
+
+  gh repo create "$repo_name" $visibility --source=. --push || return 1
+
+  echo "----------------------------------------"
+  echo "Created: $repo_path"
+  echo "Remote:  $(git remote get-url origin)"
+  echo "----------------------------------------"
+}
+
 # -----------------
 #  Git: rebase
 # -----------------

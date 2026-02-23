@@ -42,6 +42,10 @@ cheat() {
     gws            switch worktrees (fzf)
     gwr [branch]   remove worktree
 
+  CREATE
+    gcreate <name>           create repo (public, ghq path)
+    gcreate --private <name> create private repo
+
   OTHER
     push / pull    push / pull      rebase  fetch + rebase on main
     ghopen         open repo on GitHub

@@ -102,25 +102,25 @@ alias ghopen='open $(git remote get-url origin | sed "s/git@github.com:/https:\/
 gcreate() {
   local visibility="--public"
   local repo_name=""
+  local template_repo="Hiro-mackay/ai-bootstrap"
+  local mode="template"
 
-  for arg in "$@"; do
-    case "$arg" in
-      --private) visibility="--private" ;;
-      --public)  visibility="--public" ;;
-      *)         repo_name="$arg" ;;
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --private)    visibility="--private" ;;
+      --public)     visibility="--public" ;;
+      --plain)      mode="plain" ;;
+      --template)   mode="template"; [[ -n "$2" && "$2" != --* ]] && { template_repo="$2"; shift; } ;;
+      *)            repo_name="$1" ;;
     esac
+    shift
   done
 
   if [[ -z "$repo_name" ]]; then
-    echo "Usage: gcreate [--private] <repo-name>"
-    return 1
-  fi
-
-  local ghq_root
-  ghq_root="$(git config --global ghq.root 2>/dev/null)"
-  ghq_root="${ghq_root/#\~/$HOME}"
-  if [[ -z "$ghq_root" ]]; then
-    echo "ghq.root is not configured in git config."
+    echo "Usage: gcreate [--private] [--plain | --template [owner/repo]] <repo-name>"
+    echo "  (default)              ai-bootstrap template"
+    echo "  --plain                empty repo"
+    echo "  --template owner/repo  custom template"
     return 1
   fi
 
@@ -129,32 +129,25 @@ gcreate() {
     return 1
   fi
 
-  local github_user
-  github_user=$(gh api user -q .login)
-  if [[ -z "$github_user" ]]; then
-    echo "Failed to get GitHub username."
-    return 1
+  # 1. Create remote repository
+  local gh_args=("$repo_name" "$visibility")
+  if [[ "$mode" == "template" ]]; then
+    gh_args+=(--template "$template_repo")
   fi
+  gh repo create "${gh_args[@]}" || return 1
 
-  local repo_path="${ghq_root}/github.com/${github_user}/${repo_name}"
+  # 2. Clone to ghq-managed path
+  ghq get -p "$repo_name" || return 1
 
-  if [[ -d "$repo_path" ]]; then
-    echo "Directory already exists: $repo_path"
-    return 1
-  fi
-
-  mkdir -p "$repo_path" && cd "$repo_path" || return 1
-  git init || return 1
-
-  echo "# ${repo_name}" > README.md
-  git add README.md
-  git commit -m "Initial commit" || return 1
-
-  gh repo create "$repo_name" $visibility --source=. --push || return 1
+  # 3. Move into the repo
+  local repo_path
+  repo_path=$(ghq list -p | grep "/${repo_name}$")
+  cd "$repo_path" || return 1
 
   echo "----------------------------------------"
   echo "Created: $repo_path"
   echo "Remote:  $(git remote get-url origin)"
+  [[ "$mode" == "template" ]] && echo "Template: $template_repo"
   echo "----------------------------------------"
 }
 

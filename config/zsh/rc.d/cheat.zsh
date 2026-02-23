@@ -43,8 +43,10 @@ cheat() {
     gwr [branch]   remove worktree
 
   CREATE
-    gcreate <name>           create repo (public, ghq path)
-    gcreate --private <name> create private repo
+    gcreate <name>                    create repo (ai-bootstrap template)
+    gcreate --plain <name>            create empty repo
+    gcreate --template o/r <name>     create from custom template
+    gcreate --private <name>          create private repo
 
   OTHER
     push / pull    push / pull      rebase  fetch + rebase on main

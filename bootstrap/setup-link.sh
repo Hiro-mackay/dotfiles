@@ -20,11 +20,11 @@ fi
 
 # .config -> .dotfiles/config
 echo "⏳ Linking .config -> .dotfiles/config..."
-ln -sfv "$HOME/.dotfiles/config" "$HOME/.config"
+ln -sfnv "$HOME/.dotfiles/config" "$HOME/.config"
 
 # .zshenv -> .dotfiles/config/zsh/.zshenv
 echo "⏳ Linking .zshenv -> .dotfiles/config/zsh/.zshenv..."
-ln -sfv "$HOME/.dotfiles/config/zsh/.zshenv" "$HOME/.zshenv"
+ln -sfnv "$HOME/.dotfiles/config/zsh/.zshenv" "$HOME/.zshenv"
 
 # Backup and replace existing ~/.claude directory if it exists (not a symlink)
 if [[ -d "$HOME/.claude" ]] && [[ ! -L "$HOME/.claude" ]]; then
@@ -35,7 +35,7 @@ fi
 
 # .claude -> .config/claude
 echo "⏳ Linking .claude -> .config/claude..."
-ln -sfv "$HOME/.config/claude" "$HOME/.claude"
+ln -sfnv "$HOME/.config/claude" "$HOME/.claude"
 
 echo "--------------------------------"
 echo "✅ All link setup is complete!"

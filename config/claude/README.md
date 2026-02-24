@@ -21,18 +21,19 @@ claude/
 | Command | Description | Usage |
 |---------|-------------|-------|
 | `/plan` | Create an implementation plan | `/plan add user auth` |
-| `/verify` | 6-step pre-commit verification (build, type, lint, test, secrets, git) | `/verify` |
+| `/verify` | 7-step pre-commit verification (build, type, lint, test, deps, secrets, git) | `/verify` |
 | `/review-local` | Review latest commit for bugs and security | `/review-local` |
 | `/check-fix` | Run all static analysis tools and fix errors | `/check-fix` |
 | `/tdd` | RED-GREEN-REFACTOR workflow | `/tdd implement password validation` |
 | `/test-coverage` | Analyze coverage, generate missing tests | `/test-coverage` or `/test-coverage src/auth/` |
 | `/orchestrate` | Run multi-agent workflows | `/orchestrate feature login page` |
+| `/note` | Save conversation insights as Obsidian note | `/note TypeScriptの型パターン` |
 
 ### `/orchestrate` **Workflows**
 
 | Workflow | Pipeline |
 |----------|----------|
-| `feature` | planner -> tdd-guide -> code-reviewer -> security-reviewer |
+| `feature` | planner -> tdd-guide -> security-reviewer -> code-reviewer |
 | `bugfix` | planner -> tdd-guide -> code-reviewer |
 | `refactor` | planner -> refactor-cleaner -> code-reviewer |
 | `security` | security-reviewer -> code-reviewer -> planner |
@@ -47,7 +48,7 @@ claude/
 | `go-reviewer` | sonnet | Go: idioms, concurrency, error handling (1.22+) |
 | `typescript-reviewer` | sonnet | TS: type safety, async patterns, narrowing |
 | `react-reviewer` | sonnet | React: components, hooks, Server Components, state |
-| `security-reviewer` | sonnet | Vulnerability analysis (OWASP Top 10) |
+| `security-reviewer` | opus | Vulnerability analysis (OWASP Top 10) |
 | `tdd-guide` | sonnet | Test-driven development with red-green-refactor |
 | `python-reviewer` | sonnet | Python: type safety, error handling, modern patterns |
 | `refactor-cleaner` | sonnet | Dead code detection and safe removal |
@@ -62,7 +63,7 @@ claude/
 | `python-principles` | Python code | python-reviewer |
 | `test-strategy` | Testing tasks | tdd-guide |
 | `ddd-principles` | Domain modeling | architect |
-| `readable-code` | Any code | architect, planner, all reviewers, tdd-guide |
+| `readable-code` | Any code | architect, planner, all reviewers, tdd-guide, refactor-cleaner |
 | `api-design` | REST/HTTP API design | (auto-load) |
 | `sql-principles` | Database/SQL work | (auto-load) |
 | `team-conventions` | Team operations | (auto-load) |
@@ -98,10 +99,9 @@ Defined in `zsh/.zshrc`:
 
 | Hook | Trigger | Action |
 |------|---------|--------|
-| `detect-console-log.sh` | PostToolUse (Edit/Write) | Warn on `console.log` / `fmt.Println` |
+| `detect-console-log.sh` | PostToolUse (Edit/Write) | Warn on `console.log` / `fmt.Println` / `print()` |
 | `go-vet.sh` | PostToolUse (Edit/Write) | Run `go vet` on Go file changes |
 | `block-dev-server.sh` | PreToolUse (Bash) | Block long-running dev servers |
-| `block-arbitrary-md.sh` | PreToolUse (Write) | Prevent creating arbitrary .md files |
 | `notify.sh` | Stop / Notification | Desktop notification on task completion |
 
 ## Plugins
@@ -109,5 +109,6 @@ Defined in `zsh/.zshrc`:
 - `hookify` -- Hook management
 - `commit-commands` -- `/commit`, `/commit-push-pr`
 - `context7` -- Library documentation context
+- `security-guidance` -- Security checks on file edits
 
 > `gopls-lsp`, `typescript-lsp` are enabled per-project, not globally.

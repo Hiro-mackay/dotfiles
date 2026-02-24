@@ -15,7 +15,7 @@ Create a structured knowledge note from the current conversation context and `$A
 
 ### Output Format
 
-**File path:** `/Users/mackay/Google Drive/My Drive/ObsidianVault/storage/YYMMDD_タイトル.md`
+**File path:** `/Users/mackay/Google Drive/My Drive/ObsidianVault/memory/YYMMDD_タイトル.md`
 - `YYMMDD` = today's date (e.g., 260223)
 - タイトル = concise Japanese or English title describing the content
 
@@ -38,5 +38,5 @@ tags:
 ### Rules
 
 - One note per invocation
-- If a note with similar content already exists in the storage directory, mention it and ask whether to update or create a new one
+- If a note with similar content already exists in the memory directory, mention it and ask whether to update or create a new one
 - Keep notes focused -- split into multiple invocations if topics are unrelated

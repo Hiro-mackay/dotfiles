@@ -55,7 +55,7 @@ glz() {
 #  Git: branch & switch
 # -----------------
 alias gco="git switch"
-alias gcb="git switch -c --track"
+alias gcb="git switch -c"
 alias gcom="git switch main"
 alias gb="git branch"
 alias gbm="git branch -m"

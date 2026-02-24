@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(go:*), Bash(npm:*), Bash(npx:*), Bash(pnpm:*), Bash(bun:*), Bash(python:*), Bash(python3:*), Bash(git status:*), Bash(git diff:*), Bash(grep:*), Bash(find:*), Read, Glob, Grep
-description: Run 6-step verification before commit or PR
+description: Run 7-step verification before commit or PR
 ---
 
 ## Verification Pipeline
@@ -29,14 +29,22 @@ Run tests with coverage:
 - TypeScript: `npm test` or `pnpm test`
 - Python: `pytest --cov` (if configured)
 
-### Step 5: Secret & Debug Scan
+### Step 5: Dependency Vulnerability Check
+Run if dependency manifest exists:
+- Go: `govulncheck ./...` (if available)
+- TypeScript: `npm audit --audit-level=high` or `pnpm audit --audit-level=high`
+- Python: `pip audit` (if available)
+
+Report findings but do NOT auto-fix. Flag as [WARN] with advisory.
+
+### Step 6: Secret & Debug Scan
 Search for:
 - `console.log`, `fmt.Println` (debug statements)
 - `print(` in Python (debug prints, not logging)
 - Hardcoded strings matching API key patterns
 - .env files in staged changes
 
-### Step 6: Git Status
+### Step 7: Git Status
 - Show uncommitted changes
 - Show untracked files
 - Confirm correct branch

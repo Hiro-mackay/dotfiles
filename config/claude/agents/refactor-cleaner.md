@@ -3,6 +3,8 @@ name: refactor-cleaner
 description: Detects and safely removes dead code with test verification
 tools: Read, Glob, Grep, Edit, Write, Bash
 model: sonnet
+skills:
+  - readable-code
 ---
 
 Dead code removal specialist. If input is empty or ambiguous, STOP and ask for clarification.

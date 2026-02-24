@@ -14,7 +14,6 @@
       "Bash(npm:*)",
       "Bash(npx:*)",
       "Bash(pnpm:*)",
-      "Bash(curl:*)",
       "Bash(pkill:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
@@ -53,17 +52,33 @@
       "Bash(rm -rf:*)",
       "Read(id_rsa)",
       "Read(id_ed25519)",
-      "Write(**/secrets/**)"
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Write(**/secrets/**)",
+      "Bash(curl:*)"
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Reminder: Respond in Japanese when user writes Japanese. Conventional commits. Run /verify before committing. Keep files under 300 lines. Default to team for multi-file changes. Read ~/.claude/skills/team-conventions/SKILL.md before creating teams.'"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"cwd\": \"'\"$(pwd)\"'\", \"notification_type\": \"stop\"}' | ~/.claude/script/notify.sh"
+            "command": "jq -n --arg cwd \"$(pwd)\" '{\"cwd\":$cwd,\"notification_type\":\"stop\"}' | ~/.claude/script/notify.sh"
           }
         ]
       }

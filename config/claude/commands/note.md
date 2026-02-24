@@ -19,15 +19,6 @@ Create a structured knowledge note from the current conversation context and `$A
 - `YYMMDD` = today's date (e.g., 260223)
 - タイトル = concise Japanese or English title describing the content
 
-**Frontmatter:**
-```yaml
----
-tags:
-  - Note
-  - (add 1-3 relevant topic tags)
----
-```
-
 **Body:**
 - Write in Japanese
 - Use headings (`##`) and bullet points for structure

@@ -108,22 +108,14 @@
             "command": "~/.claude/script/hooks/block-dev-server.sh"
           }
         ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/block-arbitrary-md.sh"
-          }
-        ]
       }
     ]
   },
   "enabledPlugins": {
-    "hookify@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true,
-    "context7@claude-plugins-official": true
+    "hookify@claude-code-plugins": true,
+    "commit-commands@claude-code-plugins": true,
+    "context7-plugin@context7-marketplace": true,
+    "security-guidance@claude-code-plugins": true
   },
   "skipDangerousModePermissionPrompt": true
 }

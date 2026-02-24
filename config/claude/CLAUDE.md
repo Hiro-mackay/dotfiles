@@ -22,6 +22,10 @@
 - Atomic commits, imperative mood, no period
 - Always review diff before committing
 
+## Files
+- IMPORTANT: Do NOT create .md files unless the user explicitly asks
+- Keep intermediate notes in context, not in files
+
 ## Code
 - IMPORTANT: Keep files under 300 lines
 - IMPORTANT: Remove console.log / fmt.Println before committing

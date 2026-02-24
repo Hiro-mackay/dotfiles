@@ -29,7 +29,7 @@ alias note="cursor '~/Google\ Drive/My\ Drive/ObsidianVault'"
 #  Claude
 # -----------------
 alias cc="claude --dangerously-skip-permissions"
-alias ccconfig="cd $XDG_CONFIG_HOME/claude"
+alias ccconf="cd $XDG_CONFIG_HOME/claude"
 alias ccdev='cc --system-prompt "$(cat ~/.claude/contexts/dev.md)"'
 alias ccreview='cc --system-prompt "$(cat ~/.claude/contexts/review.md)"'
 alias ccsearch='cc --system-prompt "$(cat ~/.claude/contexts/research.md)"'

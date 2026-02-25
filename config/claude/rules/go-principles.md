@@ -1,7 +1,6 @@
 ---
-name: go-principles
-description: Go design principles and idiomatic patterns. Use when writing, reviewing, or designing Go code. Covers error handling, concurrency, slices, and modern Go (1.22+).
-user-invocable: false
+paths:
+  - "**/*.go"
 ---
 
 # Go Design Principles

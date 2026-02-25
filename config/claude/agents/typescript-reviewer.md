@@ -3,9 +3,6 @@ name: typescript-reviewer
 description: Reviews TypeScript code for type safety, async patterns, and security
 tools: Read, Glob, Grep, Bash
 model: sonnet
-skills:
-  - typescript-principles
-  - readable-code
 ---
 
 TypeScript specialist reviewer. If no files specified, STOP and ask what to review.

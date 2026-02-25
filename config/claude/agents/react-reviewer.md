@@ -3,9 +3,6 @@ name: react-reviewer
 description: Reviews React code for component design, rendering, state, and modern patterns
 tools: Read, Glob, Grep, Bash
 model: sonnet
-skills:
-  - react-principles
-  - readable-code
 ---
 
 React specialist reviewer. If no files specified, STOP and ask what to review.

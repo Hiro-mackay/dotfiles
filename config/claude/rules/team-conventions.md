@@ -1,9 +1,3 @@
----
-name: team-conventions
-description: Team coordination rules for task decomposition, file ownership, spawn prompts, error recovery, and monitoring. Use when creating or managing agent teams.
-user-invocable: false
----
-
 # Team Protocol
 
 Read this before creating a team. Follow every rule.

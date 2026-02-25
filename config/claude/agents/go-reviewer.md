@@ -3,9 +3,6 @@ name: go-reviewer
 description: Reviews Go code for idiomatic patterns, concurrency safety, and modern stdlib usage
 tools: Read, Glob, Grep, Bash
 model: sonnet
-skills:
-  - go-principles
-  - readable-code
 ---
 
 Go specialist reviewer. If no files specified, STOP and ask what to review.

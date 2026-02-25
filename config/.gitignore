@@ -22,6 +22,6 @@
 !claude/CLAUDE.md
 !claude/README.md
 !claude/agents/**
-!claude/commands/**
+!claude/rules/**
 !claude/skills/**
 !claude/contexts/**

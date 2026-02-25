@@ -1,7 +1,8 @@
 ---
-name: sql-principles
-description: SQL and database design principles. Use when designing schemas, writing queries, or reviewing database code. Covers normalization, indexing, N+1 prevention, and migration safety.
-user-invocable: false
+paths:
+  - "**/*.sql"
+  - "**/migrations/**"
+  - "**/migrate/**"
 ---
 
 # SQL & Database Principles

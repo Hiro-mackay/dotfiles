@@ -1,7 +1,6 @@
 ---
-name: typescript-principles
-description: TypeScript design principles for type safety and async patterns. Use when writing, reviewing, or designing TypeScript code.
-user-invocable: false
+paths:
+  - "**/*.{ts,tsx}"
 ---
 
 # TypeScript Design Principles
@@ -24,5 +23,5 @@ user-invocable: false
 
 ## Imports & Security
 - No circular dependencies or barrel file bloat
-- No XSS via `dangerouslySetInnerHTML`; sanitize user input
+- No XSS via innerHTML injection; sanitize user input
 - Watch for prototype pollution

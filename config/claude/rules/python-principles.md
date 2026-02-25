@@ -1,7 +1,6 @@
 ---
-name: python-principles
-description: Python design principles for type safety, error handling, and modern patterns. Use when writing, reviewing, or designing Python code (3.10+).
-user-invocable: false
+paths:
+  - "**/*.py"
 ---
 
 # Python Design Principles

@@ -1,9 +1,3 @@
----
-name: readable-code
-description: Opinionated readable code rules for all languages. Use when writing or reviewing code. Enforces concrete limits on function size, nesting, parameters, and structure.
-user-invocable: false
----
-
 # Readable Code Rules
 
 ## Functions

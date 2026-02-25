@@ -1,9 +1,3 @@
----
-name: api-design
-description: API design principles based on "Mastering API Architecture". Use when designing, reviewing, or implementing REST/HTTP APIs. Covers resource modeling, error responses, pagination, versioning, and gateway patterns.
-user-invocable: false
----
-
 # API Design Principles
 
 ## Resource Modeling

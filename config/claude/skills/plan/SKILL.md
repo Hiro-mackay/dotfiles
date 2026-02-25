@@ -1,11 +1,14 @@
 ---
-allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
+name: plan
 description: Create an implementation plan for a feature or task
+disable-model-invocation: true
+argument-hint: "[feature or task description]"
+context: fork
+agent: Plan
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
 ---
 
-## Task
-
-Create a detailed implementation plan for the requested feature or task.
+## Plan: $ARGUMENTS
 
 ## Process
 
@@ -30,7 +33,7 @@ Ordered list. Each step is a self-contained unit of work:
 - File path to create/modify
 - What to change and why
 - Acceptance criteria
-- Complexity: small (<30 lines, no new files) / medium (30-200 lines or 1-3 files) / large (>200 lines or architectural)
+- Complexity: small (<30 lines) / medium (30-200 lines or 1-3 files) / large (>200 lines or architectural)
 
 ### Testing Strategy
 What tests to write and where

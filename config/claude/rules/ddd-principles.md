@@ -1,9 +1,3 @@
----
-name: ddd-principles
-description: Domain-Driven Design principles for modeling complex domains. Use when designing domain models, defining bounded contexts, or structuring aggregates and repositories.
-user-invocable: false
----
-
 # Domain-Driven Design Principles
 
 ## When to Apply
@@ -41,7 +35,7 @@ user-invocable: false
 - Anti-Corruption Layer when integrating with external systems or legacy contexts
 
 ## Language-Specific Notes
-- Apply these principles through the lens of the active language skill (go-principles, typescript-principles, python-principles)
+- Apply these principles through the lens of the active language rule (go-principles, typescript-principles, python-principles)
 - Go: exported fields are idiomatic; avoid getter/setter ceremony
 - TypeScript: use `readonly` properties for Value Objects; leverage discriminated unions for Domain Events
 - Python: use frozen dataclasses or Pydantic models for Value Objects; `@property` for controlled access

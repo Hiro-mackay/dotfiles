@@ -1,9 +1,12 @@
 ---
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash
+name: tdd
 description: Start a TDD red-green-refactor workflow
+disable-model-invocation: true
+argument-hint: "[target behavior or file]"
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 ---
 
-## TDD Workflow
+## TDD Workflow for: $ARGUMENTS
 
 Follow the RED -> GREEN -> REFACTOR cycle strictly.
 
@@ -26,8 +29,3 @@ Follow the RED -> GREEN -> REFACTOR cycle strictly.
 - Go: `go test ./...`
 - TypeScript: detect Jest/Vitest from package.json
 - Python: `pytest`
-
-### Coverage Targets
-- Unit tests: individual functions and methods
-- Integration tests: API endpoints, DB operations
-- E2E tests: critical user workflows (when applicable)

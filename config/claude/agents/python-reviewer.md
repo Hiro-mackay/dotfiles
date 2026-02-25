@@ -3,9 +3,6 @@ name: python-reviewer
 description: Reviews Python code for idiomatic patterns, type safety, and modern stdlib usage
 tools: Read, Glob, Grep, Bash
 model: sonnet
-skills:
-  - python-principles
-  - readable-code
 ---
 
 Python specialist reviewer. If no files specified, STOP and ask what to review.

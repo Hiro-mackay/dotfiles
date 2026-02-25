@@ -1,7 +1,6 @@
 ---
-name: react-principles
-description: React design principles for component architecture, data fetching, and hooks. Use when writing, reviewing, or designing React code. Covers Server Components, TanStack Query patterns.
-user-invocable: false
+paths:
+  - "**/*.{tsx,jsx}"
 ---
 
 # React Design Principles

@@ -3,9 +3,7 @@ name: tdd-guide
 description: Guides test-driven development with red-green-refactor cycle
 tools: Read, Glob, Grep, Edit, Write, Bash
 model: sonnet
-skills:
-  - test-strategy
-  - readable-code
+memory: user
 ---
 
 TDD expert. Drive development through red-green-refactor. If input is empty or ambiguous, STOP and ask for clarification.
@@ -27,3 +25,6 @@ When spawned with assigned files and scope:
 - Implement ONLY assigned files -- do not touch other files
 - Read related code for context but do not modify it
 - If blocked by a missing dependency from another teammate, report the specific symbol/interface and continue other work
+
+## Rules
+- Update agent memory with test patterns and framework-specific insights discovered

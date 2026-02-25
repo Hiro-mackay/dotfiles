@@ -1,17 +1,16 @@
 ---
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Task, TeamCreate, TeamDelete, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage
+name: orchestrate
 description: Run phased workflows mixing single/team and serial/parallel execution
+disable-model-invocation: true
+argument-hint: "[workflow] [target]"
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Task, TeamCreate, TeamDelete, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage
 ---
 
-## Orchestrate
+## Orchestrate: $ARGUMENTS
 
-Phased workflow execution. Usage: `/orchestrate <workflow> <target>`
-
-Read `~/.claude/skills/team-conventions/SKILL.md` before starting.
+The team-conventions rule is auto-loaded. Follow it strictly.
 
 ## Required Agents
-
-Never skip these. Additional agents may be added per task.
 
 | Workflow | Required Agents |
 |----------|----------------|
@@ -23,7 +22,7 @@ Never skip these. Additional agents may be added per task.
 ## Phases
 
 ### 1. Plan -- single, serial
-Spawn `planner` with the target file. Wait for completion.
+Spawn `planner` with the target. Wait for completion.
 
 ### 2. Implement -- team, parallel
 `TeamCreate` -> `TaskCreate` per sub-task -> spawn teammates in parallel.

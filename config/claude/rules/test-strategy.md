@@ -1,9 +1,3 @@
----
-name: test-strategy
-description: Testing principles and strategy for all languages. Use when writing tests, designing test architecture, or evaluating test quality. Covers TDD cycle, coverage targets, and test patterns.
-user-invocable: false
----
-
 # Test Strategy
 
 ## Principles

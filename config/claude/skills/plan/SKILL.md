@@ -4,7 +4,7 @@ description: Create an implementation plan for a feature or task
 disable-model-invocation: true
 argument-hint: "[feature or task description]"
 context: fork
-agent: Plan
+agent: planner
 allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
 ---
 

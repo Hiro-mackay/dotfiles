@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Task, TeamCreate, TeamDelete
 
 ## Orchestrate: $ARGUMENTS
 
-The team-conventions rule is auto-loaded. Follow it strictly.
+Read the team-conventions rule before starting. Follow it strictly.
 
 ## Required Agents
 

@@ -241,6 +241,7 @@ _gwt_create_core() {
 
 _gwt_remove_core() {
   local branch="${1:-$(git branch --show-current)}"
+
   local main_path
   main_path=$(_gwt_main_path) || return 1
   local base=$(basename "$main_path")
@@ -264,12 +265,29 @@ _gwt_remove_core() {
     return 0
   fi
 
-  if [[ "$(realpath "$PWD")" == "$abs_target"* ]]; then
+  if [[ "$(realpath "$PWD")/" == "$abs_target/"* ]]; then
     cd "../${base}"
   fi
 
+  # Check for uncommitted changes before removal
+  if [[ -n "$(git -C "$abs_target" status --porcelain 2>/dev/null)" ]]; then
+    echo "error: '$branch' has uncommitted changes" >&2
+    git -C "$abs_target" status --short >&2
+    return 1
+  fi
+
   echo "Removing worktree: $branch"
-  git worktree remove "$abs_target" && echo "Current directory: $PWD"
+  local git_err
+  git_err=$(git worktree remove "$abs_target" 2>&1)
+  if [[ $? -ne 0 ]]; then
+    echo "error: git worktree remove failed:" >&2
+    echo "  $git_err" >&2
+    echo "" >&2
+    echo "To force removal (e.g. permission issues from Docker), run:" >&2
+    echo "  rm -rf $abs_target && git worktree prune" >&2
+    return 1
+  fi
+  echo "Current directory: $PWD"
 }
 
 _gwt_switch() {

@@ -16,10 +16,11 @@ When spawned with assigned files:
 
 ## Severity
 - **Critical** (BLOCK): data races, goroutine leaks, slice memory leaks, SQL/command injection
-- **High** (BLOCK): `==` error comparison, sequential independent goroutines, ignored errors, panic in libraries
-- **Medium** (WARN): non-idiomatic patterns, missing docs, redundant `v := v`
-- **Low**: style suggestions
+- **High** (BLOCK): `==` error comparison, sequential independent goroutines, ignored errors, panic in libraries, value receiver on mutating method
+- **Medium** (WARN): non-idiomatic naming (`Get` prefix, snake_case, wrong acronym casing `Url`/`Http`), missing/malformed doc comments (must start with exported name), missing package comments, unnecessary `else` after return, `defer` inside loops, redundant `v := v`
+- **Low**: manual method forwarding instead of embedding, positional composite literals for multi-field structs, style suggestions
 
 ## Rules
 - file:line refs + idiomatic code example fixes for every finding
 - Calibrate checks to `go.mod` version
+- Verify naming follows Go conventions (MixedCaps, acronym casing, -er interfaces)

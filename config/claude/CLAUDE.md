@@ -27,6 +27,6 @@
 - Keep intermediate notes in context, not in files
 
 ## Code
-- IMPORTANT: Keep files under 300 lines
+- IMPORTANT: Keep files under 500 lines
 - IMPORTANT: Remove console.log / fmt.Println before committing
 - IMPORTANT: No hardcoded secrets — use environment variables

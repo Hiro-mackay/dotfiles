@@ -4,7 +4,7 @@ description: Review recent code changes for quality and security
 disable-model-invocation: true
 context: fork
 agent: code-reviewer
-allowed-tools: Read, Glob, Grep
+allowed-tools: Read, Glob, Grep, Bash(git diff:*), Bash(git log:*)
 ---
 
 ## Context

@@ -8,10 +8,10 @@ paths:
 # SQL & Database Principles
 
 ## Schema Design
-- Primary keys: UUID or ULID for public-facing IDs, auto-increment for internal-only
+- Primary keys: UUID for public-facing IDs, auto-increment for internal-only
 - Every table has `created_at` and `updated_at` timestamps
 - Foreign keys with explicit `ON DELETE` behavior (CASCADE, SET NULL, RESTRICT)
-- Soft delete (`deleted_at` column) only when audit trail is required -- prefer hard delete
+- No soft delete by default -- hard delete only. Soft delete requires documented business justification (legal retention, undo workflows, audit compliance)
 - Normalize to 3NF by default; denormalize intentionally with documented reason
 
 ## Naming Conventions

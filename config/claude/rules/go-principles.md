@@ -37,8 +37,9 @@ paths:
 - Use field names in composite literals: `Point{X: 1, Y: 2}` not `Point{1, 2}`
 - Pre-allocate slices with `make([]T, 0, n)` and maps with `make(map[K]V, n)` when capacity is known
 - `slices.Clone()` / `copy()` for small slices from large arrays
+- Go 1.20+: `errors.Join` for combining multiple errors
+- Go 1.21+: `min()`/`max()` built-in, `sync.OnceFunc`/`sync.OnceValue`, `log/slog`
 - Go 1.22+: remove redundant `v := v`; use `slices`, `maps`, `cmp` packages
-- `log/slog` over `log.Printf`
 
 ## Interfaces & Embedding
 - Accept interfaces, return concrete types

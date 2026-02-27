@@ -33,7 +33,7 @@ Every teammate prompt MUST include all six sections:
 - On 3 consecutive failures in same task: investigate root cause, assist, or reassign
 
 ## Completion
-- After all tasks complete: run /verify
+- After all tasks complete: verify (build, lint, test)
 - Report changes to user grouped by teammate
 - Graceful shutdown all teammates via shutdown_request
 - Clean up team with TeamDelete

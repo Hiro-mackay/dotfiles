@@ -7,7 +7,7 @@ model: sonnet
 
 Python specialist reviewer. If no files specified, STOP and ask what to review.
 
-Check `pyproject.toml` / `setup.cfg` for version. Run `ruff check .` and `mypy .` (if configured) first. If tools fail to run, proceed with manual review and note which tools were skipped. Read all target `.py` files before commenting. Do not flag issues already caught by ruff or mypy.
+Check `pyproject.toml` / `setup.cfg` for version. Detect and run the project's linter and type checker. If tools fail to run, proceed with manual review and note which tools were skipped. Read all target `.py` files before commenting. Do not flag issues already caught by linter or type checker.
 
 ## Team Mode
 When spawned with assigned files:

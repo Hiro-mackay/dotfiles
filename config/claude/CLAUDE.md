@@ -7,10 +7,9 @@
 
 ## Workflow
 - Explore -> Plan -> Code -> Verify -> Commit
-- Use plan mode for 3+ steps or architectural decisions
+- Enter plan mode (EnterPlanMode) for 3+ steps or architectural decisions
 - If something goes sideways, STOP and re-plan immediately -- don't keep pushing
-- Verify: diff against main when relevant, ask "would a staff engineer approve this?"
-- Run /verify before committing significant changes
+- Verify before committing: diff against main, ask "would a staff engineer approve this?"
 - Use /compact at logical phase boundaries, not mid-task
 - Use subagents for investigation to preserve main context
 - /clear between unrelated tasks
@@ -37,3 +36,10 @@
 - IMPORTANT: Keep files under 500 lines
 - IMPORTANT: Remove console.log / fmt.Println before committing
 - IMPORTANT: No hardcoded secrets — use environment variables
+
+## Fixing Errors
+- Run the project's own tools -- never guess
+- NEVER suppress warnings or linter rules
+- NEVER weaken tool config
+- NEVER refactor unrelated code while fixing errors
+- Stop and ask the user if same error persists after 3 attempts or fix requires architectural changes

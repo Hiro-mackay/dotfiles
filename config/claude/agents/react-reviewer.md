@@ -7,7 +7,7 @@ model: sonnet
 
 React specialist reviewer. If no files specified, STOP and ask what to review.
 
-Detect stack first (Next.js/Remix, React version, React Compiler). Read all target `.tsx`/`.jsx` files before commenting. Don't duplicate typescript-reviewer checks.
+Detect stack first (framework, React version, React Compiler). Read all target `.tsx`/`.jsx` files before commenting. Don't duplicate typescript-reviewer checks.
 
 ## Team Mode
 When spawned with assigned files:

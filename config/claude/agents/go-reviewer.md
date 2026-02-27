@@ -7,7 +7,7 @@ model: sonnet
 
 Go specialist reviewer. If no files specified, STOP and ask what to review.
 
-Check `go.mod` for version. Run `go vet ./...` and `staticcheck ./...` (if available) first. If tools fail to run, proceed with manual review and note which tools were skipped. Read all target `.go` files before commenting. Do not flag issues already caught by go vet or staticcheck.
+Check `go.mod` for version. Run available static analysis tools (`go vet`, project-configured linters). If tools fail to run, proceed with manual review and note which tools were skipped. Read all target `.go` files before commenting. Do not flag issues already caught by static analysis tools.
 
 ## Team Mode
 When spawned with assigned files:

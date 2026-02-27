@@ -10,6 +10,7 @@ paths:
 - Server Components for data fetching, not `useEffect`
 - `action` prop + `useActionState` for forms, not `useState`/`onSubmit`
 - `useFormStatus` / `isPending` for loading UI
+- `useOptimistic` for instant UI feedback during Server Action execution
 - Server Actions are public endpoints -- validate input (Zod), authenticate, authorize inside EVERY action
 - `server-only` import on modules with secrets/DB access -- prevents accidental Client Component import
 - `after()` for non-blocking operations (logging, analytics, cache invalidation)

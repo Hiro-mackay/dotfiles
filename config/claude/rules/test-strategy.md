@@ -8,7 +8,7 @@
 - Mock external dependencies (network, filesystem, third-party APIs), not internal modules
 
 ## Coverage Targets
-- 80% minimum overall, 100% for critical business logic
+- 80% minimum overall, 90%+ for critical business logic
 - Test error paths and edge cases
 - Integration tests for module boundaries
 

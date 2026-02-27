@@ -58,7 +58,6 @@ paths:
 - No floating promises (missing `await` or `void`)
 - Sequential `await` -> `Promise.all`/`Promise.allSettled` when independent
 - Accept `AbortSignal` for fetch or long-running I/O
-- Prefer `async`/`await` over raw callbacks -- better type inference, stack traces, and error propagation
 
 ## Imports & Security
 - No circular dependencies or barrel file re-export bloat

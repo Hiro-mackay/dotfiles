@@ -15,11 +15,12 @@ When spawned with assigned files:
 - Read related code for context but do not report findings outside scope
 
 ## Severity
-- **Critical** (BLOCK): SQL/command injection, mutable default args, bare except with pass, resource leaks
-- **High** (BLOCK): missing type hints on public API, blocking calls in async, ignored exceptions
-- **Medium** (WARN): non-idiomatic patterns, missing `from e`, legacy type syntax
+- **Critical** (BLOCK): SQL/command injection, `eval`/`exec` on untrusted input, `pickle.loads` on untrusted data, `subprocess` with `shell=True` + user input, `yaml.load` without SafeLoader, mutable default args, bare except with pass, resource leaks
+- **High** (BLOCK): missing type hints on public API, blocking calls in async, ignored exceptions, naming violations on public API (wrong casing), missing docstrings on public API
+- **Medium** (WARN): non-idiomatic patterns, missing `from e`, legacy type syntax, whitespace violations, import order/grouping, comparison idioms (`== None`, `type()` instead of `isinstance()`), inconsistent return paths, wildcard imports
 - **Low**: style suggestions
 
 ## Rules
 - file:line refs + idiomatic code example fixes for every finding
 - Calibrate checks to project's Python version
+- Verify naming follows PEP 8 conventions (snake_case functions, CapWords classes, UPPER_CASE constants)

@@ -31,7 +31,7 @@ Do NOT start fixing after the first tool -- gather the complete picture.
 
 1. Group errors by root cause (one type error may cascade into 10 lint errors)
 2. Fix dependency order: types -> build -> lint -> format
-3. Run auto-fixers first: `eslint --fix`, `ruff check --fix`, `gofmt -w`, `prettier --write`
+3. Run auto-fixers first: `eslint --fix`, `ruff check --fix`, `ruff format .`, `gofmt -w`, `prettier --write`
 4. Re-run all tools after auto-fix to see what remains
 
 ## Step 4: Manual Fix Loop

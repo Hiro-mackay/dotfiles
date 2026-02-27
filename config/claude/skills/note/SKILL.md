@@ -3,7 +3,7 @@ name: note
 description: Save conversation insights as an Obsidian note
 disable-model-invocation: true
 argument-hint: "[topic]"
-allowed-tools: Read, Glob, Grep, Write, WebSearch, WebFetch
+allowed-tools: Read, Glob, Grep, Edit, Write, WebSearch, WebFetch
 ---
 
 ## Obsidian Note: $ARGUMENTS

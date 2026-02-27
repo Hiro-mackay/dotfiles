@@ -1,10 +1,9 @@
 ---
 name: review-local
-description: Review recent code changes for quality and security
-disable-model-invocation: true
+description: Review code changes for quality and security after implementation, before commit
 context: fork
 agent: code-reviewer
-allowed-tools: Read, Glob, Grep, Bash(git diff:*), Bash(git log:*)
+allowed-tools: Read, Glob, Grep, Bash(git diff *), Bash(git log *)
 ---
 
 ## Context

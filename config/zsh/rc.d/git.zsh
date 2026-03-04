@@ -8,7 +8,9 @@ alias gcm="git commit -m"
 alias gs="git status"
 alias gcamend="git commit --amend --no-edit"
 alias push="git push"
+alias pushf="git push --force-with-lease"
 alias pull="git pull"
+alias pullff="git pull --ff-only"
 
 # -----------------
 #  Git: diff
@@ -169,6 +171,19 @@ rebase() {
   }
   git switch "$current_branch" || return 1
   git rebase main
+}
+
+rebase-remote() {
+  local current_branch=$(git branch --show-current)
+  local target="${1:-main}"
+
+  if [[ "$current_branch" == "$target" ]]; then
+    echo "Already on $target. Nothing to rebase."
+    return 1
+  fi
+
+  git fetch origin -p || return 1
+  git rebase "origin/$target" || return 1
 }
 
 # -----------------

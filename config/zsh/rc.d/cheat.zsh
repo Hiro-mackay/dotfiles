@@ -210,7 +210,7 @@ SHEET
     note           open Obsidian vault in Cursor
 
   CLAUDE CODE
-    cc             claude (skip permissions)
+    ccode          claude (skip permissions)
     ccdev          claude with dev context
     ccreview       claude with review context
     ccsearch       claude with research context

@@ -104,25 +104,23 @@ alias ghopen='open $(git remote get-url origin | sed "s/git@github.com:/https:\/
 gcreate() {
   local visibility="--public"
   local repo_name=""
-  local template_repo="Hiro-mackay/ai-bootstrap"
-  local mode="template"
+  local template_repo=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --private)    visibility="--private" ;;
       --public)     visibility="--public" ;;
-      --plain)      mode="plain" ;;
-      --template)   mode="template"; [[ -n "$2" && "$2" != --* ]] && { template_repo="$2"; shift; } ;;
+      --template)   [[ -n "$2" && "$2" != --* ]] && { template_repo="$2"; shift; } ;;
       *)            repo_name="$1" ;;
     esac
     shift
   done
 
   if [[ -z "$repo_name" ]]; then
-    echo "Usage: gcreate [--private] [--plain | --template [owner/repo]] <repo-name>"
-    echo "  (default)              ai-bootstrap template"
-    echo "  --plain                empty repo"
-    echo "  --template owner/repo  custom template"
+    echo "Usage: gcreate [--private] [--template <repo|owner/repo>] <repo-name>"
+    echo "  (default)                empty repo"
+    echo "  --template repo          own template (Hiro-mackay/repo)"
+    echo "  --template owner/repo    other's template"
     return 1
   fi
 
@@ -131,15 +129,20 @@ gcreate() {
     return 1
   fi
 
+  local gh_user
+  gh_user=$(gh api user --jq '.login') || return 1
+
   # 1. Create remote repository
   local gh_args=("$repo_name" "$visibility")
-  if [[ "$mode" == "template" ]]; then
+  if [[ -n "$template_repo" ]]; then
+    # repo name only -> resolve to own account
+    [[ "$template_repo" != */* ]] && template_repo="${gh_user}/${template_repo}"
     gh_args+=(--template "$template_repo")
   fi
   gh repo create "${gh_args[@]}" || return 1
 
-  # 2. Clone to ghq-managed path
-  ghq get -p "$repo_name" || return 1
+  # 2. Clone to ghq-managed path (use full owner/repo to avoid user mismatch)
+  ghq get -p "${gh_user}/${repo_name}" || return 1
 
   # 3. Move into the repo
   local repo_path

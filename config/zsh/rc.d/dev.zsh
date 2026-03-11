@@ -24,3 +24,8 @@ alias k="kubectl"
 # -----------------
 export NI_DEFAULT_AGENT="pnpm"
 export NI_GLOBAL_AGENT="pnpm"
+
+# -----------------
+#  Claude Code
+# -----------------
+export CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000

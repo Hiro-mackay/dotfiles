@@ -29,6 +29,11 @@ alias dpa="docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'"
 alias dstats="docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}'"
 
 # -----------------
+#  Docker: disposable containers
+# -----------------
+alias ubuntu="docker run --rm -it --privileged ubuntu bash"
+
+# -----------------
 #  Docker: cleanup
 # -----------------
 alias dprune="docker system prune -f"

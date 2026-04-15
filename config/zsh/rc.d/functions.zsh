@@ -35,6 +35,22 @@ ports() {
 }
 
 # -----------------
+#  container: disposable environments
+# -----------------
+ubuntu() {
+  local rt
+  if command -v podman &>/dev/null; then
+    rt=podman
+  elif command -v docker &>/dev/null; then
+    rt=docker
+  else
+    echo "Error: podman or docker required"
+    return 1
+  fi
+  "$rt" run --rm -it ubuntu bash
+}
+
+# -----------------
 #  clipboard
 # -----------------
 jc() {

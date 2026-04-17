@@ -34,8 +34,10 @@
 
 ## Code
 - IMPORTANT: Keep files under 500 lines
-- IMPORTANT: Remove console.log / fmt.Println before committing
 - IMPORTANT: No hardcoded secrets — use environment variables
+
+## Compaction
+- When compacting, preserve: modified file list, test commands and results, current task scope, user corrections from this session
 
 ## Fixing Errors
 - Run the project's own tools -- never guess

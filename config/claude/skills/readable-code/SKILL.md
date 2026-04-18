@@ -1,3 +1,8 @@
+---
+name: readable-code
+description: Code readability guidelines covering function length, nesting depth, naming conventions, and abstraction decisions. Applies when writing or reviewing any code.
+---
+
 # Readable Code Rules
 
 ## Functions
@@ -18,8 +23,7 @@
 - Delete commented-out code -- version control exists
 
 ## Abstraction
-- Rule of Three -- do not abstract until the third duplication
-- Three similar lines of code is better than a premature abstraction
+- Rule of Three -- do not abstract until the third duplication (see `architecture-decisions` for system-level YAGNI)
 - Name things for what they represent, not how they work
 
 ## Branching

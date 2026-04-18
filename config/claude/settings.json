@@ -59,17 +59,6 @@
     ]
   },
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo 'Reminder: Respond in Japanese when user writes Japanese. Conventional commits. Run /verify before committing. Keep files under 500 lines. Default to team for multi-file changes. Read ~/.claude/skills/team-conventions/SKILL.md before creating teams.'"
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "matcher": "",
@@ -119,6 +108,15 @@
           {
             "type": "command",
             "command": "~/.claude/script/hooks/block-dev-server.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/script/hooks/filter-test-output.sh"
           }
         ]
       }

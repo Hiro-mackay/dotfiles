@@ -69,3 +69,9 @@ paths:
 - `resp.Body.Close()` / `rows.Close()` in `defer` after error check
 - No `init()` side effects -- prefer explicit initialization
 - Concurrency is about structure; parallelism is about execution
+
+## Memory Safety
+- Slice from large array retains entire backing array -- `slices.Clone()` to release
+- Goroutine leak: every goroutine MUST have a termination path (context cancellation, channel close, or timeout)
+- Never capture loop variable by reference in goroutine closure (Go < 1.22)
+- `sync.Pool` objects may be garbage collected at any time -- do not rely on persistence

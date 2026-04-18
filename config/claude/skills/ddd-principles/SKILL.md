@@ -1,9 +1,25 @@
+---
+name: ddd-principles
+description: Domain-Driven Design tactical patterns including aggregates, domain events, bounded contexts, and anti-corruption layers. Applies when modeling business domains or designing domain layers.
+---
+
 # Domain-Driven Design Principles
 
 ## When to Apply
 - Full tactical DDD for core domains with complex business rules only
 - Supporting/generic subdomains (CRUD, config, integrations): simpler patterns are fine
 - Not every service needs Aggregates, Repositories, and Domain Events -- avoid ceremony without complexity
+
+## Discovery Process
+1. **Identify domain events**: what happened? Past tense verbs (`OrderPlaced`, `PaymentFailed`). Start from business outcomes and work backward
+2. **Group events into commands**: what triggered each event? (`PlaceOrder` -> `OrderPlaced`). Commands reveal user intent
+3. **Identify aggregates**: which entity enforces the rules for each command? That entity is the aggregate root
+4. **Draw bounded contexts**: where does the same word mean different things? (`Account` in billing vs auth = two contexts)
+5. **Map context relationships**: upstream/downstream, shared kernel, conformist, anti-corruption layer
+- Context boundaries often align with team boundaries and deployment units
+- Two contexts that always deploy together are probably one context
+- If domain experts from different departments use different vocabulary, that's a context boundary
+- For ubiquitous language and naming heuristics, see `naming-and-modeling` skill
 
 ## Design Rules
 - One transaction per aggregate -- no cross-aggregate transactions

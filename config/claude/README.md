@@ -11,62 +11,50 @@ claude/
   CLAUDE.md              # Global instructions (auto-loaded in all projects)
   settings.json          # Permissions, hooks, plugins
   agents/                # Specialized agents -- process (invoked on demand)
-  commands/              # Slash commands (invoked on demand)
+  rules/                 # Path-filtered rules (auto-loaded by file pattern)
   skills/                # Knowledge skills -- design principles (auto-loaded on trigger)
   contexts/              # System prompts for shell aliases (ccdev, ccreview, ccsearch)
 ```
 
-## Commands
+## Skills
 
-| Command | Description | Usage |
-|---------|-------------|-------|
-| `/plan` | Create an implementation plan | `/plan add user auth` |
-| `/verify` | 7-step pre-commit verification (build, type, lint, test, deps, secrets, git) | `/verify` |
-| `/review-local` | Review latest commit for bugs and security | `/review-local` |
-| `/check-fix` | Run all static analysis tools and fix errors | `/check-fix` |
-| `/tdd` | RED-GREEN-REFACTOR workflow | `/tdd implement password validation` |
-| `/test-coverage` | Analyze coverage, generate missing tests | `/test-coverage` or `/test-coverage src/auth/` |
-| `/orchestrate` | Run multi-agent workflows | `/orchestrate feature login page` |
-| `/note` | Save conversation insights as Obsidian note | `/note TypeScriptの型パターン` |
+Skills load on demand based on description matching. Language rules load based on file path patterns.
 
-### `/orchestrate` **Workflows**
-
-| Workflow | Pipeline |
-|----------|----------|
-| `feature` | planner -> tdd-guide -> security-reviewer -> code-reviewer |
-| `bugfix` | planner -> tdd-guide -> code-reviewer |
-| `refactor` | planner -> refactor-cleaner -> code-reviewer |
-| `security` | security-reviewer -> code-reviewer -> planner |
+| Skill | Location | Trigger |
+|-------|----------|---------|
+| `go-principles` | `rules/` | `**/*.go` |
+| `typescript-principles` | `rules/` | `**/*.{ts,tsx}` |
+| `react-principles` | `rules/` | `**/*.{tsx,jsx}` |
+| `python-principles` | `rules/` | `**/*.py` |
+| `sql-implementation` | `rules/` | `**/*.sql`, `**/migrations/**` |
+| `dockerfile` | `rules/` | `**/Dockerfile*`, `**/docker-compose*` |
+| `readable-code` | `skills/` | Code writing/review |
+| `api-design` | `skills/` | HTTP API design |
+| `ddd-principles` | `skills/` | Domain modeling |
+| `test-strategy` | `skills/` | Testing tasks |
+| `team-conventions` | `skills/` | Team operations |
+| `security-principles` | `skills/` | Auth, input validation, secrets, crypto |
+| `observability` | `skills/` | Logging, tracing, metrics, alerting |
+| `error-handling` | `skills/` | Retry, timeout, circuit breaker, resilience |
+| `git-workflow` | `skills/` | Branching, PRs, code review |
+| `architecture-decisions` | `skills/` | Trade-off analysis, complexity management, ADR |
+| `system-design` | `skills/` | Distributed systems, CAP, failure domains, scaling |
+| `module-design` | `skills/` | Coupling, cohesion, dependency direction, boundaries |
+| `naming-and-modeling` | `skills/` | Ubiquitous language, naming as design, modeling |
+| `db-schema-design` | `skills/` | Schema design, data modeling, relationship patterns |
+| `note` | `skills/` | `/note` (manual) |
+| `review-local` | `skills/` | `/review-local` (manual) |
 
 ## Agents
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
-| `planner` | sonnet | Task decomposition and implementation planning |
-| `architect` | opus | System design decisions and trade-off analysis |
 | `code-reviewer` | sonnet | General quality and security review |
 | `go-reviewer` | sonnet | Go: idioms, concurrency, error handling (1.22+) |
 | `typescript-reviewer` | sonnet | TS: type safety, async patterns, narrowing |
 | `react-reviewer` | sonnet | React: components, hooks, Server Components, state |
 | `security-reviewer` | opus | Vulnerability analysis (OWASP Top 10) |
-| `tdd-guide` | sonnet | Test-driven development with red-green-refactor |
 | `python-reviewer` | sonnet | Python: type safety, error handling, modern patterns |
-| `refactor-cleaner` | sonnet | Dead code detection and safe removal |
-
-## Skills
-
-| Skill | Trigger | Preloaded By |
-|-------|---------|-------------|
-| `go-principles` | Go code | go-reviewer |
-| `typescript-principles` | TypeScript code | typescript-reviewer |
-| `react-principles` | React code | react-reviewer |
-| `python-principles` | Python code | python-reviewer |
-| `test-strategy` | Testing tasks | tdd-guide |
-| `ddd-principles` | Domain modeling | architect |
-| `readable-code` | Any code | architect, planner, all reviewers, tdd-guide, refactor-cleaner |
-| `api-design` | REST/HTTP API design | (auto-load) |
-| `sql-principles` | Database/SQL work | (auto-load) |
-| `team-conventions` | Team operations | (auto-load) |
 
 ## Team Mode
 
@@ -81,7 +69,6 @@ Protocol details: [`skills/team-conventions/SKILL.md`](skills/team-conventions/S
 Key rules:
 - Each file belongs to exactly one teammate (no concurrent edits)
 - Shared types/interfaces are owned by their creator; dependents wait via `blockedBy`
-- Teams run `/verify` after all tasks complete
 
 ## Shell Aliases
 
@@ -102,6 +89,7 @@ Defined in `zsh/.zshrc`:
 | `detect-console-log.sh` | PostToolUse (Edit/Write) | Warn on `console.log` / `fmt.Println` / `print()` |
 | `go-vet.sh` | PostToolUse (Edit/Write) | Run `go vet` on Go file changes |
 | `block-dev-server.sh` | PreToolUse (Bash) | Block long-running dev servers |
+| `filter-test-output.sh` | PreToolUse (Bash) | Filter verbose test output |
 | `notify.sh` | Stop / Notification | Desktop notification on task completion |
 
 ## Plugins

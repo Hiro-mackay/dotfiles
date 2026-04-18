@@ -1,3 +1,8 @@
+---
+name: test-strategy
+description: Test strategy covering TDD workflow, coverage targets, test prioritization, and testing best practices. Applies when writing tests or planning test coverage.
+---
+
 # Test Strategy
 
 ## Principles

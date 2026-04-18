@@ -1,6 +1,15 @@
+---
+name: team-conventions
+description: Team protocol for multi-agent coordination including task decomposition, file ownership, spawn templates, and error recovery. Applies when creating or managing agent teams.
+---
+
 # Team Protocol
 
 Read this before creating a team. Follow every rule.
+
+## Model Selection
+- Teammates use sonnet by default
+- Use opus only for tasks requiring critical judgment (architecture, security)
 
 ## Task Decomposition
 - Identify independent concerns (API, UI, tests, infra, etc.)

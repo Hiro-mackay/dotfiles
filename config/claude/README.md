@@ -42,6 +42,10 @@ Skills load on demand based on description matching. Language rules load based o
 | `module-design` | `skills/` | Coupling, cohesion, dependency direction, boundaries |
 | `naming-and-modeling` | `skills/` | Ubiquitous language, naming as design, modeling |
 | `db-schema-design` | `skills/` | Schema design, data modeling, relationship patterns |
+| `visual-design` | `skills/` | Typography, color, layout, motion, AI anti-patterns |
+| `ui-quality` | `skills/` | A11y, responsive, states, UX writing |
+| `web-performance` | `skills/` | Images, fonts, bundle, CWV, animation perf |
+| `critique` | `skills/` | `/critique` UX evaluation (manual, fork context) |
 | `note` | `skills/` | `/note` (manual) |
 | `review-local` | `skills/` | `/review-local` (manual) |
 

@@ -1,9 +1,9 @@
 ---
-name: naming-and-modeling
-description: Naming as a design tool, ubiquitous language, and domain modeling heuristics. Applies when modeling a business domain, designing module/service boundaries, or diagnosing design problems through naming friction.
+name: naming-conventions
+description: Naming as a design tool covering naming signals, problem detection through names, conventions, metaphor awareness, and anti-patterns. Applies when naming variables, functions, modules, or services, or when diagnosing design problems through naming friction.
 ---
 
-# Naming & Modeling Principles
+# Naming Conventions
 
 ## Naming as Design Signal
 - A name that's hard to find = a concept that's poorly defined in the design
@@ -19,14 +19,7 @@ description: Naming as a design tool, ubiquitous language, and domain modeling h
 - A boolean named `flag` or `status` is ambiguous: name the condition (`isExpired`, `hasPermission`)
 - A module named `utils`, `helpers`, `common` is a grab bag: distribute to where things belong
 
-## Ubiquitous Language (from DDD)
-- Code, documentation, and conversation MUST use the same terms for the same concepts
-- If the domain expert says "order", the code says `Order` -- not `Purchase`, `Transaction`, or `Request`
-- Different bounded contexts MAY use different names for similar concepts -- that's correct, not inconsistent
-- When domain experts disagree on terminology, that signals a boundary between contexts
-- Glossary: maintain a shared vocabulary for the domain. Code IS the executable glossary
-
-## Naming Conventions
+## Conventions
 - Nouns for entities and values: `User`, `Invoice`, `Temperature`
 - Verbs for actions and commands: `sendEmail`, `calculateTotal`, `cancelOrder`
 - Adjectives/past participles for states: `isActive`, `wasProcessed`, `hasFailed`
@@ -40,15 +33,6 @@ description: Naming as a design tool, ubiquitous language, and domain modeling h
 - Bad metaphor = wrong mental model = wrong design decisions
 - Watch for metaphor mismatch: if your "queue" allows random access, it's not a queue
 - Resist extending metaphors beyond their useful range ("the factory's factory's builder")
-
-## Modeling Heuristics
-- Model what the system DOES, not what the real world IS. Software models are purpose-built
-- Start with behaviors (what happens), not structures (what exists). Verbs before nouns
-- If two concepts have different lifecycles, they're different entities
-- If two concepts always change together, they might be one entity
-- Time is almost always relevant: "when did this happen?" should be answerable
-- State machines: if an entity has distinct phases with different rules, model it as explicit states
-- Avoid god entities: if `User` has 30 fields, it's modeling multiple concepts
 
 ## Anti-patterns
 - **Naming by implementation**: `HashMap`, `LinkedList` in domain code -- name by purpose, not structure

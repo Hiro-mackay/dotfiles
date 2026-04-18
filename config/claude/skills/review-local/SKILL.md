@@ -26,11 +26,8 @@ Review the code changes. Apply these criteria with language-specific rigor:
 - Incorrect error propagation or swallowed errors
 
 ### Security (Critical/High)
-- Injection vulnerabilities (SQL, command, XSS)
-- Auth bypass, missing authorization checks, IDOR
-- Hardcoded secrets, tokens, or credentials
-- Unsafe deserialization, path traversal
-- Missing input validation at system boundaries
+- Apply `security-principles` skill criteria (injection, auth, secrets, input validation)
+- Hardcoded secrets, tokens, or credentials in diff
 
 ### Resilience (High/Medium)
 - Missing timeouts on external calls
@@ -38,9 +35,7 @@ Review the code changes. Apply these criteria with language-specific rigor:
 - Non-idempotent retry logic
 
 ### Quality (Medium)
-- Functions exceeding 30 lines or 3 nesting levels
-- Parameters exceeding 3 per function
-- Naming that obscures intent
+- Apply `readable-code` skill criteria (function length, nesting, parameters, naming)
 - Premature abstraction or unnecessary indirection
 
 ### Tests (Medium)

@@ -19,7 +19,7 @@ description: Domain-Driven Design tactical patterns including aggregates, domain
 - Context boundaries often align with team boundaries and deployment units
 - Two contexts that always deploy together are probably one context
 - If domain experts from different departments use different vocabulary, that's a context boundary
-- For ubiquitous language and naming heuristics, see `naming-and-modeling` skill
+- For naming conventions and anti-patterns, see `naming-conventions` skill
 
 ## Design Rules
 - One transaction per aggregate -- no cross-aggregate transactions
@@ -43,6 +43,16 @@ description: Domain-Driven Design tactical patterns including aggregates, domain
 - Include: aggregate ID, timestamp, causation ID, correlation ID
 - Events are immutable facts -- never modify after publishing
 - Prefer thin events (IDs + changed fields) over fat events (full state) -- consumers query if they need more
+
+## Modeling Heuristics
+- Model what the system DOES, not what the real world IS. Software models are purpose-built
+- Start with behaviors (what happens), not structures (what exists). Verbs before nouns
+- If two concepts have different lifecycles, they're different entities
+- If two concepts always change together, they might be one entity
+- Time is almost always relevant: "when did this happen?" should be answerable
+- State machines: if an entity has distinct phases with different rules, model it as explicit states
+- Avoid god entities: if `User` has 30 fields, it's modeling multiple concepts
+- Ubiquitous language: code, docs, and conversation MUST use the same terms. Code IS the executable glossary
 
 ## Language-Specific Notes
 - Apply through the lens of the active language rule

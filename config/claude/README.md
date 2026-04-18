@@ -40,7 +40,7 @@ Skills load on demand based on description matching. Language rules load based o
 | `architecture-decisions` | `skills/` | Trade-off analysis, complexity management, ADR |
 | `system-design` | `skills/` | Distributed systems, CAP, failure domains, scaling |
 | `module-design` | `skills/` | Coupling, cohesion, dependency direction, boundaries |
-| `naming-and-modeling` | `skills/` | Ubiquitous language, naming as design, modeling |
+| `naming-conventions` | `skills/` | Naming signals, conventions, anti-patterns |
 | `db-schema-design` | `skills/` | Schema design, data modeling, relationship patterns |
 | `visual-design` | `skills/` | Typography, color, layout, motion, AI anti-patterns |
 | `ui-quality` | `skills/` | A11y, responsive, states, UX writing |

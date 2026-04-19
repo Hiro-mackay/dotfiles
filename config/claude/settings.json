@@ -132,6 +132,7 @@
     "context7-plugin@context7-marketplace": true,
     "security-guidance@claude-code-plugins": true
   },
+  "language": "ja",
   "skipDangerousModePermissionPrompt": true,
-  "language": "ja"
+  "effortLevel": "high"
 }

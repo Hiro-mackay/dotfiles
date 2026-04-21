@@ -133,6 +133,6 @@
     "security-guidance@claude-code-plugins": true
   },
   "language": "ja",
-  "skipDangerousModePermissionPrompt": true,
-  "effortLevel": "high"
+  "effortLevel": "xhigh",
+  "skipDangerousModePermissionPrompt": true
 }

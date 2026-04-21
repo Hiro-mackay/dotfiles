@@ -94,7 +94,6 @@ claude/
 | スキル | 内容 |
 |-------|------|
 | `review-local` | `/review-local` で手動起動。git diff を取得し code-reviewer エージェントで構造化レビュー |
-| `note` | `/note` で手動起動。会話の知見を Obsidian Vault に保存 |
 
 ## Hooks
 

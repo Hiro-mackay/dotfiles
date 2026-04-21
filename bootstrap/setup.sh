@@ -3,17 +3,14 @@
 INSTALL_DIR="$HOME/.dotfiles"
 BOOTSTRAP_DIR="$INSTALL_DIR/bootstrap"
 
-# 環境変数を最初に読み込む
 source "$BOOTSTRAP_DIR/env.sh"
+source "$BOOTSTRAP_DIR/lib/log.sh"
 
-# sudo パスワードを事前に要求（以降の sudo プロンプトを省略）
-echo ""
-echo "⚠️  Some setup steps require administrator privileges."
+# Request sudo upfront and keep the timestamp alive for the lifetime of this script (PID $$).
 sudo -v
-# sudo のタイムスタンプを維持（バックグラウンドで定期更新）
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-# ステップ実行結果トラッキング
+# Step execution tracker
 typeset -a FAILED_STEPS=()
 
 run_step() {
@@ -21,46 +18,39 @@ run_step() {
     local script="$2"
     local critical="${3:-false}"
 
-    echo ""
-    echo "==============================="
-    echo "  Running: $name"
-    echo "==============================="
+    _log_header "$name"
 
     if "$script"; then
-        echo "=> $name: OK"
+        _log_ok "$name done"
     else
-        echo "=> $name: FAILED"
+        _log_error "$name failed"
         FAILED_STEPS+=("$name")
         if [[ "$critical" == "true" ]]; then
-            echo "❌ Critical step '$name' failed. Aborting."
+            _log_error "Critical step failed. Aborting."
             exit 1
         fi
     fi
 }
 
-# Critical steps (後続が依存するため失敗時は即時中断)
+# Critical steps (abort on failure — later steps depend on these)
 run_step "setup-dir"  "$BOOTSTRAP_DIR/setup-dir.sh"  true
 run_step "setup-link" "$BOOTSTRAP_DIR/setup-link.sh" true
 run_step "setup-brew" "$BOOTSTRAP_DIR/setup-brew.sh" true
 
-# Non-critical steps (失敗しても続行)
+# Non-critical steps (continue on failure)
 run_step "setup-lang"   "$BOOTSTRAP_DIR/setup-lang.sh"
 run_step "setup-macos"  "$BOOTSTRAP_DIR/setup-macos.sh"
 run_step "setup-vscode" "$BOOTSTRAP_DIR/setup-vscode.sh"
 run_step "setup-claude" "$BOOTSTRAP_DIR/setup-claude.sh"
 
-# 実行結果サマリ
-echo ""
-echo "==============================="
-echo "  Setup Summary"
-echo "==============================="
-
+# Summary
+_log_header "summary"
 if [[ ${#FAILED_STEPS[@]} -eq 0 ]]; then
-    echo "✅ All steps completed successfully."
+    _log_ok "All steps completed successfully."
 else
-    echo "⚠️  The following steps failed:"
+    _log_warn "The following steps failed:"
     for step in "${FAILED_STEPS[@]}"; do
-        echo "  - $step"
+        _log_error "  $step"
     done
     exit 1
 fi

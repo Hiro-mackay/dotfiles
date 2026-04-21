@@ -25,7 +25,6 @@ brew "zsh-syntax-highlighting"
 
 cask "appcleaner"
 cask "cursor"
-cask "claude-code"
 cask "deepl"
 cask "discord"
 cask "docker-desktop"

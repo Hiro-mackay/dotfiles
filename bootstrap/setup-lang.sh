@@ -1,30 +1,22 @@
 #!/usr/bin/env zsh
 set -e
 
-# All runtimes and tools are managed using mise (https://github.com/jdx/mise).
-# mise reads ${XDG_CONFIG_HOME}/mise/config.toml and configures the runtime environment.
+BOOTSTRAP_DIR="${0:a:h}"
+source "$BOOTSTRAP_DIR/lib/log.sh"
 
-echo "--------------------------------"
-echo "⏳ Setting up language..."
-echo "--------------------------------"
-
-# brew bundle 直後でも mise を検出できるよう PATH を更新
-eval "$(/opt/homebrew/bin/brew shellenv)"
-hash -r
-
-echo "⏳ Setting up mise..."
-if command -v mise >/dev/null 2>&1; then
-    echo "✅ mise is already installed."
-
-    # config.toml に定義されたツールを一括インストール
-    echo "⏳ Installing tools from config.toml (this may take a while)..."
-    mise install
-else
-    echo "⚠️  mise is not installed. Skipping language setup via mise."
-    echo "   Install mise via Homebrew and re-run this script."
-    exit 0
+# Ensure brew is on PATH (works for both Apple Silicon and Intel)
+if command -v brew >/dev/null; then
+    eval "$(brew shellenv)"
+    hash -r
 fi
 
-echo "--------------------------------"
-echo "✅ All language setup is complete!"
-echo "--------------------------------"
+if command -v mise >/dev/null 2>&1; then
+    _log_ok "mise is already installed."
+    _log_run "Installing tools from config.toml (this may take a while)..."
+    mise install
+    _log_ok "Tools installed."
+else
+    _log_warn "mise is not installed. Skipping language setup."
+    _log_skip "Install mise via Homebrew and re-run this script."
+    exit 0
+fi

@@ -1,67 +1,52 @@
 #!/usr/bin/env zsh
 set -e
 
-echo "--------------------------------"
-echo "⏳ Setting up Homebrew..."
-echo "--------------------------------"
-# Homebrewがインストールされているか確認
+BOOTSTRAP_DIR="${0:a:h}"
+source "$BOOTSTRAP_DIR/lib/log.sh"
+
 if command -v brew >/dev/null; then
-    echo "✅ Homebrew is already installed."
+    _log_ok "Homebrew is already installed."
 else
-    echo "⏳ Installing Homebrew..."
-    # Homebrewのインストールスクリプトを実行
-    # sudoで実行
+    _log_run "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    # インストール後に設定を読み込む
-    # これがないと、同じスクリプト内で`brew`コマンドが認識されない場合がある
     if [[ -f "/opt/homebrew/bin/brew" ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
 
     if command -v brew >/dev/null; then
-        echo "✅ Homebrew installed successfully."
+        _log_ok "Homebrew installed."
     else
-        echo "❌ Failed to install Homebrew. Exiting."
+        _log_error "Failed to install Homebrew."
         exit 1
     fi
 fi
 
-
-
-# Homebrewの更新
-echo "⏳ Updating Homebrew..."
+_log_run "Updating Homebrew..."
 if brew update; then
-    echo "✅ Homebrew updated successfully."
+    _log_ok "Homebrew updated."
 else
-    echo "❌ Failed to update Homebrew. Exiting."
+    _log_error "Failed to update Homebrew."
     exit 1
 fi
 
-# Brewfileの存在確認
 BREWFILE_PATH="${DOTFILES_CONFIG_DIR}/brew/Brewfile"
 if [[ ! -f "${BREWFILE_PATH}" ]]; then
-    echo "❌ Brewfile not found at ${BREWFILE_PATH}. Exiting."
+    _log_error "Brewfile not found at ${BREWFILE_PATH}."
     exit 1
 fi
 
-# Homebrew Bundleの実行
-echo "⏳ Installing Homebrew bundle from ${BREWFILE_PATH}..."
+_log_run "Installing Homebrew bundle..."
 if brew bundle --file="${BREWFILE_PATH}"; then
-    echo "✅ Homebrew bundle installed successfully."
+    _log_ok "Homebrew bundle installed."
 else
-    echo "❌ Failed to install Homebrew bundle. Exiting."
+    _log_error "Failed to install Homebrew bundle."
     exit 1
 fi
 
-# Homebrewキャッシュのクリーンアップ
-echo "⏳ Cleaning up Homebrew cache..."
+_log_run "Cleaning up Homebrew cache..."
 if brew cleanup -s; then
-    echo "✅ Homebrew cache cleaned up successfully."
+    _log_ok "Homebrew cache cleaned."
 else
-    echo "❌ Failed to clean up Homebrew cache."
+    _log_warn "Failed to clean Homebrew cache."
 fi
-
-echo "--------------------------------"
-echo "✅ All brew setup is complete!"
-echo "--------------------------------"

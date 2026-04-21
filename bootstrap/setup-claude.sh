@@ -1,53 +1,50 @@
 #!/usr/bin/env zsh
 set -e
 
-echo "--------------------------------"
-echo "⏳ Setting up Claude Code..."
-echo "--------------------------------"
-
-# brew bundle 直後でも claude を検出できるよう PATH を更新
-if [[ -f "/opt/homebrew/bin/brew" ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
+BOOTSTRAP_DIR="${0:a:h}"
+source "$BOOTSTRAP_DIR/lib/log.sh"
 
 # ----------------------
-# Claude Code のインストール確認
+# Claude Code installation check
 # ----------------------
+# Ensure ~/.local/bin is on PATH so a just-installed claude binary is visible
+# within this setup session (shell rc files aren't re-sourced after install).
+export PATH="$HOME/.local/bin:$PATH"
+
 if ! command -v claude &> /dev/null; then
-    echo "⚠️  'claude' command not found. Install via 'brew install --cask claude-code'."
-    echo "   Skipping Claude Code setup."
-    exit 0
+    _log_run "Installing Claude Code via official installer..."
+    if ! curl -fsSL https://claude.ai/install.sh | bash; then
+        _log_error "Claude Code installer failed."
+        exit 1
+    fi
+    hash -r
 fi
 
-# 動作確認
 if ! claude --version &> /dev/null; then
-    echo "⚠️  'claude' command found but not working properly. Skipping."
+    _log_warn "'claude' command found but not working properly. Skipping."
     exit 0
 fi
 
-echo "✅ Claude Code $(claude --version 2>/dev/null) is installed."
+_log_ok "Claude Code $(claude --version 2>/dev/null) is installed."
 
 # ----------------------
-# notify.sh の実行権限を付与
+# Set script permissions
 # ----------------------
 CLAUDE_SCRIPT_DIR="${XDG_CONFIG_HOME}/claude/script"
 
 if [[ -d "${CLAUDE_SCRIPT_DIR}" ]]; then
-    echo "⏳ Setting script permissions..."
+    _log_run "Setting script permissions..."
     chmod +x "${CLAUDE_SCRIPT_DIR}"/*.sh 2>/dev/null || true
-    echo "✅ Script permissions set."
+    chmod +x "${CLAUDE_SCRIPT_DIR}"/hooks/*.sh 2>/dev/null || true
+    _log_ok "Script permissions set."
 else
-    echo "⚠️  Script directory not found at ${CLAUDE_SCRIPT_DIR}. Skipping."
+    _log_skip "Script directory not found at ${CLAUDE_SCRIPT_DIR}."
 fi
 
 # ----------------------
-# terminal-notifier の確認（通知フックの依存）
+# Check terminal-notifier (notification hook dependency)
 # ----------------------
 if ! command -v terminal-notifier &> /dev/null; then
-    echo "⚠️  terminal-notifier is not installed. Notification hooks will not work."
-    echo "   Install via 'brew install terminal-notifier'."
+    _log_warn "terminal-notifier is not installed. Notification hooks will not work."
+    _log_skip "Install via 'brew install terminal-notifier'."
 fi
-
-echo "--------------------------------"
-echo "✅ Claude Code setup complete!"
-echo "--------------------------------"

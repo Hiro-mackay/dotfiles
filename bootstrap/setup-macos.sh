@@ -32,7 +32,7 @@ _log_ok "System general configured."
 # -----------------
 _log_run "Configuring Dock..."
 
-defaults write com.apple.dock tilesize -int 38
+defaults write com.apple.dock tilesize -int 39
 defaults write com.apple.dock largesize -int 58
 defaults write com.apple.dock autohide -int 1
 defaults write com.apple.dock orientation -string left
@@ -45,6 +45,9 @@ defaults write com.apple.dock wvous-bl-modifier -int 0
 defaults write com.apple.dock wvous-br-corner -int 5
 defaults write com.apple.dock wvous-br-modifier -int 0
 
+# Disable the three-finger swipe-down App Expose gesture
+defaults write com.apple.dock showAppExposeGestureEnabled -bool false
+
 _log_ok "Dock configured."
 
 # -----------------
@@ -53,10 +56,17 @@ _log_ok "Dock configured."
 _log_run "Configuring Trackpad..."
 
 defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
-defaults write -g com.apple.trackpad.scaling -int 2.5
+defaults write -g com.apple.trackpad.scaling -float 2.5
 defaults write com.apple.AppleMultitouchTrackpad FirstClickThreshold -int 0
 defaults write com.apple.AppleMultitouchTrackpad SecondClickThreshold -int 0
 defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0
+
+# Disable three-finger tap (look up / data detectors)
+defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerTapGesture -int 0
+# Disable two-finger swipe to navigate back/forward between pages
+defaults write -g AppleEnableSwipeNavigateWithScrolls -bool false
+# Scroll wheel scaling
+defaults write -g com.apple.scrollwheel.scaling -float 1.7
 
 _log_ok "Trackpad configured."
 
@@ -85,14 +95,16 @@ defaults write com.apple.finder _FXSortFoldersFirst -bool true
 _log_ok "Finder configured."
 
 # -----------------
-# Safari & WebKit
+# Keyboard
 # -----------------
-_log_run "Configuring Safari..."
+_log_run "Configuring Keyboard..."
 
-defaults write com.apple.Safari UniversalSearchEnabled -bool false
-defaults write com.apple.Safari SuppressSearchSuggestions -bool true
+# Full Keyboard Access: Tab moves focus between all UI controls
+defaults write -g AppleKeyboardUIMode -int 1
+# Treat F1-F12 as standard function keys (not hardware controls)
+defaults write -g com.apple.keyboard.fnState -bool true
 
-_log_ok "Safari configured."
+_log_ok "Keyboard configured."
 
 # -----------------
 # Apply changes

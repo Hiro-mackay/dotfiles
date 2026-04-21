@@ -211,9 +211,6 @@ SHEET
 
   CLAUDE CODE
     ccode          claude (skip permissions)
-    ccdev          claude with dev context
-    ccreview       claude with review context
-    ccsearch       claude with research context
     ccconfig       cd to claude config dir
 
   TUI TOOLS

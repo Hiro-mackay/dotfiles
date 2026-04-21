@@ -14,8 +14,6 @@
 - Use subagents for investigation to preserve main context
 - /clear between unrelated tasks
 - After ANY correction from the user, update memory files with the pattern to prevent recurrence
-- Auto-team: default to team. Single only when 1 file AND 1 concern
-- Team file ownership: each file belongs to exactly one teammate, no overlap
 
 ## Problem Solving
 - Bug reports: fix autonomously -- don't ask for hand-holding, zero context switching for the user

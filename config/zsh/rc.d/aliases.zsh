@@ -30,9 +30,6 @@ alias note="cursor '~/Google\ Drive/My\ Drive/ObsidianVault'"
 # -----------------
 alias ccode="claude --dangerously-skip-permissions"
 alias ccconf="cd $XDG_CONFIG_HOME/claude"
-alias ccdev='ccode --system-prompt "$(cat ~/.claude/contexts/dev.md)"'
-alias ccreview='ccode --system-prompt "$(cat ~/.claude/contexts/review.md)"'
-alias ccsearch='ccode --system-prompt "$(cat ~/.claude/contexts/research.md)"'
 
 # -----------------
 #  zsh config

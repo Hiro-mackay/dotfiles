@@ -79,6 +79,9 @@ gcd() {
   echo "Will discard ALL uncommitted changes and untracked files:"
   git status -s
   echo ""
+  echo "Untracked files to be removed:"
+  git clean -nd .
+  echo ""
   read "reply?Proceed? [y/N] "
   [[ "$reply" =~ ^[Yy]$ ]] && git restore . && git clean -df .
 }
@@ -295,16 +298,18 @@ _gwt_remove_core() {
   fi
 
   echo "Removing worktree: $branch"
-  local git_err
-  git_err=$(git worktree remove "$abs_target" 2>&1)
-  if [[ $? -ne 0 ]]; then
-    echo "error: git worktree remove failed:" >&2
-    echo "  $git_err" >&2
-    echo "" >&2
-    echo "To force removal (e.g. permission issues from Docker), run:" >&2
-    echo "  rm -rf $abs_target && git worktree prune" >&2
-    return 1
+  if ! git worktree remove "$abs_target" 2>/dev/null; then
+    echo "git worktree remove failed, forcing cleanup..."
+    if ! rm -rf "$abs_target" 2>/dev/null; then
+      echo "Directory contains files owned by another user (e.g. Docker). Using sudo..."
+      if ! sudo rm -rf "$abs_target"; then
+        echo "error: failed to remove $abs_target" >&2
+        return 1
+      fi
+    fi
+    git worktree prune 2>/dev/null
   fi
+  echo "Removed: $branch"
   echo "Current directory: $PWD"
 }
 

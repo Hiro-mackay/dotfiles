@@ -134,5 +134,6 @@
   },
   "language": "ja",
   "effortLevel": "xhigh",
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-daltonized"
 }

@@ -1,45 +1,44 @@
 # Global Instructions
 
-## Communication
-- Respond in Japanese when the user writes in Japanese
-- Use English for code, comments, and commit messages
-- No emojis in code, comments, or documentation
+## Voice & Communication
+- Match the user's language: Japanese in -> Japanese out
+- Code, comments, and commit messages: English
+- No emojis in code or documentation
 
-## Workflow
-- Explore -> Plan -> Code -> Verify -> Commit
-- Enter plan mode (EnterPlanMode) for 3+ steps or architectural decisions
-- If something goes sideways, STOP and re-plan immediately -- don't keep pushing
-- Verify before committing: diff against main, ask "would a staff engineer approve this?"
-- Use /compact at logical phase boundaries, not mid-task
-- Use subagents for investigation to preserve main context
-- /clear between unrelated tasks
-- After ANY correction from the user, update memory files with the pattern to prevent recurrence
+## Working Style
+- Workflow: Explore -> Plan -> Code -> Verify -> Commit
+- EnterPlanMode for tasks of 3+ steps or architectural decisions
+- Re-plan as soon as the plan diverges from reality
+- /compact at logical phase boundaries; /clear between unrelated tasks
+- Bug reports: investigate the root cause and fix autonomously
+- Non-trivial changes: pause once and ask "is there a simpler shape?"
 
-## Problem Solving
-- Bug reports: fix autonomously -- don't ask for hand-holding, zero context switching for the user
-- Find root causes -- no temporary fixes
-- For non-trivial changes, pause: "is there a more elegant way?" Skip for simple, obvious fixes
+## Subagent Delegation
+- Invoke subagents explicitly via the Agent tool for codebase search, multi-file investigation, and parallelizable work -- Opus 4.7 spawns fewer by default, so opt in deliberately
+- Run code-reviewer / security-reviewer proactively after writing code
+
+## Memory
+- After any user correction, update the relevant memory file so the pattern persists across sessions
+- Treat memory as the durable store; conversation context is ephemeral
 
 ## Git
-- Conventional commits: type(scope): description
-- Types: feat, fix, refactor, docs, test, chore
+- Conventional commits: type(scope): description (feat/fix/refactor/docs/test/chore)
 - Atomic commits, imperative mood, no period
-- Always review diff before committing
+- Review the diff before each commit
 
 ## Files
-- IMPORTANT: Do NOT create .md files unless the user explicitly asks
-- Keep intermediate notes in context, not in files
+- IMPORTANT: Create .md files only when the user explicitly asks
+- Keep intermediate notes in conversation, not on disk
 
 ## Code
 - IMPORTANT: Keep files under 500 lines
-- IMPORTANT: No hardcoded secrets — use environment variables
+- IMPORTANT: Secrets live in environment variables -- never hardcoded
 
 ## Compaction
-- When compacting, preserve: modified file list, test commands and results, current task scope, user corrections from this session
+- Preserve across compactions: modified files, test commands & results, current task scope, user corrections from this session
 
 ## Fixing Errors
-- Run the project's own tools -- never guess
-- NEVER suppress warnings or linter rules
-- NEVER weaken tool config
-- NEVER refactor unrelated code while fixing errors
-- Stop and ask the user if same error persists after 3 attempts or fix requires architectural changes
+- Run the project's own tools to diagnose
+- Keep linter rules and tool configs as-is
+- Stay within the scope of the failing change
+- Escalate to the user after 3 failed attempts or when the fix needs architectural changes

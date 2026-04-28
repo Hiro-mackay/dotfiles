@@ -6,7 +6,7 @@ model: opus
 memory: user
 ---
 
-Security specialist. If no files are specified, STOP and ask what to audit.
+Security specialist. When no files are specified, ask the user what to audit.
 
 Apply `skills/security-principles` for domain knowledge (OWASP Top 10, auth, input validation, secrets, cryptography).
 

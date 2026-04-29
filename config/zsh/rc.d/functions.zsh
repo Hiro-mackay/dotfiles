@@ -1,14 +1,7 @@
 # -----------------
 #  filesystem
 # -----------------
-mkcd() {
-  if [[ -d "$1" ]]; then
-    echo "$1 already exists!"
-    cd "$1"
-  else
-    mkdir -p "$1" && cd "$1"
-  fi
-}
+mkcd() { mkdir -p "$1" && cd "$1" }
 
 bigfiles() {
   du -ah "${1:-.}" 2>/dev/null | sort -rh | head -20
@@ -61,6 +54,27 @@ jc() {
 #  HTTP client
 # -----------------
 cget() {
+  if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
+    cat <<'USAGE'
+Usage: cget [option] <url>
+
+Default behavior (no option): show status, timing, and size summary.
+
+Options:
+  -b, --body            show response body (auto-formats JSON/HTML)
+  -I, --head            show response headers only
+  -i, --show-headers    show headers + body
+
+Examples:
+  cget https://api.example.com/users        timing summary
+  cget -b https://api.example.com/users     pretty-printed JSON body
+  cget -I https://example.com               headers only
+  cget -i https://example.com               headers + body
+USAGE
+    [[ -z "$1" ]] && return 1
+    return 0
+  fi
+
   local url=""
   local show_headers=false
   local show_body=false
@@ -77,7 +91,7 @@ cget() {
         if [[ "$1" == "http"* ]]; then
           url="$1"
         else
-          echo "Invalid option: $1"
+          echo "cget: invalid option '$1'. Run 'cget -h' for usage." >&2
           return 1
         fi
     esac
@@ -128,47 +142,25 @@ cget() {
 # -----------------
 rndl() {
   if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    echo "Usage: rndl [OPTIONS] [LENGTH]"
-    echo ""
-    echo "Options:"
-    echo "  -s, --symbols    Include symbols in the string"
-    echo "  -h, --help       Show this help message"
-    echo ""
-    echo "Examples:"
-    echo "  rndl             # Generate 32-character alphanumeric string (default)"
-    echo "  rndl 20          # Generate 20-character alphanumeric string"
-    echo "  rndl -s          # Generate 32-character alphanumeric + symbols string"
-    echo "  rndl -s 20       # Generate 20-character alphanumeric + symbols string"
+    cat <<'USAGE'
+Usage: rndl [-s] [length]
+  -s, --symbols   include symbols (default: alphanumeric only)
+  length          string length (default: 32)
+
+Examples:
+  rndl            32-char alphanumeric
+  rndl 16         16-char alphanumeric
+  rndl -s         32-char with symbols
+  rndl -s 16      16-char with symbols
+USAGE
     return 0
   fi
-
-  local length=32
-  local include_symbols=false
-  local base_charset='a-zA-Z0-9'
-  local symbols='!@#$%^&*()_+'
-
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-      -s|--symbols)
-        include_symbols=true
-        shift
-        ;;
-      *)
-        if [[ "$1" =~ ^[0-9]+$ ]]; then
-          length=$1
-        else
-          echo "Error: Invalid argument '$1'. Use -h for help"
-          return 1
-        fi
-        shift
-        ;;
-    esac
-  done
-
-  local charset="$base_charset"
-  if $include_symbols; then
-    charset="${charset}${symbols}"
+  local chars='a-zA-Z0-9' len=32
+  [[ "$1" == "-s" || "$1" == "--symbols" ]] && { chars='a-zA-Z0-9!@#$%^&*()_+'; shift; }
+  if [[ -n "$1" ]]; then
+    [[ "$1" =~ ^[0-9]+$ ]] || { echo "rndl: length must be a positive integer (got '$1'). Run 'rndl -h' for usage." >&2; return 1; }
+    len=$1
   fi
-
-  echo "$(LC_ALL=C tr -dc "$charset" < /dev/urandom | head -c "$length")"
+  LC_ALL=C tr -dc "$chars" < /dev/urandom | head -c "$len"
+  echo
 }

@@ -14,7 +14,7 @@ alias cat="bat"
 alias c="clear"
 alias e="exit"
 alias op="open ."
-alias pwdcp="pwd | tr -d '\n' | pbcopy"
+alias pwdcp='printf %s "$PWD" | pbcopy'
 alias cpb="tee >(ghead -c -1 | pbcopy)"
 alias howlong='fc -lDt "%Y-%m-%d %H:%M:%S" -1'
 
@@ -23,7 +23,7 @@ alias howlong='fc -lDt "%Y-%m-%d %H:%M:%S" -1'
 # -----------------
 alias co="cursor ."
 alias em="emacs"
-alias note="cursor '~/Google\ Drive/My\ Drive/ObsidianVault'"
+alias note='cursor "$HOME/Google Drive/My Drive/ObsidianVault"'
 
 # -----------------
 #  Claude
@@ -43,11 +43,16 @@ alias sozsh="source $ZDOTDIR/.zshrc"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias doc="cd ~/Documents"
-alias ob="cd ~/Google\ Drive/My\ Drive/ObsidianVault"
+alias ob='cd "$HOME/Google Drive/My Drive/ObsidianVault"'
 alias repo="cd ~/Repository/github.com"
 alias ac="cd ~/Repository/github.com/acompany-develop"
 alias mackay="cd ~/Repository/github.com/Hiro-mackay"
-alias g='cd $(ghq list -p | fzf)'
+g() {
+  local root repo
+  root=$(ghq root) || return
+  repo=$(ghq list | fzf --preview "git -C \"${root}/{}\" log --oneline -10 2>/dev/null") || return
+  cd "${root}/${repo}"
+}
 alias dotconf="cd $XDG_CONFIG_HOME"
 alias dotfiles="cd $DOTFILES_DIR"
-alias drive="cd ~/Google\ Drive/My\ Drive"
+alias drive='cd "$HOME/Google Drive/My Drive"'

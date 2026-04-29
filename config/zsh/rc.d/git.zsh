@@ -61,7 +61,10 @@ alias gcb="git switch -c"
 alias gcom="git switch main"
 alias gb="git branch"
 alias gbm="git branch -m"
-alias gbclean='git fetch -p && git branch -vv | grep "gone]" | awk "{print \$1}" | xargs git branch -d'
+gbclean() {
+  git fetch -p
+  git branch -vv | awk '/: gone\]/ {print $1}' | xargs git branch -d
+}
 
 gfb() {
   local branch
@@ -102,9 +105,31 @@ alias gundo="git reset --soft HEAD^"
 alias gurl="git remote -v"
 alias gseturl="git remote set-url origin"
 alias gaddurl="git remote add origin"
-alias ghopen='open $(git remote get-url origin | sed "s/git@github.com:/https:\/\/github.com\//" | sed "s/\.git$//")'
+alias ghopen='gh repo view --web'
 
 gcreate() {
+  if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
+    cat <<'USAGE'
+Usage: gcreate [--private|--public] [--template <repo|owner/repo>] <repo-name>
+
+Creates a GitHub repo, clones it via ghq, and cd's into it.
+
+Options:
+  --public        public repo (default)
+  --private       private repo
+  --template r    use own template (Hiro-mackay/r)
+  --template o/r  use someone else's template (o/r)
+
+Examples:
+  gcreate my-app                          empty public repo
+  gcreate --private secret-stuff          empty private repo
+  gcreate --template ai-bootstrap myapp   from own template
+  gcreate --template foo/bar myapp        from another's template
+USAGE
+    [[ -z "$1" ]] && return 1
+    return 0
+  fi
+
   local visibility="--public"
   local repo_name=""
   local template_repo=""
@@ -113,17 +138,19 @@ gcreate() {
     case "$1" in
       --private)    visibility="--private" ;;
       --public)     visibility="--public" ;;
-      --template)   [[ -n "$2" && "$2" != --* ]] && { template_repo="$2"; shift; } ;;
+      --template)
+        if [[ -z "$2" || "$2" == --* ]]; then
+          echo "gcreate: --template requires a value. Run 'gcreate -h' for usage." >&2
+          return 1
+        fi
+        template_repo="$2"; shift ;;
       *)            repo_name="$1" ;;
     esac
     shift
   done
 
   if [[ -z "$repo_name" ]]; then
-    echo "Usage: gcreate [--private] [--template <repo|owner/repo>] <repo-name>"
-    echo "  (default)                empty repo"
-    echo "  --template repo          own template (Hiro-mackay/repo)"
-    echo "  --template owner/repo    other's template"
+    echo "gcreate: missing <repo-name>. Run 'gcreate -h' for usage." >&2
     return 1
   fi
 
@@ -144,41 +171,23 @@ gcreate() {
   fi
   gh repo create "${gh_args[@]}" || return 1
 
-  # 2. Clone to ghq-managed path (use full owner/repo to avoid user mismatch)
+  # 2. Clone to ghq-managed path
   ghq get -p "${gh_user}/${repo_name}" || return 1
 
   # 3. Move into the repo
-  local repo_path
-  repo_path=$(ghq list -p | grep "/${repo_name}$")
+  local repo_path="$(ghq root)/github.com/${gh_user}/${repo_name}"
   cd "$repo_path" || return 1
 
   echo "----------------------------------------"
   echo "Created: $repo_path"
   echo "Remote:  $(git remote get-url origin)"
-  [[ "$mode" == "template" ]] && echo "Template: $template_repo"
+  [[ -n "$template_repo" ]] && echo "Template: $template_repo"
   echo "----------------------------------------"
 }
 
 # -----------------
 #  Git: rebase
 # -----------------
-rebase() {
-  local current_branch=$(git branch --show-current)
-  if [[ "$current_branch" == "main" ]]; then
-    echo "Already on main. Nothing to rebase."
-    return 1
-  fi
-  git fetch origin -p || return 1
-  git switch main || return 1
-  git pull --ff-only origin main || {
-    echo "Failed to fast-forward main"
-    git switch "$current_branch"
-    return 1
-  }
-  git switch "$current_branch" || return 1
-  git rebase main
-}
-
 rebase-remote() {
   local current_branch=$(git branch --show-current)
   local target="${1:-main}"
@@ -192,13 +201,16 @@ rebase-remote() {
   git rebase "origin/$target" || return 1
 }
 
+alias rebase='rebase-remote main'
+
 # -----------------
 #  Git: worktree
 # -----------------
-alias gwa="_gwt_create_core"
-alias gwaf='_gwt_create_core "$(git branch --format="%(refname:short)" | fzf)"'
-alias gwr="_gwt_remove_core"
-alias gws="_gwt_switch"
+gwaf() {
+  local b
+  b=$(git branch --format='%(refname:short)' | fzf) || return
+  gwa "$b"
+}
 
 _gwt_main_path() {
   local main_path
@@ -210,7 +222,7 @@ _gwt_main_path() {
   echo "$main_path"
 }
 
-_gwt_create_core() {
+gwa() {
   local full_branch="${1%/}"
   if [[ -z "$full_branch" ]]; then
     echo "Usage: gwa <branch-name>"
@@ -260,7 +272,7 @@ _gwt_create_core() {
   echo "----------------------------------------"
 }
 
-_gwt_remove_core() {
+gwr() {
   local branch="${1:-$(git branch --show-current)}"
 
   local main_path
@@ -313,7 +325,7 @@ _gwt_remove_core() {
   echo "Current directory: $PWD"
 }
 
-_gwt_switch() {
+gws() {
   local line
   line=$(git worktree list 2>/dev/null | awk '{
     n = split($1, a, "/")

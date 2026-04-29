@@ -43,13 +43,16 @@ cheat() {
     gwr [branch]   remove worktree
 
   CREATE
-    gcreate <name>                    create repo (ai-bootstrap template)
-    gcreate --plain <name>            create empty repo
-    gcreate --template o/r <name>     create from custom template
+    gcreate <name>                    create empty public repo + clone via ghq
     gcreate --private <name>          create private repo
+    gcreate --template o/r <name>     create from a template repo
+
+  REBASE
+    rebase                            fetch + rebase onto origin/main
+    rebase-remote <branch>            fetch + rebase onto origin/<branch>
 
   OTHER
-    push / pull    push / pull      rebase  fetch + rebase on main
+    push / pull    push / pull (--force-with-lease via pushf)
     ghopen         open repo on GitHub
 SHEET
       ;;
@@ -74,14 +77,12 @@ SHEET
   INTERACTIVE (fzf)
     dexec  pick container -> shell into it
     dlz    pick container -> follow logs
-    ddebug debug distroless/scratch container
 
   CLEANUP
     dprune   prune stopped containers + images
     dprunea  prune everything (including volumes)
 
-  BUILD
-    dlint    lint Dockerfile       dscout   scan CVEs
+  PODMAN: same commands with 'p' prefix (pc, pcu, pcd, pp, pexec, plz, ...)
 SHEET
       ;;
     fzf)
@@ -211,7 +212,7 @@ SHEET
 
   CLAUDE CODE
     ccode          claude (skip permissions)
-    ccconfig       cd to claude config dir
+    ccconf         cd to claude config dir
 
   TUI TOOLS
     lg             lazygit   (visual git)

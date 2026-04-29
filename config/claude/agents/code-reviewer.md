@@ -21,7 +21,7 @@ Detect languages from file extensions and apply corresponding rules and tools:
 | `*.tsx`, `*.jsx` | `rules/react-principles` | (in addition to TS rule for `.tsx`) |
 | `*.py` | `rules/python-principles` | project linter, type checker |
 
-Check version config (`go.mod`, `tsconfig.json`, `pyproject.toml`) and calibrate checks accordingly. Run available static analysis tools first; do not flag issues already caught by tooling.
+Check version config (`go.mod`, `tsconfig.json`, `pyproject.toml`) and calibrate checks accordingly. Run available static analysis tools, then skip findings already caught by tooling.
 
 ## Process
 1. Detect languages, run static analysis, apply language rules
@@ -30,7 +30,7 @@ Check version config (`go.mod`, `tsconfig.json`, `pyproject.toml`) and calibrate
 ## Team Mode
 When spawned with assigned files:
 - Review ONLY assigned files
-- Read related code for context but do not report findings outside scope
+- Read related code for context; report findings only within scope
 
 ## Output
 Group by severity:
@@ -41,5 +41,5 @@ Group by severity:
 
 ## Rules
 - file:line refs + fix suggestions for every finding
-- Don't nitpick formatting (automated tools handle that)
+- Skip formatting nits -- automated tools handle that
 - Focus on logic and correctness over style

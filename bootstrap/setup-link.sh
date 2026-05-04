@@ -42,23 +42,15 @@ fi
 _log_run "Linking .claude -> .config/claude"
 ln -sfnv "$HOME/.config/claude" "$HOME/.claude"
 
-# .codex/AGENTS.md -> .dotfiles/config/codex/AGENTS.md
-# Codex CLI auto-loads ~/.codex/AGENTS.md as global instructions, but .codex/
-# itself is a runtime dir owned by Codex (auth.json, sessions/, etc), so we
-# only symlink the single file rather than the whole directory.
-_log_run "Linking .codex/AGENTS.md -> .dotfiles/config/codex/AGENTS.md"
-mkdir -p "$HOME/.codex"
-ln -sfnv "$HOME/.dotfiles/config/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+# Backup and replace existing ~/.codex directory if it exists (not a symlink)
+if [[ -d "$HOME/.codex" ]] && [[ ! -L "$HOME/.codex" ]]; then
+    backup_dir="$HOME/.codex.backup.$(date +%Y%m%d%H%M%S)"
+    _log_warn "Backing up existing ~/.codex to $backup_dir"
+    mv "$HOME/.codex" "$backup_dir"
+fi
 
-# .codex/agents/<name>.toml -> .dotfiles/config/codex/agents/<name>.toml
-# Codex reads custom subagent definitions from ~/.codex/agents/*.toml.
-# Symlink each file individually so Codex can still write runtime state into
-# the directory if it ever needs to.
-_log_run "Linking .codex/agents/* -> .dotfiles/config/codex/agents/*"
-mkdir -p "$HOME/.codex/agents"
-for agent_file in "$HOME"/.dotfiles/config/codex/agents/*.toml; do
-    [[ -f "$agent_file" ]] || continue
-    ln -sfnv "$agent_file" "$HOME/.codex/agents/$(basename "$agent_file")"
-done
+# .codex -> .config/codex
+_log_run "Linking .codex -> .config/codex"
+ln -sfnv "$HOME/.config/codex" "$HOME/.codex"
 
 _log_ok "All links created."

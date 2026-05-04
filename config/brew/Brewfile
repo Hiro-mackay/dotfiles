@@ -24,6 +24,7 @@ brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
 
 cask "appcleaner"
+cask "codex"
 cask "cursor"
 cask "deepl"
 cask "discord"

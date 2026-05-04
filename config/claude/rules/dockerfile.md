@@ -1,4 +1,6 @@
 ---
+name: dockerfile
+description: Dockerfile and container build conventions covering layer caching, image size, secret handling, non-root execution, and health checks. Apply when reading, writing, or reviewing Dockerfile, docker-compose, .dockerignore, or containerfile files.
 paths:
   - "**/Dockerfile*"
   - "**/docker-compose*"

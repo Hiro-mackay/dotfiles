@@ -1,4 +1,6 @@
 ---
+name: sql-implementation
+description: SQL implementation rules covering query correctness, indexing, joins, transactions, NULL semantics, and migration safety. Apply when reading, writing, or reviewing .sql files or database migration code.
 paths:
   - "**/*.sql"
   - "**/migrations/**"

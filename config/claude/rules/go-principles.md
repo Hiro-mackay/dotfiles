@@ -1,4 +1,6 @@
 ---
+name: go-principles
+description: Go design principles covering naming, error handling, goroutines and concurrency, interfaces, package layout, and idiomatic style. Apply when reading, writing, or reviewing .go files.
 paths:
   - "**/*.go"
 ---

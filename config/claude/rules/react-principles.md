@@ -1,4 +1,6 @@
 ---
+name: react-principles
+description: React component design principles covering hooks, rendering, server components and actions, state management, accessibility, and common anti-patterns. Apply when reading, writing, or reviewing .tsx or .jsx files.
 paths:
   - "**/*.{tsx,jsx}"
 ---

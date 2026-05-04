@@ -1,4 +1,6 @@
 ---
+name: python-principles
+description: Python design principles covering type hints, exceptions, dataclasses, async, packaging, and idiomatic style. Apply when reading, writing, or reviewing .py files.
 paths:
   - "**/*.py"
 ---

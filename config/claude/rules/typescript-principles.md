@@ -1,4 +1,6 @@
 ---
+name: typescript-principles
+description: TypeScript design principles covering type safety, generics, async patterns, runtime validation (Zod/Valibot), and avoidance of any/as escape hatches. Apply when reading, writing, or reviewing .ts or .tsx files.
 paths:
   - "**/*.{ts,tsx}"
 ---

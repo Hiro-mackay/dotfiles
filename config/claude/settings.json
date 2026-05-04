@@ -135,5 +135,6 @@
   "language": "ja",
   "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark-daltonized"
+  "theme": "dark-daltonized",
+  "skipAutoPermissionPrompt": true
 }

@@ -115,6 +115,7 @@ settings.json で定義。ツール実行の前後に自動で発火するシェ
 | `commit-commands` | `/commit`, `/commit-push-pr` コマンド |
 | `context7` | ライブラリドキュメントの取得 |
 | `security-guidance` | ファイル編集時のセキュリティチェック |
+| `codex@openai-codex` | OpenAI Codex CLI 連携。`/codex:review`, `/codex:rescue` などのクロスプロバイダレビュー |
 
 > `gopls-lsp`, `typescript-lsp` はプロジェクト単位で有効化。グローバルでは無効。
 

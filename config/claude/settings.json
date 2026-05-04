@@ -130,7 +130,16 @@
     "hookify@claude-code-plugins": true,
     "commit-commands@claude-code-plugins": true,
     "context7-plugin@context7-marketplace": true,
-    "security-guidance@claude-code-plugins": true
+    "security-guidance@claude-code-plugins": true,
+    "codex@openai-codex": true
+  },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
   },
   "language": "ja",
   "effortLevel": "xhigh",

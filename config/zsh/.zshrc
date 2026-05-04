@@ -1,20 +1,6 @@
 #!/usr/bin/env zsh
 
 # -----------------
-#  PATH
-# -----------------
-export PNPM_HOME="$XDG_DATA_HOME/pnpm"
-typeset -U path
-path=(
-    $HOME/.local/bin(N-/)
-    ${BREW_HOME}/bin(N-/)
-    ${BREW_HOME}/sbin(N-/)
-    ${CARGO_HOME}/bin(N-/)
-    ${PNPM_HOME}(N-/)
-    $path
-)
-
-# -----------------
 #  zsh option
 # -----------------
 setopt auto_cd

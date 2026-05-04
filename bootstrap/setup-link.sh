@@ -42,4 +42,12 @@ fi
 _log_run "Linking .claude -> .config/claude"
 ln -sfnv "$HOME/.config/claude" "$HOME/.claude"
 
+# .codex/AGENTS.md -> .dotfiles/config/codex/AGENTS.md
+# Codex CLI auto-loads ~/.codex/AGENTS.md as global instructions, but .codex/
+# itself is a runtime dir owned by Codex (auth.json, sessions/, etc), so we
+# only symlink the single file rather than the whole directory.
+_log_run "Linking .codex/AGENTS.md -> .dotfiles/config/codex/AGENTS.md"
+mkdir -p "$HOME/.codex"
+ln -sfnv "$HOME/.dotfiles/config/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+
 _log_ok "All links created."

@@ -103,7 +103,6 @@ settings.json で定義。ツール実行の前後に自動で発火するシェ
 |------|---------|------|
 | `detect-console-log.sh` | PostToolUse (Edit/Write) | `console.log` / `fmt.Println` / `print()` を検出して警告 |
 | `go-vet.sh` | PostToolUse (Edit/Write) | Go ファイル変更時に `go vet` を実行 |
-| `block-dev-server.sh` | PreToolUse (Bash) | 長時間実行される開発サーバーの起動をブロック |
 | `filter-test-output.sh` | PreToolUse (Bash) | 冗長なテスト出力をフィルタリング |
 | `notify.sh` | Stop / Notification | タスク完了時のデスクトップ通知 |
 

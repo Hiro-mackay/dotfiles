@@ -107,15 +107,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/script/hooks/block-dev-server.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
             "command": "~/.claude/script/hooks/filter-test-output.sh"
           }
         ]

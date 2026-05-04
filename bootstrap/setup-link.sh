@@ -50,4 +50,15 @@ _log_run "Linking .codex/AGENTS.md -> .dotfiles/config/codex/AGENTS.md"
 mkdir -p "$HOME/.codex"
 ln -sfnv "$HOME/.dotfiles/config/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
 
+# .codex/agents/<name>.toml -> .dotfiles/config/codex/agents/<name>.toml
+# Codex reads custom subagent definitions from ~/.codex/agents/*.toml.
+# Symlink each file individually so Codex can still write runtime state into
+# the directory if it ever needs to.
+_log_run "Linking .codex/agents/* -> .dotfiles/config/codex/agents/*"
+mkdir -p "$HOME/.codex/agents"
+for agent_file in "$HOME"/.dotfiles/config/codex/agents/*.toml; do
+    [[ -f "$agent_file" ]] || continue
+    ln -sfnv "$agent_file" "$HOME/.codex/agents/$(basename "$agent_file")"
+done
+
 _log_ok "All links created."

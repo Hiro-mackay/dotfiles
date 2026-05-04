@@ -1,4 +1,4 @@
-# Spawn N parallel claude sessions in a new Warp tab (current window) with split layout.
+# Spawn N parallel coding-agent sessions in a new Warp tab (current window) with split layout.
 # Uses AppleScript / System Events keystrokes — requires Accessibility permission
 # (granted on first run via macOS dialog).
 #
@@ -6,17 +6,20 @@
 #   c2: left | right
 #   c3: left | (right top / right bottom)
 #   c4: 2x2 grid
-#   c5+: N tabs each with single claude (no split)
+#   c5+: N tabs each with a single agent session (no split)
 
-_code_n() {
+_warp_agent_n() {
   local n=$1
+  local command=$2
+  local usage=$3
+
   if [[ ! "$n" =~ ^[1-9]$ ]]; then
-    echo "usage: cN where N is 1-9" >&2
+    echo "usage: ${usage} where N is 1-9" >&2
     return 1
   fi
 
   if (( n == 1 )); then
-    ccode
+    eval "$command"
     return
   fi
 
@@ -29,13 +32,13 @@ _code_n() {
         delay 0.5
         keystroke "d" using {command down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
         keystroke "[" using {command down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
@@ -50,19 +53,19 @@ _code_n() {
         delay 0.3
         keystroke "d" using {command down, shift down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
         key code 126 using {command down, option down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
         key code 123 using {command down, option down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
@@ -81,25 +84,25 @@ _code_n() {
         delay 0.3
         keystroke "d" using {command down, shift down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
         key code 126 using {command down, option down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
         key code 124 using {command down, option down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
         key code 125 using {command down, option down}
         delay 0.3
-        keystroke "ccode"
+        keystroke "'"${command}"'"
         delay 0.15
         key code 36
         delay 0.3
@@ -111,7 +114,7 @@ _code_n() {
         script+='
           keystroke "t" using {command down}
           delay 0.5
-          keystroke "ccode"
+          keystroke "'"${command}"'"
           key code 36
           delay 0.2
         '
@@ -130,9 +133,24 @@ end tell
 APPLE
 }
 
+_code_n() {
+  _warp_agent_n "$1" ccode cN
+}
+
 alias c1='_code_n 1'
 alias c2='_code_n 2'
 alias c3='_code_n 3'
 alias c4='_code_n 4'
 alias c5='_code_n 5'
 alias c6='_code_n 6'
+
+_codex_n() {
+  _warp_agent_n "$1" cx cxN
+}
+
+alias cx1='_codex_n 1'
+alias cx2='_codex_n 2'
+alias cx3='_codex_n 3'
+alias cx4='_codex_n 4'
+alias cx5='_codex_n 5'
+alias cx6='_codex_n 6'

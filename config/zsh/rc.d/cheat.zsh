@@ -214,6 +214,11 @@ SHEET
     ccode          claude (skip permissions)
     ccconf         cd to claude config dir
 
+  CODEX
+    cx             codex (on-request approvals)
+    cxconf         cd to codex config dir
+    cx1..cx6       open N codex sessions in Warp
+
   TUI TOOLS
     lg             lazygit   (visual git)
     lzd            lazydocker (visual docker)

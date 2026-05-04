@@ -32,6 +32,12 @@ alias ccode="claude --permission-mode auto"
 alias ccconf="cd $XDG_CONFIG_HOME/claude"
 
 # -----------------
+#  Codex
+# -----------------
+alias cx="codex --ask-for-approval on-request"
+alias cxconf="cd $XDG_CONFIG_HOME/codex"
+
+# -----------------
 #  zsh config
 # -----------------
 alias edzsh="cursor $ZDOTDIR"

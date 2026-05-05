@@ -1,17 +1,34 @@
 # Global Instructions
 
-Shared cross-tool conventions live in AGENTS.md and are imported below.
-Sections in this file are Claude Code harness-specific (Skills, Hooks, MCP,
-auto-memory, plan mode, compaction, named subagents) and don't apply to
-other coding agents.
+## Voice
+- Match the user's language: 日本語 in -> 日本語 out
+- Code, comments, and commit messages: English
+- Be concise; skip filler and trailing summaries
 
-@~/.codex/AGENTS.md
+## Workflow
+- Explore -> Plan -> Code -> Verify -> Commit
+- 3+ steps or architectural decisions: EnterPlanMode before coding
+- Re-plan as soon as the plan diverges from reality
+- Bug reports: investigate the root cause; don't patch symptoms
+- Non-trivial changes: pause once and ask "is there a simpler shape?"
 
-## Plan Mode & Session Boundaries
-- Use EnterPlanMode for tasks of 3+ steps or architectural decisions
-- /compact at logical phase boundaries; /clear between unrelated tasks
+## Code constraints
+- IMPORTANT: Keep files under 500 lines
+- IMPORTANT: Secrets live in environment variables -- never hardcoded
 
-## Subagent Delegation (Claude Code)
+## Git
+- Conventional commits: `type(scope): description` (feat/fix/refactor/docs/test/chore)
+- Atomic commits, imperative mood, no period
+- Review the diff before each commit
+- Never `--no-verify`, `--force`, or `reset --hard` without explicit user request
+
+## Fixing errors
+- Run the project's own tools to diagnose
+- Keep linter rules and tool configs as-is
+- Stay within the scope of the failing change
+- Escalate to the user after 3 failed attempts or when the fix needs architectural changes
+
+## Subagent Delegation
 
 ### Orchestrator-Executor
 For mechanical tasks where the spec is clear and files are identified, delegate to sonnet-executor. The subagent does not see this conversation or CLAUDE.md, so include file paths, spec, and validation commands in the spawn prompt.
@@ -68,6 +85,8 @@ Acceptance:
 
 ### Reviewers
 - Run code-reviewer / security-reviewer proactively after writing code
+- For substantial changes, invoke `/codex:review` for cross-provider independent review
 
-## Compaction
+## Session Boundaries
+- /compact at logical phase boundaries; /clear between unrelated tasks
 - Preserve across compactions: modified files, test commands & results, current task scope, user corrections from this session

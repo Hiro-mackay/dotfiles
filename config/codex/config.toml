@@ -64,6 +64,9 @@ terminal_title = ["spinner", "project", "git-branch"]
 # --- Notifications -------------------------------------------------------
 notify = ["/Users/mackay/.dotfiles/config/codex/script/notify.sh"]
 
+[tui.model_availability_nux]
+"gpt-5.5" = 2
+
 # --- Telemetry -----------------------------------------------------------
 [analytics]
 enabled = true

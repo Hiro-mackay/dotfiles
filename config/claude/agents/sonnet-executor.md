@@ -1,6 +1,6 @@
 ---
 name: sonnet-executor
-description: Mechanical implementation when the spec is clear and files are identified. Executes well-specified work (code, tests, docs, migrations, refactors) for orchestrator review. Returns BLOCKED if the task is ambiguous.
+description: Parallel fan-out executor with language conventions preloaded. Use when delegating 3+ independent edits or 10+ uniform mechanical operations as a batch; returns BLOCKED on spec ambiguity.
 model: claude-sonnet-4-6
 tools: Read, Edit, Write, Bash, Grep, Glob
 permissionMode: acceptEdits

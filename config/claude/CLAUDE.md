@@ -31,14 +31,24 @@
 ## Subagent Delegation
 
 ### Orchestrator-Executor
-For mechanical tasks where the spec is clear and files are identified, delegate to sonnet-executor. The subagent does not see this conversation or CLAUDE.md, so include file paths, spec, and validation commands in the spawn prompt.
+
+The goal is **wall-time reduction via parallelism**, NOT "use Sonnet more often." Forcing delegation on a 1-2 file serial edit adds spec-write + round-trip + verify cost without any parallel benefit. When in doubt, do it inline.
+
+#### When to delegate to sonnet-executor
+
+Delegate when ANY of:
+- **3+ independent file edits** with non-overlapping scope (parallel spawn wins on wall time)
+- **10+ uniform mechanical operations** (port tests, regen fixtures, rename across many files)
+
+Do NOT delegate when:
+- 1-2 file edit (spec-writing cost > execution cost)
+- Sequential edit -> test -> fix loop (not parallelizable; design emerges mid-stream)
+- The task references prior conversation decisions the executor cannot see
 
 When the executor returns BLOCKED, read Progress / Blocker / Branches and handle directly. Do not re-delegate.
 
 #### Parallel spawning
-Identify task independence before delegating. 2+ [EXEC] tasks that do not share files or dependencies should spawn in parallel -- per Anthropic agent guidance, parallel spawning of 3-5 subagents cuts wall time by up to 90% on suitable workloads.
-
-How to spawn concurrently: send a SINGLE message with multiple Agent tool_use blocks. Sequential Agent calls (one per turn) are NOT concurrent -- they wait for each completion.
+When delegating, send a SINGLE message with multiple Agent tool_use blocks. Sequential Agent calls (one per turn) are NOT concurrent -- they wait for each completion.
 
 Sweet spot: 3-5 parallel agents. Beyond ~5 the coordination overhead exceeds gains -- batch into waves of 3-5 instead.
 

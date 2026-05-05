@@ -28,7 +28,7 @@ alias note='cursor "$HOME/Google Drive/My Drive/ObsidianVault"'
 # -----------------
 #  Claude
 # -----------------
-alias ccode="claude --permission-mode auto"
+alias ccode="claude --permission-mode bypassPermissions"
 alias ccconf="cd $XDG_CONFIG_HOME/claude"
 
 # -----------------

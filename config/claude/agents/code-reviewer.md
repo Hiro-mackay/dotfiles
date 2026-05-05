@@ -12,19 +12,19 @@ Apply `skills/review-local` criteria for structured review (bugs, security, resi
 
 ## Language-Specific Review
 
-Detect languages from file extensions and apply corresponding rules and tools:
+Detect languages from file extensions and apply corresponding skills and tools:
 
-| Files | Rule | Tools |
-|-------|------|-------|
-| `*.go` | `rules/go-principles` | `go vet`, project linters |
-| `*.ts`, `*.tsx` | `rules/typescript-principles` | `tsc --noEmit`, project linter |
-| `*.tsx`, `*.jsx` | `rules/react-principles` | (in addition to TS rule for `.tsx`) |
-| `*.py` | `rules/python-principles` | project linter, type checker |
+| Files | Skill | Tools |
+|-------|-------|-------|
+| `*.go` | `go-principles` | `go vet`, project linters |
+| `*.ts`, `*.tsx` | `typescript-principles` | `tsc --noEmit`, project linter |
+| `*.tsx`, `*.jsx` | `react-principles` | (in addition to TS skill for `.tsx`) |
+| `*.py` | `python-principles` | project linter, type checker |
 
-Check version config (`go.mod`, `tsconfig.json`, `pyproject.toml`) and calibrate checks accordingly. Run available static analysis tools, then skip findings already caught by tooling.
+Skills auto-load via `paths:` frontmatter when matching files are read. Check version config (`go.mod`, `tsconfig.json`, `pyproject.toml`) and calibrate checks accordingly. Run available static analysis tools, then skip findings already caught by tooling.
 
 ## Process
-1. Detect languages, run static analysis, apply language rules
+1. Detect languages, run static analysis, apply language skills
 2. Deduplicate findings by file:line -- keep higher severity
 
 ## Team Mode

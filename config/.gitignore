@@ -22,7 +22,6 @@
 !claude/CLAUDE.md
 !claude/README.md
 !claude/agents/**
-!claude/rules/**
 !claude/skills/**
 # SECURITY: codex/auth.json (OAuth credentials) lives under config/codex/.
 # Never add `!codex/**` — it would expose secrets. Allowlist only specific paths.

@@ -1,6 +1,7 @@
 ---
 name: sql-implementation
 description: SQL implementation rules covering query correctness, indexing, joins, transactions, NULL semantics, and migration safety. Apply when reading, writing, or reviewing .sql files or database migration code.
+user-invocable: false
 paths:
   - "**/*.sql"
   - "**/migrations/**"

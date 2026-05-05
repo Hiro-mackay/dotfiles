@@ -1,6 +1,6 @@
 ---
 name: web-performance
-description: Web platform performance principles covering image optimization, font loading, bundle size, Core Web Vitals, and animation performance. Applies when optimizing page load speed, reducing bundle size, fixing layout shift, or improving runtime performance. For React/framework-specific optimization, see react-principles rule.
+description: Web platform performance principles covering image optimization, font loading, bundle size, Core Web Vitals, and animation performance. Applies when optimizing page load speed, reducing bundle size, fixing layout shift, or improving runtime performance. For React/framework-specific optimization, see react-principles skill (auto-loaded for .tsx/.jsx files).
 ---
 
 # Web Performance Principles

@@ -1,6 +1,6 @@
 ---
 name: db-schema-design
-description: Database schema design decisions, data modeling strategy, and relationship patterns. Applies when planning database schemas, choosing between normalization approaches, or designing data models. For SQL implementation rules (naming, queries, indexing, transactions), see the sql-implementation rule (auto-loaded for .sql files).
+description: Database schema design decisions, data modeling strategy, and relationship patterns. Applies when planning database schemas, choosing between normalization approaches, or designing data models. For SQL implementation rules (naming, queries, indexing, transactions), see the sql-implementation skill (auto-loaded for .sql files).
 ---
 
 # Database Design Principles

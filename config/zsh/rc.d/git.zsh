@@ -63,7 +63,48 @@ alias gb="git branch"
 alias gbm="git branch -m"
 gbclean() {
   git fetch -p
-  git branch -vv | awk '/: gone\]/ {print $1}' | xargs git branch -d
+
+  local default_branch ref
+  if ref=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null); then
+    default_branch=${ref#refs/remotes/origin/}
+  else
+    default_branch=main
+  fi
+
+  local gone_branches
+  gone_branches=$(git branch -vv | awk '/: gone\]/ {sub(/^\* /,""); print $1}')
+  if [[ -z "$gone_branches" ]]; then
+    echo "no gone branches"
+    return 0
+  fi
+
+  local merged_prs
+  merged_prs=$(gh pr list --state merged --limit 200 \
+    --json headRefName --jq '.[].headRefName')
+
+  local branch reply
+  while IFS= read -r branch; do
+    if git branch -d -q "$branch" 2>/dev/null; then
+      echo "deleted: $branch"
+      continue
+    fi
+
+    if grep -Fxq "$branch" <<< "$merged_prs"; then
+      git branch -D -q "$branch"
+      echo "deleted (merged via PR): $branch"
+      continue
+    fi
+
+    echo ""
+    echo "── $branch has unmerged commits:"
+    git log --oneline --no-decorate "$default_branch..$branch" | head -10
+    read "reply?delete? [y/N/s=skip all remaining] "
+    case "$reply" in
+      y|Y) git branch -D -q "$branch" && echo "deleted (forced): $branch" ;;
+      s|S) echo "aborted"; return 0 ;;
+      *)   echo "skipped: $branch" ;;
+    esac
+  done <<< "$gone_branches"
 }
 
 gfb() {

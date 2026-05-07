@@ -59,6 +59,7 @@
       "Write(**/secrets/**)"
     ]
   },
+  "model": "opus",
   "hooks": {
     "Stop": [
       {
@@ -145,7 +146,8 @@
     "commit-commands@claude-code-plugins": true,
     "context7-plugin@context7-marketplace": true,
     "security-guidance@claude-code-plugins": true,
-    "codex@openai-codex": true
+    "codex@openai-codex": true,
+    "figma@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -153,10 +155,15 @@
         "source": "github",
         "repo": "openai/codex-plugin-cc"
       }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
     }
   },
   "language": "ja",
-  "model": "opus",
   "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",

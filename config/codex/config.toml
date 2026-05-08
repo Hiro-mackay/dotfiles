@@ -1,8 +1,3 @@
-# Codex CLI configuration.
-# Reference: https://developers.openai.com/codex/config-reference
-# Edited via dotfiles -> symlinked at ~/.codex/config.toml.
-
-# --- Model ---------------------------------------------------------------
 model = "gpt-5.5"
 model_provider = "openai"
 model_reasoning_effort = "high"
@@ -11,72 +6,52 @@ model_verbosity = "medium"
 review_model = "gpt-5.5"
 personality = "pragmatic"
 service_tier = "fast"
-
-# --- Sandbox & approvals -------------------------------------------------
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 project_doc_max_bytes = 65536
 
 [sandbox_workspace_write]
 network_access = false
-writable_roots = [
-  "/Users/mackay/.dotfiles/config/codex",
-  "/private/tmp",
-]
+writable_roots = [ "/Users/mackay/.dotfiles/config/codex", "/private/tmp" ]
 
 [shell_environment_policy]
 inherit = "all"
 ignore_default_excludes = false
-
-# --- Tools ---------------------------------------------------------------
 web_search = "cached"
 
 [tools]
 view_image = true
 
-# --- Multi-agent ---------------------------------------------------------
-# Allow reviewer agents to spawn helpers (e.g. code-reviewer -> sql-expert).
 [agents]
 max_threads = 6
 max_depth = 2
 
-# --- Auto-review ---------------------------------------------------------
 [auto_review]
-policy = """
-Block on: correctness regressions, security risks, data loss, missing tests
-for new behavior. Do not block on style. Lead with the highest-severity item.
-"""
+policy = "Block on: correctness regressions, security risks, data loss, missing tests\nfor new behavior. Do not block on style. Lead with the highest-severity item.\n"
 
-# --- History & TUI -------------------------------------------------------
 [history]
 persistence = "save-all"
 
 [tui]
-notifications = ["agent-turn-complete", "approval-requested"]
+notifications = [ "agent-turn-complete", "approval-requested" ]
 notification_method = "auto"
 notification_condition = "unfocused"
 animations = true
 show_tooltips = true
 theme = "dark-daltonized"
-status_line = ["model-with-reasoning", "context-remaining", "current-dir", "git-branch"]
-terminal_title = ["spinner", "project", "git-branch"]
-
-# --- Notifications -------------------------------------------------------
-notify = ["/Users/mackay/.dotfiles/config/codex/script/notify.sh"]
+status_line = [ "model-with-reasoning", "context-remaining", "current-dir", "git-branch" ]
+terminal_title = [ "spinner", "project", "git-branch" ]
+notify = [ "/Users/mackay/.dotfiles/config/codex/script/notify.sh" ]
 
 [tui.model_availability_nux]
 "gpt-5.5" = 4
 
-# --- Telemetry -----------------------------------------------------------
 [analytics]
 enabled = true
 
 [feedback]
 enabled = true
 
-# --- Hooks ---------------------------------------------------------------
-# Lifecycle scripts. See: https://developers.openai.com/codex/hooks
-# Pre-shell policy: hard-block destructive commands before they run.
 [[hooks.PreToolUse]]
 matcher = "^Bash$"
 
@@ -86,7 +61,6 @@ command = "/Users/mackay/.dotfiles/config/codex/script/pre-tool-policy.sh"
 timeout = 10
 statusMessage = "Checking command policy"
 
-# Permission prompt: pre-approve safe Bash, block dangerous ones.
 [[hooks.PermissionRequest]]
 matcher = "^Bash$"
 
@@ -96,7 +70,6 @@ command = "/Users/mackay/.dotfiles/config/codex/script/permission-request.sh"
 timeout = 10
 statusMessage = "Checking approval request"
 
-# Post-edit observer: scan edited files for stray debug prints / vet issues.
 [[hooks.PostToolUse]]
 matcher = "Edit|Write|^apply_patch$"
 
@@ -106,7 +79,6 @@ command = "/Users/mackay/.dotfiles/config/codex/script/post-edit-check.sh"
 timeout = 30
 statusMessage = "Checking edited files"
 
-# --- Project trust -------------------------------------------------------
 [projects."/Users/mackay/Repository/github.com/***REMOVED***"]
 trust_level = "trusted"
 
@@ -140,3 +112,7 @@ enabled = true
 
 [plugins."presentations@openai-primary-runtime"]
 enabled = true
+
+[mcp_servers.pencil]
+command = "/Users/mackay/.pencil/mcp/cursor/out/mcp-server-darwin-arm64"
+args = [ "--app", "cursor" ]

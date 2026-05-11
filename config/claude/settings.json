@@ -148,7 +148,7 @@
     "context7-plugin@context7-marketplace": true,
     "security-guidance@claude-code-plugins": true,
     "codex@openai-codex": true,
-    "figma@claude-plugins-official": true
+    "code-simplifier@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {

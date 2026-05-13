@@ -1,105 +1,93 @@
+approval_policy = "on-request"
 model = "gpt-5.5"
 model_provider = "openai"
 model_reasoning_effort = "high"
 model_reasoning_summary = "auto"
 model_verbosity = "medium"
-review_model = "gpt-5.5"
 personality = "pragmatic"
-service_tier = "fast"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
 project_doc_max_bytes = 65536
-
-[sandbox_workspace_write]
-network_access = false
-writable_roots = [ "/Users/mackay/.dotfiles/config/codex", "/private/tmp" ]
-
-[shell_environment_policy]
-inherit = "all"
-ignore_default_excludes = false
-web_search = "cached"
-
-[tools]
-view_image = true
+review_model = "gpt-5.5"
+sandbox_mode = "workspace-write"
+service_tier = "fast"
 
 [agents]
-max_threads = 6
 max_depth = 2
-
-[auto_review]
-policy = "Block on: correctness regressions, security risks, data loss, missing tests\nfor new behavior. Do not block on style. Lead with the highest-severity item.\n"
-
-[history]
-persistence = "save-all"
-
-[tui]
-notifications = [ "agent-turn-complete", "approval-requested" ]
-notification_method = "auto"
-notification_condition = "unfocused"
-animations = true
-show_tooltips = true
-theme = "dark-daltonized"
-status_line = [ "model-with-reasoning", "context-remaining", "current-dir", "git-branch" ]
-terminal_title = [ "spinner", "project", "git-branch" ]
-notify = [ "/Users/mackay/.dotfiles/config/codex/script/notify.sh" ]
-
-[tui.model_availability_nux]
-"gpt-5.5" = 4
+max_threads = 6
 
 [analytics]
 enabled = true
 
+[auto_review]
+policy = "Block on: correctness regressions, security risks, data loss, missing tests\nfor new behavior. Do not block on style. Lead with the highest-severity item.\n"
+
 [feedback]
 enabled = true
 
-[[hooks.PreToolUse]]
-matcher = "^Bash$"
-
-[[hooks.PreToolUse.hooks]]
-type = "command"
-command = "/Users/mackay/.dotfiles/config/codex/script/pre-tool-policy.sh"
-timeout = 10
-statusMessage = "Checking command policy"
+[history]
+persistence = "save-all"
 
 [[hooks.PermissionRequest]]
 matcher = "^Bash$"
 
 [[hooks.PermissionRequest.hooks]]
-type = "command"
 command = "/Users/mackay/.dotfiles/config/codex/script/permission-request.sh"
-timeout = 10
 statusMessage = "Checking approval request"
+timeout = 10
+type = "command"
 
 [[hooks.PostToolUse]]
 matcher = "Edit|Write|^apply_patch$"
 
 [[hooks.PostToolUse.hooks]]
-type = "command"
 command = "/Users/mackay/.dotfiles/config/codex/script/post-edit-check.sh"
-timeout = 30
 statusMessage = "Checking edited files"
+timeout = 30
+type = "command"
 
-[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
-trust_level = "trusted"
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
 
-[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
-trust_level = "trusted"
+[[hooks.PreToolUse.hooks]]
+command = "/Users/mackay/.dotfiles/config/codex/script/pre-tool-policy.sh"
+statusMessage = "Checking command policy"
+timeout = 10
+type = "command"
 
-[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
-trust_level = "trusted"
+[hooks.state."/Users/mackay/.codex/config.toml:permission_request:0:0"]
+trusted_hash = "sha256:85f2e012ac053d745fec2331142838220d10446f3d2ab34867480c754b41f5d3"
 
-[projects."/Users/mackay/.dotfiles"]
-trust_level = "trusted"
+[hooks.state."/Users/mackay/.codex/config.toml:post_tool_use:0:0"]
+trusted_hash = "sha256:d9b4a52cda87b741baf10e05a8964cfa66a946158d9735ad940c94da053fe336"
+
+[hooks.state."/Users/mackay/.codex/config.toml:pre_tool_use:0:0"]
+enabled = true
+trusted_hash = "sha256:2da7df986ff2cf99c0cf35676bb07b3ebbb08e54ccc576c4029ca73004811a1a"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-05-05T07:41:08Z"
-source_type = "local"
+last_updated = "2026-05-11T00:11:57Z"
 source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"
+source_type = "local"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-05-05T07:41:24Z"
+last_updated = "2026-05-11T00:12:40Z"
 source_type = "local"
 source = "/Users/mackay/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[marketplaces.claude-plugins-official]
+last_updated = "2026-05-12T06:24:18Z"
+last_revision = "45896c8f2fe68e68ca2a8e3554d4441f48475431"
+source_type = "git"
+source = "https://github.com/anthropics/claude-plugins-official.git"
+
+[marketplaces.openai-codex]
+last_updated = "2026-05-12T06:24:20Z"
+last_revision = "807e03ac9d5aa23bc395fdec8c3767500a86b3cf"
+source_type = "git"
+source = "https://github.com/openai/codex-plugin-cc.git"
+
+[mcp_servers.pencil]
+command = "/Users/mackay/.pencil/mcp/cursor/out/mcp-server-darwin-arm64"
+args = [ "--app", "cursor" ]
 
 [plugins."browser-use@openai-bundled"]
 enabled = true
@@ -107,12 +95,66 @@ enabled = true
 [plugins."documents@openai-primary-runtime"]
 enabled = true
 
-[plugins."spreadsheets@openai-primary-runtime"]
-enabled = true
-
 [plugins."presentations@openai-primary-runtime"]
 enabled = true
 
-[mcp_servers.pencil]
-command = "/Users/mackay/.pencil/mcp/cursor/out/mcp-server-darwin-arm64"
-args = [ "--app", "cursor" ]
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."code-simplifier@claude-plugins-official"]
+enabled = true
+
+[plugins."codex@openai-codex"]
+enabled = true
+
+[plugins."chrome@openai-bundled"]
+enabled = true
+
+[projects."/Users/mackay/.dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
+trust_level = "trusted"
+
+[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
+trust_level = "trusted"
+
+[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
+trust_level = "trusted"
+
+[projects."/Users/mackay/Library/CloudStorage/GoogleDrive-***REMOVED***/My Drive/ObsidianVault"]
+trust_level = "trusted"
+
+[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
+trust_level = "trusted"
+
+[sandbox_workspace_write]
+network_access = false
+writable_roots = [ "/Users/mackay/.dotfiles/config/codex", "/private/tmp" ]
+
+[shell_environment_policy]
+ignore_default_excludes = false
+inherit = "all"
+web_search = "cached"
+
+[shell_environment_policy.set]
+ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-4-7[1m]"
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
+CLAUDE_CODE_NEW_INIT = "true"
+
+[tools]
+view_image = true
+
+[tui]
+animations = true
+notification_condition = "unfocused"
+notification_method = "auto"
+notifications = [ "agent-turn-complete", "approval-requested" ]
+notify = [ "/Users/mackay/.dotfiles/config/codex/script/notify.sh" ]
+show_tooltips = true
+status_line = [ "model-with-reasoning", "context-remaining", "current-dir", "git-branch" ]
+terminal_title = [ "spinner", "project", "git-branch" ]
+theme = "dark-daltonized"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4

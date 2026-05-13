@@ -7,7 +7,7 @@ uv = "latest"
 bun = "latest"
 deno = "latest"
 ni = "latest"
-pnpm = "latest"
+pnpm = "9"
 terraform = "latest"
 gcloud = "latest"
 

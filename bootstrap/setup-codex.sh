@@ -47,12 +47,12 @@ if ! command -v terminal-notifier &> /dev/null; then
 fi
 
 # ----------------------
-# Bridge Claude skills into Codex skills/
+# Link shared agent skills into Codex skills/
 # ----------------------
 BOOTSTRAP_BRIDGE="${CODEX_SCRIPT_DIR}/bootstrap.sh"
 
 if [[ -x "${BOOTSTRAP_BRIDGE}" ]]; then
-    _log_run "Bridging Claude skills into Codex skills/..."
+    _log_run "Linking shared agent skills into Codex skills/..."
     if "${BOOTSTRAP_BRIDGE}"; then
         _log_ok "Skill bridge populated."
     else

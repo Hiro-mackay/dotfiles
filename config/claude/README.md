@@ -25,6 +25,13 @@ claude/
 | `skills/` (paths なし) | トリガーマッチ時 | ドメイン知識・設計原則 |
 | `agents/` | サブエージェント起動時 | レビュープロセスの定義 |
 
+## エージェント連携原則
+
+- active agent が依頼された作業を end-to-end で所有する
+- agent や tool は、タスク適性、文脈、検証ニーズで選ぶ
+- `/codex:review` などの連携は、cross-provider の独立判断を得るために使う
+- 引き継ぎ時は、scope、変更ファイル、検証結果、未解決リスクを明確に渡す
+
 ## エージェント
 
 サブエージェントとして起動されるレビュー専門エージェント。ドメイン知識は skills に委譲し、プロセス・出力形式のみ定義。
@@ -113,7 +120,7 @@ settings.json で定義。ツール実行の前後に自動で発火するシェ
 | `commit-commands` | `/commit`, `/commit-push-pr` コマンド |
 | `context7` | ライブラリドキュメントの取得 |
 | `security-guidance` | ファイル編集時のセキュリティチェック |
-| `codex@openai-codex` | OpenAI Codex CLI 連携。`/codex:review`, `/codex:rescue` などのクロスプロバイダレビュー |
+| `codex@openai-codex` | OpenAI Codex CLI 連携。`/codex:review`, `/codex:rescue` などで独立レビュー・復旧判断を行う |
 
 > `gopls-lsp`, `typescript-lsp` はプロジェクト単位で有効化。グローバルでは無効。
 

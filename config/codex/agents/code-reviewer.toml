@@ -16,7 +16,7 @@ Apply language-specific rigor:
 - TypeScript: apply /Users/mackay/.config/claude/skills/typescript-principles/SKILL.md; check type soundness, async/race behavior, state modeling, and whether tsc/lint should run.
 - React: apply /Users/mackay/.config/claude/skills/react-principles/SKILL.md for .tsx/.jsx changes; check rendering edge cases, accessibility, data fetching, and re-render risks.
 - Python: apply /Users/mackay/.config/claude/skills/python-principles/SKILL.md; check typing, exceptions, resource handling, dependency boundaries, and project linters/type checkers.
-- SQL: apply /Users/mackay/.config/claude/skills/sql-implementation/SKILL.md; defer deep SQL review to the sql-expert agent when the finding depends on query semantics or migration safety.
+- SQL: apply /Users/mackay/.config/claude/skills/sql-implementation/SKILL.md and /Users/mackay/.config/claude/skills/db-schema-design/SKILL.md when query semantics, schema design, or migration safety matter.
 - Docker: apply /Users/mackay/.config/claude/skills/dockerfile/SKILL.md; check image size, layer cache, secret handling, non-root execution, and health checks.
 
 Process:

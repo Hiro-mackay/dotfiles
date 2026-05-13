@@ -8,7 +8,7 @@ macOS development environment setup.
 - **Homebrew** - packages, casks, and dependencies
 - **Git** - global config and gitignore
 - **macOS** - system preferences, Dock, Trackpad, Finder
-- **Tools** - mise (runtime manager), Rust/Cargo, VS Code, Claude Code
+- **Tools** - mise (runtime manager), Rust/Cargo, VS Code, Claude Code, Codex
 - **Keyboard** - Karabiner-Elements key remapping
 
 ## Installation
@@ -40,12 +40,13 @@ curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.s
 │   ├── env.sh            # Environment variables
 │   ├── setup.sh          # Orchestrator
 │   ├── setup-dir.sh      # XDG / SSH directories
-│   ├── setup-link.sh     # Symlinks (~/.config, ~/.zshenv, ~/.claude)
+│   ├── setup-link.sh     # Symlinks (~/.config, ~/.zshenv, ~/.claude, ~/.codex)
 │   ├── setup-brew.sh     # Homebrew + Brewfile
 │   ├── setup-lang.sh     # mise runtimes (node, python, rust, go, etc.)
 │   ├── setup-macos.sh    # macOS system preferences
 │   ├── setup-vscode.sh   # VS Code settings
-│   └── setup-claude.sh   # Claude Code plugins + hooks
+│   ├── setup-claude.sh   # Claude Code plugins + hooks
+│   └── setup-codex.sh    # Codex CLI, hooks, and shared skills
 └── config/               # Symlinked to ~/.config
     ├── zsh/              # .zshrc, .zshenv
     ├── git/              # config, ignore
@@ -54,5 +55,6 @@ curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.s
     ├── karabiner/        # Keyboard remapping
     ├── gh/               # GitHub CLI
     ├── vscode/           # Settings + extensions list
-    └── claude/           # Claude Code settings + scripts
+    ├── claude/           # Claude Code settings + scripts
+    └── codex/            # Codex settings + scripts
 ```

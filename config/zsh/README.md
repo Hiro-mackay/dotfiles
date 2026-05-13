@@ -391,7 +391,8 @@ All Docker aliases are prefixed with `d`. Compose commands start with `dc`.
 | `k` | `kubectl` |
 | `lg` | Open lazygit (interactive git TUI) |
 | `lzd` | Open lazydocker (interactive docker TUI) |
-| `cc` | Start Claude Code |
+| `ccode` | Start Claude Code |
+| `cx` | Start Codex |
 
 ---
 

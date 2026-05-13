@@ -7,9 +7,10 @@ set -euo pipefail
 #   ~/.codex -> ~/.config/codex -> ~/.dotfiles/config/codex
 #
 # This script populates ~/.dotfiles/config/codex/skills/ with dir-symlinks to
-# every Claude skill (~/.config/claude/skills/<name>). Path-filtered skills
-# (go-principles, sql-implementation, etc.) are unified into the same skills/
-# tree as on-demand skills, so a single dir-symlink per skill suffices.
+# the shared agent skills currently stored at ~/.config/claude/skills/<name>.
+# Path-filtered skills (go-principles, sql-implementation, etc.) are unified
+# into the same skills/ tree as on-demand skills, so a single dir-symlink per
+# skill suffices.
 #
 # skills/ is gitignored: it is fully reconstructible from this script.
 

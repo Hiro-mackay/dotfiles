@@ -12,6 +12,7 @@
 !zsh/README.md
 !bttpreset/*
 !git/*
+!git/hooks/**
 !karabiner/karabiner.json
 !vscode/*
 !mise/*

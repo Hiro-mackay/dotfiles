@@ -1,0 +1,35 @@
+#!/usr/bin/env zsh
+#
+# Sanitize Codex's config.toml in the index before it lands in a commit.
+# The working tree copy is left alone so Codex keeps reading its full state.
+#
+# To bypass (e.g. when intentionally landing the full file): git commit --no-verify
+
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+TARGET="config/codex/config.toml"
+SANITIZER="${REPO_ROOT}/config/git/hooks/sanitize-codex-config.awk"
+
+# Skip when the file is not tracked in the index at all (e.g. fresh clone
+# before the first commit, or the file was deliberately removed).
+staged_blob="$(git ls-files -s "${TARGET}" 2>/dev/null | awk '{print $2}')"
+if [[ -z "${staged_blob}" ]]; then
+    exit 0
+fi
+
+if [[ ! -r "${SANITIZER}" ]]; then
+    echo "pre-commit: sanitizer not found at ${SANITIZER}" >&2
+    exit 1
+fi
+
+# Pipe through awk to preserve trailing newline behavior; capturing via $(...)
+# would strip the final newline.
+sanitized_blob="$(git show ":${TARGET}" | awk -f "${SANITIZER}" | git hash-object -w --stdin)"
+
+if [[ "${staged_blob}" == "${sanitized_blob}" ]]; then
+    exit 0
+fi
+
+git update-index --cacheinfo "100644,${sanitized_blob},${TARGET}"
+echo "pre-commit: sanitized ${TARGET} (runtime state stripped from commit; working tree untouched)"

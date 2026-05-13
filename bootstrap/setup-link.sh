@@ -53,4 +53,12 @@ fi
 _log_run "Linking .codex -> .config/codex"
 ln -sfnv "$HOME/.config/codex" "$HOME/.codex"
 
+# Point this repo's git at the tracked hooks directory so the pre-commit
+# sanitizer for Codex's config.toml runs without per-machine setup.
+DOTFILES_DIR="${HOME}/.dotfiles"
+if [[ -d "${DOTFILES_DIR}/.git" ]]; then
+    _log_run "Setting core.hooksPath -> config/git/hooks (repo-local)"
+    git -C "${DOTFILES_DIR}" config core.hooksPath config/git/hooks
+fi
+
 _log_ok "All links created."

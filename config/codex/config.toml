@@ -53,35 +53,19 @@ statusMessage = "Checking command policy"
 timeout = 10
 type = "command"
 
-[hooks.state."/Users/mackay/.codex/config.toml:permission_request:0:0"]
-trusted_hash = "sha256:85f2e012ac053d745fec2331142838220d10446f3d2ab34867480c754b41f5d3"
-
-[hooks.state."/Users/mackay/.codex/config.toml:post_tool_use:0:0"]
-trusted_hash = "sha256:d9b4a52cda87b741baf10e05a8964cfa66a946158d9735ad940c94da053fe336"
-
-[hooks.state."/Users/mackay/.codex/config.toml:pre_tool_use:0:0"]
-enabled = true
-trusted_hash = "sha256:2da7df986ff2cf99c0cf35676bb07b3ebbb08e54ccc576c4029ca73004811a1a"
-
 [marketplaces.openai-bundled]
-last_updated = "2026-05-11T00:11:57Z"
 source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"
 source_type = "local"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-05-11T00:12:40Z"
 source_type = "local"
 source = "/Users/mackay/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.claude-plugins-official]
-last_updated = "2026-05-12T06:24:18Z"
-last_revision = "45896c8f2fe68e68ca2a8e3554d4441f48475431"
 source_type = "git"
 source = "https://github.com/anthropics/claude-plugins-official.git"
 
 [marketplaces.openai-codex]
-last_updated = "2026-05-12T06:24:20Z"
-last_revision = "807e03ac9d5aa23bc395fdec8c3767500a86b3cf"
 source_type = "git"
 source = "https://github.com/openai/codex-plugin-cc.git"
 
@@ -109,24 +93,6 @@ enabled = true
 
 [plugins."chrome@openai-bundled"]
 enabled = true
-
-[projects."/Users/mackay/.dotfiles"]
-trust_level = "trusted"
-
-[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
-trust_level = "trusted"
-
-[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
-trust_level = "trusted"
-
-[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
-trust_level = "trusted"
-
-[projects."/Users/mackay/Library/CloudStorage/GoogleDrive-***REMOVED***/My Drive/ObsidianVault"]
-trust_level = "trusted"
-
-[projects."/Users/mackay/Repository/github.com/***REMOVED***"]
-trust_level = "trusted"
 
 [sandbox_workspace_write]
 network_access = false
@@ -156,5 +122,3 @@ status_line = [ "model-with-reasoning", "context-remaining", "current-dir", "git
 terminal_title = [ "spinner", "project", "git-branch" ]
 theme = "dark-daltonized"
 
-[tui.model_availability_nux]
-"gpt-5.5" = 4

@@ -100,7 +100,7 @@ inherit = "all"
 web_search = "cached"
 
 [shell_environment_policy.set]
-ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-4-7[1m]"
+ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-4-7"
 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
 CLAUDE_CODE_NEW_INIT = "true"
 

@@ -249,7 +249,8 @@ alias rebase='rebase-remote main'
 # -----------------
 _gwt_main_path() {
   local main_path
-  main_path=$(git worktree list 2>/dev/null | head -1 | awk '{print $1}')
+  main_path=$(git worktree list --porcelain 2>/dev/null |
+    awk '/^worktree / {print substr($0, 10); exit}')
   if [[ -z "$main_path" ]]; then
     echo "Not in a git repository." >&2
     return 1
@@ -401,31 +402,33 @@ _gws_worktree_branches() {
 
 _gws_branch_candidates() {
   local existing="$1"
-  local local_branches source_rows
-
-  local_branches=$(git branch --format='%(refname:short)')
-  source_rows=$({
-    print -r -- "$local_branches" | awk 'NF { printf "%s\t\n", $0 }'
+  {
+    print -r -- "$existing" | awk 'NF { printf "E\t%s\n", $0 }'
+    git branch --format='%(refname:short)' | awk 'NF { printf "L\t%s\n", $0 }'
     git for-each-ref --format='%(refname)' refs/remotes/ |
       awk '
         /^refs\/remotes\/[^\/]+\/HEAD$/ { next }
         /^refs\/remotes\// {
-          start = substr($0, 14)
-          branch = start
-          sub(/^[^\/]+\//, "", branch)
-          printf "%s\t%s\n", branch, start
+          s = substr($0, 14)
+          b = s
+          sub(/^[^\/]+\//, "", b)
+          printf "R\t%s\t%s\n", b, s
         }
       '
-  } | sort -u)
-
-  local branch start_point source
-  while IFS=$'\t' read -r branch start_point; do
-    [[ -z "$branch" ]] && continue
-    grep -Fxq "$branch" <<< "$existing" && continue
-    [[ -n "$start_point" ]] && grep -Fxq "$branch" <<< "$local_branches" && continue
-    source="${start_point:-"(local branch)"}"
-    printf "%-30s %-25s\tcreate\t%s\t%s\n" "$branch" "$source" "$branch" "$start_point"
-  done <<< "$source_rows"
+  } | awk -F '\t' '
+    $1 == "E" { existing[$2] = 1; next }
+    $1 == "L" && !($2 in source) { order[++n] = $2; source[$2] = ""; next }
+    $1 == "R" && !($2 in source) { order[++n] = $2; source[$2] = $3; next }
+    END {
+      for (i = 1; i <= n; i++) {
+        branch = order[i]
+        if (branch == "" || existing[branch]) continue
+        start = source[branch]
+        label = start == "" ? "(local branch)" : start
+        printf "%-30s %-25s\tcreate\t%s\t%s\n", branch, label, branch, start
+      }
+    }
+  '
 }
 
 _gws_fetch_start_point() {

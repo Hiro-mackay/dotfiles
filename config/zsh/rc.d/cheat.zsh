@@ -38,7 +38,7 @@ cheat() {
 
   WORKTREE
     gwa <branch>   create worktree (copies .env)
-    gws            switch / create worktree from any branch (fzf)
+    gws [branch]   switch picker, or open branch directly
     gwr [branch]   remove worktree
 
   CREATE

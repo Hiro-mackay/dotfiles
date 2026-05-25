@@ -372,17 +372,6 @@ gwr() {
   echo "Current directory: $PWD"
 }
 
-_gws_remote_heads() {
-  print -n "gws: checking remote... " >&2
-  local ls_output
-  if ls_output=$(git ls-remote --heads --quiet origin 2>/dev/null); then
-    print "done" >&2
-    print -r -- "$ls_output" | sed -n 's|^.*refs/heads/||p'
-  else
-    print "offline (using cached refs)" >&2
-  fi
-}
-
 _gws_worktree_candidates() {
   git worktree list --porcelain 2>/dev/null | awk '
     /^worktree / {
@@ -412,7 +401,6 @@ _gws_worktree_branches() {
 
 _gws_branch_candidates() {
   local existing="$1"
-  local remote_heads="$2"
   local local_branches source_rows
 
   local_branches=$(git branch --format='%(refname:short)')
@@ -428,8 +416,6 @@ _gws_branch_candidates() {
           printf "%s\t%s\n", branch, start
         }
       '
-    [[ -n "$remote_heads" ]] &&
-      print -r -- "$remote_heads" | awk 'NF { printf "%s\torigin/%s\n", $0, $0 }'
   } | sort -u)
 
   local branch start_point source
@@ -463,22 +449,42 @@ _gws_fetch_start_point() {
   return 1
 }
 
+_gws_open_branch() {
+  local branch="${1%/}"
+  local start_point
+  [[ -z "$branch" ]] && return 1
+
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    gwa "$branch"
+    return $?
+  fi
+
+  start_point=$(git for-each-ref --format='%(refname)' \
+    "refs/remotes/*/${branch}" 2>/dev/null | head -1)
+  start_point="${start_point#refs/remotes/}"
+  [[ -z "$start_point" ]] && start_point="origin/$branch"
+
+  _gws_fetch_start_point "$branch" "$start_point" || return 1
+  gwa "$branch" "$start_point"
+}
+
 gws() {
   _gwt_main_path >/dev/null || return 1
 
-  local remote_heads existing candidates selected action arg start_point
-  remote_heads=$(_gws_remote_heads)
+  local existing candidates selected label action arg start_point
+  if [[ -n "$1" ]]; then
+    _gws_open_branch "$1"
+    return $?
+  fi
+
   existing=$(_gws_worktree_branches)
   candidates=$(_gws_worktree_candidates)
-  candidates+=$'\n'$(_gws_branch_candidates "$existing" "$remote_heads")
+  candidates+=$'\n'$(_gws_branch_candidates "$existing")
 
   selected=$(print -r -- "$candidates" |
     fzf --prompt="worktree> " --delimiter=$'\t' --with-nth=1) || return 0
 
-  action=$(awk -F'\t' '{print $2}' <<< "$selected")
-  arg=$(awk -F'\t' '{print $3}' <<< "$selected")
-  start_point=$(awk -F'\t' '{print $4}' <<< "$selected")
-
+  IFS=$'\t' read -r label action arg start_point <<< "$selected"
   if [[ "$action" == "cd" ]]; then
     cd "$arg" || return 1
     echo "$(basename "$PWD") [$(git branch --show-current)]"

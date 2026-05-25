@@ -37,8 +37,8 @@ cheat() {
     gcd    restore all + clean      greset  hard reset HEAD
 
   WORKTREE
-    gwa <branch>   create worktree (copies .env)
-    gws [branch]   switch picker, or open branch directly
+    gwa <branch>   create new branch worktree
+    gws [branch]   switch picker, or open existing branch
     gwr [branch]   remove worktree
 
   CREATE

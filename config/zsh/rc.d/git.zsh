@@ -258,14 +258,11 @@ _gwt_main_path() {
   echo "$main_path"
 }
 
-gwa() {
+_gwt_remote_ref() { git for-each-ref --format='%(refname)' "refs/remotes/*/${1}" 2>/dev/null | head -1 }
+
+_gwt_open() {
   local full_branch="${1%/}"
   local start_point="${2%/}"
-  if [[ -z "$full_branch" ]]; then
-    echo "Usage: gwa <branch-name> [start-point]"
-    return 1
-  fi
-
   local main_path
   main_path=$(_gwt_main_path) || return 1
   local base=$(basename "$main_path")
@@ -277,21 +274,12 @@ gwa() {
     cd "$worktree_path"
     return 0
   fi
-
   git worktree prune 2>/dev/null
-
   echo "Creating worktree at $worktree_path ..."
   if git show-ref --verify --quiet "refs/heads/$full_branch"; then
     echo "Linking existing branch '$full_branch'..."
     git worktree add "$worktree_path" "$full_branch"
   else
-    if [[ -z "$start_point" ]]; then
-      local remote_ref
-      remote_ref=$(git for-each-ref --format='%(refname)' \
-        "refs/remotes/*/${full_branch}" 2>/dev/null | head -1)
-      [[ -n "$remote_ref" ]] && start_point="${remote_ref#refs/remotes/}"
-    fi
-
     if [[ -n "$start_point" ]]; then
       echo "Creating branch '$full_branch' tracking '$start_point'..."
       git worktree add -b "$full_branch" "$worktree_path" "$start_point"
@@ -315,10 +303,25 @@ gwa() {
     echo "Copied .env files from main worktree"
   fi
 
-  echo "----------------------------------------"
-  echo "Moved to: $PWD"
-  echo "Branch: $(git branch --show-current)"
-  echo "----------------------------------------"
+  printf '%s\nMoved to: %s\nBranch: %s\n%s\n' \
+    "----------------------------------------" "$PWD" "$(git branch --show-current)" "----------------------------------------"
+}
+
+gwa() {
+  local full_branch="${1%/}"
+  [[ -z "$full_branch" ]] && { echo "Usage: gwa <new-branch-name>"; return 1; }
+  git show-ref --verify --quiet "refs/heads/$full_branch" &&
+    { echo "error: local branch already exists: $full_branch" >&2; return 1; }
+  [[ -n "$(_gwt_remote_ref "$full_branch")" ]] &&
+    { echo "error: remote branch already exists: $full_branch" >&2; return 1; }
+  if git remote get-url origin >/dev/null 2>&1; then
+    if git ls-remote --exit-code origin "refs/heads/$full_branch" >/dev/null 2>&1; then
+      echo "error: origin branch already exists: $full_branch" >&2; return 1
+    elif [[ $? -ne 2 ]]; then
+      echo "error: cannot verify origin branch: $full_branch" >&2; return 1
+    fi
+  fi
+  _gwt_open "$full_branch"
 }
 
 gwr() {
@@ -458,22 +461,19 @@ _gws_open_branch() {
   [[ -z "$branch" ]] && return 1
 
   if git show-ref --verify --quiet "refs/heads/$branch"; then
-    gwa "$branch"
-    return $?
+    _gwt_open "$branch"; return $?
   fi
 
-  start_point=$(git for-each-ref --format='%(refname)' \
-    "refs/remotes/*/${branch}" 2>/dev/null | head -1)
+  start_point=$(_gwt_remote_ref "$branch")
   start_point="${start_point#refs/remotes/}"
   [[ -z "$start_point" ]] && start_point="origin/$branch"
 
   _gws_fetch_start_point "$branch" "$start_point" || return 1
-  gwa "$branch" "$start_point"
+  _gwt_open "$branch" "$start_point"
 }
 
 gws() {
   _gwt_main_path >/dev/null || return 1
-
   local existing candidates selected label action arg start_point
   if [[ -n "$1" ]]; then
     _gws_open_branch "$1"
@@ -495,5 +495,5 @@ gws() {
   fi
 
   _gws_fetch_start_point "$arg" "$start_point" || return 1
-  gwa "$arg" "$start_point"
+  _gwt_open "$arg" "$start_point"
 }

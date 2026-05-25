@@ -297,14 +297,14 @@ Git worktrees let you work on multiple branches simultaneously in separate direc
 
 | Command | Description |
 |---------|-------------|
-| `gwa <branch>` | Create a worktree for `<branch>` in a sibling directory |
-| `gws [branch]` | fzf picker, or create/enter `<branch>` directly when provided |
+| `gwa <branch>` | Create a new branch worktree; fail if `<branch>` already exists |
+| `gws [branch]` | fzf picker, or open an existing local/remote branch directly |
 | `gwr [branch]` | Remove a worktree (default: current branch) |
 
 How it works:
-- `gwa feat/login` in `~/code/myapp` creates `~/code/myapp_login/`
+- `gwa feat/login` in `~/code/myapp` creates `~/code/myapp_login/` for a new branch
 - `.env*` files are automatically copied from the main worktree
-- If the branch already exists locally, it links to it. Otherwise, creates a new branch
+- Use `gws <branch>` for existing local or remote branches
 - `gwr` safely moves you to the main worktree before removing
 
 ---

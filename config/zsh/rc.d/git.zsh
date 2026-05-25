@@ -247,12 +247,6 @@ alias rebase='rebase-remote main'
 # -----------------
 #  Git: worktree
 # -----------------
-gwaf() {
-  local b
-  b=$(git branch --format='%(refname:short)' | fzf) || return
-  gwa "$b"
-}
-
 _gwt_main_path() {
   local main_path
   main_path=$(git worktree list 2>/dev/null | head -1 | awk '{print $1}')
@@ -265,8 +259,9 @@ _gwt_main_path() {
 
 gwa() {
   local full_branch="${1%/}"
+  local start_point="${2%/}"
   if [[ -z "$full_branch" ]]; then
-    echo "Usage: gwa <branch-name>"
+    echo "Usage: gwa <branch-name> [start-point]"
     return 1
   fi
 
@@ -274,7 +269,7 @@ gwa() {
   main_path=$(_gwt_main_path) || return 1
   local base=$(basename "$main_path")
   local suffix="${full_branch##*/}"
-  local worktree_path="../${base}_${suffix}"
+  local worktree_path="$(dirname "$main_path")/${base}_${suffix}"
 
   if [[ -d "$worktree_path" ]]; then
     echo "Worktree already exists. Moving there..."
@@ -289,8 +284,20 @@ gwa() {
     echo "Linking existing branch '$full_branch'..."
     git worktree add "$worktree_path" "$full_branch"
   else
-    echo "Creating new branch '$full_branch'..."
-    git worktree add -b "$full_branch" "$worktree_path"
+    if [[ -z "$start_point" ]]; then
+      local remote_ref
+      remote_ref=$(git for-each-ref --format='%(refname)' \
+        "refs/remotes/*/${full_branch}" 2>/dev/null | head -1)
+      [[ -n "$remote_ref" ]] && start_point="${remote_ref#refs/remotes/}"
+    fi
+
+    if [[ -n "$start_point" ]]; then
+      echo "Creating branch '$full_branch' tracking '$start_point'..."
+      git worktree add -b "$full_branch" "$worktree_path" "$start_point"
+    else
+      echo "Creating new branch '$full_branch'..."
+      git worktree add -b "$full_branch" "$worktree_path"
+    fi
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -327,12 +334,11 @@ gwr() {
 
   local suffix="${branch##*/}"
   local worktree_dir="${base}_${suffix}"
+  local target_path="$(dirname "$main_path")/${worktree_dir}"
 
   local abs_target
-  if [[ -d "../${worktree_dir}" ]]; then
-    abs_target=$(realpath "../${worktree_dir}")
-  elif [[ -d "./${worktree_dir}" ]]; then
-    abs_target=$(realpath "./${worktree_dir}")
+  if [[ -d "$target_path" ]]; then
+    abs_target=$(realpath "$target_path")
   else
     git worktree prune 2>/dev/null
     echo "Worktree for '$branch' is already clean."
@@ -340,7 +346,7 @@ gwr() {
   fi
 
   if [[ "$(realpath "$PWD")/" == "$abs_target/"* ]]; then
-    cd "../${base}"
+    cd "$main_path"
   fi
 
   # Check for uncommitted changes before removal
@@ -366,18 +372,119 @@ gwr() {
   echo "Current directory: $PWD"
 }
 
-gws() {
-  local line
-  line=$(git worktree list 2>/dev/null | awk '{
-    n = split($1, a, "/")
-    branch = $3; gsub(/[\[\]]/, "", branch)
-    printf "%-25s %s\t%s\n", branch, a[n], $1
-  }' | fzf --prompt="worktree> " --delimiter='\t' --with-nth=1)
+_gws_remote_heads() {
+  print -n "gws: checking remote... " >&2
+  local ls_output
+  if ls_output=$(git ls-remote --heads --quiet origin 2>/dev/null); then
+    print "done" >&2
+    print -r -- "$ls_output" | sed -n 's|^.*refs/heads/||p'
+  else
+    print "offline (using cached refs)" >&2
+  fi
+}
 
-  if [[ -z "$line" ]]; then
+_gws_worktree_candidates() {
+  git worktree list --porcelain 2>/dev/null | awk '
+    /^worktree / {
+      if (path != "") {
+        n = split(path, a, "/")
+        printf "%-30s %-25s %s\tcd\t%s\t\n", branch, a[n], path, path
+      }
+      path = substr($0, 10)
+      branch = "(unknown)"
+    }
+    /^branch refs\/heads\// { branch = substr($0, 19) }
+    /^detached$/            { branch = "(detached)" }
+    /^bare$/                { branch = "(bare)" }
+    END {
+      if (path != "") {
+        n = split(path, a, "/")
+        printf "%-30s %-25s %s\tcd\t%s\t\n", branch, a[n], path, path
+      }
+    }
+  '
+}
+
+_gws_worktree_branches() {
+  git worktree list --porcelain 2>/dev/null |
+    awk '/^branch / {sub(/^branch refs\/heads\//, ""); print}'
+}
+
+_gws_branch_candidates() {
+  local existing="$1"
+  local remote_heads="$2"
+  local local_branches source_rows
+
+  local_branches=$(git branch --format='%(refname:short)')
+  source_rows=$({
+    print -r -- "$local_branches" | awk 'NF { printf "%s\t\n", $0 }'
+    git for-each-ref --format='%(refname)' refs/remotes/ |
+      awk '
+        /^refs\/remotes\/[^\/]+\/HEAD$/ { next }
+        /^refs\/remotes\// {
+          start = substr($0, 14)
+          branch = start
+          sub(/^[^\/]+\//, "", branch)
+          printf "%s\t%s\n", branch, start
+        }
+      '
+    [[ -n "$remote_heads" ]] &&
+      print -r -- "$remote_heads" | awk 'NF { printf "%s\torigin/%s\n", $0, $0 }'
+  } | sort -u)
+
+  local branch start_point source
+  while IFS=$'\t' read -r branch start_point; do
+    [[ -z "$branch" ]] && continue
+    grep -Fxq "$branch" <<< "$existing" && continue
+    [[ -n "$start_point" ]] && grep -Fxq "$branch" <<< "$local_branches" && continue
+    source="${start_point:-"(local branch)"}"
+    printf "%-30s %-25s\tcreate\t%s\t%s\n" "$branch" "$source" "$branch" "$start_point"
+  done <<< "$source_rows"
+}
+
+_gws_fetch_start_point() {
+  local branch="$1"
+  local start_point="$2"
+  [[ -z "$start_point" ]] && return 0
+  git show-ref --verify --quiet "refs/remotes/$start_point" && return 0
+
+  if [[ "$start_point" != origin/* ]]; then
+    echo "error: missing remote ref '$start_point'. Run git fetch and retry." >&2
+    return 1
+  fi
+
+  print -n "gws: fetching $start_point... " >&2
+  if git fetch origin "refs/heads/${branch}:refs/remotes/${start_point}" 2>/dev/null; then
+    print "done" >&2
     return 0
   fi
 
-  cd "${line##*$'\t'}"
-  echo "$(basename "$PWD") [$(git branch --show-current)]"
+  print "failed" >&2
+  return 1
+}
+
+gws() {
+  _gwt_main_path >/dev/null || return 1
+
+  local remote_heads existing candidates selected action arg start_point
+  remote_heads=$(_gws_remote_heads)
+  existing=$(_gws_worktree_branches)
+  candidates=$(_gws_worktree_candidates)
+  candidates+=$'\n'$(_gws_branch_candidates "$existing" "$remote_heads")
+
+  selected=$(print -r -- "$candidates" |
+    fzf --prompt="worktree> " --delimiter=$'\t' --with-nth=1) || return 0
+
+  action=$(awk -F'\t' '{print $2}' <<< "$selected")
+  arg=$(awk -F'\t' '{print $3}' <<< "$selected")
+  start_point=$(awk -F'\t' '{print $4}' <<< "$selected")
+
+  if [[ "$action" == "cd" ]]; then
+    cd "$arg" || return 1
+    echo "$(basename "$PWD") [$(git branch --show-current)]"
+    return 0
+  fi
+
+  _gws_fetch_start_point "$arg" "$start_point" || return 1
+  gwa "$arg" "$start_point"
 }

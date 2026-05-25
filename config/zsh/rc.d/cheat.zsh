@@ -38,8 +38,7 @@ cheat() {
 
   WORKTREE
     gwa <branch>   create worktree (copies .env)
-    gwaf           create from fzf branch selection
-    gws            switch worktrees (fzf)
+    gws            switch / create worktree from any branch (fzf)
     gwr [branch]   remove worktree
 
   CREATE
@@ -93,8 +92,7 @@ SHEET
     g         jump to repo (ghq)
     gfb       switch git branch (with log preview)
     glz       interactive git log (with diff preview)
-    gwaf      create worktree from branch
-    gws       switch worktree
+    gws       switch / create worktree
     dexec     exec into container
     dclz      compose service logs
     dlz       any container logs

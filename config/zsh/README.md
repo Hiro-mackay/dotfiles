@@ -57,8 +57,7 @@ fzf powers interactive selection in many commands throughout this config:
 | `g` | Repository (ghq) |
 | `gfb` | Git branch (with log preview) |
 | `glz` | Git commit (with diff preview) |
-| `gwaf` | Git branch for worktree |
-| `gws` | Git worktree |
+| `gws` | Git worktree (existing or new from any branch) |
 | `dexec` | Docker container to exec into |
 | `dclz` | Docker Compose service for logs |
 | `dlz` | Docker container for logs |
@@ -299,8 +298,7 @@ Git worktrees let you work on multiple branches simultaneously in separate direc
 | Command | Description |
 |---------|-------------|
 | `gwa <branch>` | Create a worktree for `<branch>` in a sibling directory |
-| `gwaf` | Same, but select the branch with fzf |
-| `gws` | Switch between existing worktrees with fzf |
+| `gws` | fzf picker: cd into an existing worktree, or create one from any local/remote branch |
 | `gwr [branch]` | Remove a worktree (default: current branch) |
 
 How it works:

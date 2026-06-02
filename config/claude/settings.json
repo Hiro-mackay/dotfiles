@@ -43,8 +43,7 @@
       "Bash(python3:*)",
       "Bash(pip:*)",
       "Bash(pip3:*)",
-      "Bash(bun:*)",
-      "mcp__pencil"
+      "Bash(bun:*)"
     ],
     "deny": [
       "Bash(sudo:*)",

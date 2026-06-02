@@ -69,10 +69,6 @@ source = "https://github.com/anthropics/claude-plugins-official.git"
 source_type = "git"
 source = "https://github.com/openai/codex-plugin-cc.git"
 
-[mcp_servers.pencil]
-command = "/Users/mackay/.pencil/mcp/cursor/out/mcp-server-darwin-arm64"
-args = [ "--app", "cursor" ]
-
 [plugins."browser-use@openai-bundled"]
 enabled = true
 

@@ -55,12 +55,18 @@ if printf '%s\n' "$cmd" | grep -Eq '[;&|`]|[$][(]'; then
   exit 0
 fi
 
+# Commits / pushes / PR creation must never be auto-approved; fall through to
+# the user approval prompt (mirror of the Claude commit-guard hook).
+if printf '%s\n' "$cmd" | grep -Eq 'git[[:space:]].*(commit|push)|gh[[:space:]]+pr[[:space:]]+(create|merge)'; then
+  exit 0
+fi
+
 allow_patterns=(
   '^(mkdir|touch|ls|tree|mv|cp|which|wc|diff|chmod)([[:space:]]|$)'
   '^(rg|npm|npx|pnpm|go|docker|stow|gh)([[:space:]]|$)'
   '^(python|python3|pip|pip3|bun|brew|pkill)([[:space:]]|$)'
   '^uv[[:space:]]+run[[:space:]]+python[[:space:]]+-c([[:space:]]|$)'
-  '^git[[:space:]]+(status|diff|log|show|branch|add|stash|worktree|checkout|switch|fetch|commit|rebase)([[:space:]]|$)'
+  '^git[[:space:]]+(status|diff|log|show|branch|add|stash|worktree|checkout|switch|fetch|rebase)([[:space:]]|$)'
   '^codex[[:space:]]+debug[[:space:]]+prompt-input([[:space:]]|$)'
 )
 

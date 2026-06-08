@@ -10,6 +10,7 @@ ni = "latest"
 pnpm = "latest"
 terraform = "latest"
 gcloud = "latest"
+"npm:rulesync" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

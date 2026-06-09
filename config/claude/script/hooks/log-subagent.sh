@@ -4,7 +4,7 @@
 # Fires on SubagentStart and SubagentStop. Schema discovered empirically
 # (see subagent-raw.log for examples). Key fields:
 #   - agent_id: stable across Start/Stop -- use as correlation key
-#   - agent_type: the subagent type name (Explore, sonnet-executor, etc.)
+#   - agent_type: the subagent type name (Explore, code-reviewer, etc.)
 #   - session_id: the parent Claude Code session
 #   - last_assistant_message (Stop only): final response text -- detect BLOCKED here
 #   - agent_transcript_path (Stop only): full subagent JSONL transcript

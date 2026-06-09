@@ -23,7 +23,9 @@
 !claude/CLAUDE.md
 !claude/README.md
 !claude/agents/**
-!claude/skills/**
+# Shared SSoT for skills + AGENTS.md (projected into claude/codex by bootstrap).
+# claude/skills and codex/skills are regenerated symlinks -> not tracked.
+!agents/**
 # SECURITY: codex/auth.json (OAuth credentials) lives under config/codex/.
 # Never add `!codex/**` — it would expose secrets. Allowlist only specific paths.
 !codex/.gitignore

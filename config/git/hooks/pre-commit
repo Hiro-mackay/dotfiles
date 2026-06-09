@@ -34,27 +34,15 @@ fi
 git update-index --cacheinfo "100644,${sanitized_blob},${TARGET}"
 echo "pre-commit: sanitized ${TARGET} (runtime state stripped from commit; working tree untouched)"
 
-# --- rulesync drift check (rules layer) ---
-# When the rules source or the generated global files are staged, ensure
-# CLAUDE.md / AGENTS.md still match .rulesync/. Catches the case where the
-# generated file was hand-edited and drifted from its single source.
-rules_touched="$(git diff --cached --name-only -- '.rulesync/' 'config/claude/CLAUDE.md' 'config/codex/AGENTS.md' 2>/dev/null)"
-if [[ -n "${rules_touched}" ]]; then
-    if command -v rulesync >/dev/null 2>&1; then
-        RULESYNC="rulesync"
-    elif command -v mise >/dev/null 2>&1 && mise which rulesync >/dev/null 2>&1; then
-        RULESYNC="mise exec -- rulesync"
-    else
-        RULESYNC=""
-        echo "pre-commit: rulesync not found; skipping rules drift check (install: mise install)" >&2
-    fi
-    if [[ -n "${RULESYNC}" ]]; then
-        if ! ${=RULESYNC} generate -g --targets claudecode,codexcli --features rules \
-            --input-root "${REPO_ROOT}" --check >/dev/null 2>&1; then
-            echo "pre-commit: CLAUDE.md / AGENTS.md are out of date with .rulesync/." >&2
-            echo "  fix: rulesync generate -g --targets claudecode,codexcli --features rules --input-root ${REPO_ROOT}" >&2
-            echo "  then 'git add' the regenerated files. (bypass: git commit --no-verify)" >&2
-            exit 1
-        fi
-    fi
+# --- AGENTS.md SSoT sync ---
+# config/agents/AGENTS.md is the single source for global instructions. Codex
+# must read its copy as a real file (it does not follow file-symlinks), so keep
+# config/codex/AGENTS.md byte-identical to the source. One-directional: source
+# -> codex copy. (Claude reads the source via @import in CLAUDE.md, no copy.)
+AGENTS_SRC="${REPO_ROOT}/config/agents/AGENTS.md"
+AGENTS_DST="${REPO_ROOT}/config/codex/AGENTS.md"
+if [[ -f "${AGENTS_SRC}" ]] && ! diff -q "${AGENTS_SRC}" "${AGENTS_DST}" >/dev/null 2>&1; then
+    cp "${AGENTS_SRC}" "${AGENTS_DST}"
+    git add "config/codex/AGENTS.md"
+    echo "pre-commit: synced config/codex/AGENTS.md from config/agents/AGENTS.md"
 fi

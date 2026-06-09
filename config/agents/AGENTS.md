@@ -1,10 +1,3 @@
----
-root: true
-targets:
-  - '*'
-globs:
-  - '**/*'
----
 # Global Instructions
 
 ## Voice
@@ -18,6 +11,7 @@ globs:
 - 3+ steps or architectural decisions: make the plan explicit before starting
 - Fix the root cause, not the symptom
 - Non-trivial changes: pause once and ask "is there a simpler shape?"
+- Delegate to parallel subagents only at 3+ independent file edits or 10+ uniform mechanical ops; otherwise work inline (see `delegation` skill for spawn template)
 
 ## Collaboration
 - Stay in the requested scope; don't solve unrequested problems or add tooling I won't use
@@ -31,6 +25,7 @@ globs:
 - IMPORTANT: Secrets live in environment variables -- never hardcoded
 - No features, abstractions, or fallbacks beyond what the task requires
 - No comments unless the WHY is non-obvious; no current-task references in comments
+- When writing or reviewing code, apply the `readable-code` and `naming-conventions` skills -- enforce them above the project's default bar
 
 ## Git
 - IMPORTANT: Never commit, push, or open a PR unless I explicitly ask in this session -- finishing work is not a trigger

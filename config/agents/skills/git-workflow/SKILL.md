@@ -39,7 +39,6 @@ description: Git workflow conventions for branching strategy, PR creation, code 
 ## Merge Strategy
 - Squash merge for feature branches (clean history)
 - Merge commit for long-lived branches with meaningful intermediate commits
-- NEVER force-push to shared branches (main, develop, release/*)
 - Delete branch after merge
 
 ## Stacked PRs

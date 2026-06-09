@@ -38,12 +38,15 @@ run_step "setup-link" "$BOOTSTRAP_DIR/setup-link.sh" true
 run_step "setup-brew" "$BOOTSTRAP_DIR/setup-brew.sh" true
 
 # Non-critical steps (continue on failure)
+# Project the shared agents SSoT (config/agents) into Claude + Codex. Tool-neutral
+# (only manipulates the dotfiles tree) so it runs even if an agent CLI is absent.
+run_step "setup-agents" "$BOOTSTRAP_DIR/setup-agents.sh"
 run_step "setup-lang"   "$BOOTSTRAP_DIR/setup-lang.sh"
 run_step "setup-macos"  "$BOOTSTRAP_DIR/setup-macos.sh"
 run_step "setup-vscode" "$BOOTSTRAP_DIR/setup-vscode.sh"
 run_step "setup-claude" "$BOOTSTRAP_DIR/setup-claude.sh"
-# setup-codex installs Codex hooks and links shared agent skills into
-# ~/.codex/skills/. The current shared skill store lives under ~/.config/claude.
+# setup-codex checks the Codex CLI, sets hook script perms, and verifies deps.
+# (Skill/AGENTS.md projection is handled tool-neutrally by setup-agents above.)
 run_step "setup-codex"  "$BOOTSTRAP_DIR/setup-codex.sh"
 
 # Summary

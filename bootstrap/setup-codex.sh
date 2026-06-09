@@ -47,23 +47,6 @@ if ! command -v terminal-notifier &> /dev/null; then
 fi
 
 # ----------------------
-# Link shared agent skills into Codex skills/
-# ----------------------
-BOOTSTRAP_BRIDGE="${CODEX_SCRIPT_DIR}/bootstrap.sh"
-
-if [[ -x "${BOOTSTRAP_BRIDGE}" ]]; then
-    _log_run "Linking shared agent skills into Codex skills/..."
-    if "${BOOTSTRAP_BRIDGE}"; then
-        _log_ok "Skill bridge populated."
-    else
-        _log_error "Skill bridge failed."
-        exit 1
-    fi
-else
-    _log_skip "Bridge script not found at ${BOOTSTRAP_BRIDGE}."
-fi
-
-# ----------------------
 # Auth status (informational)
 # ----------------------
 if [[ ! -f "${CODEX_CONFIG_DIR}/auth.json" ]]; then

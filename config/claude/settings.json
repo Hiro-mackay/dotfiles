@@ -111,10 +111,6 @@
           {
             "type": "command",
             "command": "~/.claude/script/hooks/filter-test-output.sh"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/commit-guard.sh"
           }
         ]
       }

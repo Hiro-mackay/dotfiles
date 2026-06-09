@@ -8,6 +8,19 @@
 set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# --- AGENTS.md SSoT sync (MUST run before the config.toml early-exits below) ---
+# config/agents/AGENTS.md is the single source for global instructions. Codex
+# reads its copy as a real file (it does not follow file-symlinks), so keep
+# config/codex/AGENTS.md byte-identical to the source. One-directional.
+AGENTS_SRC="${REPO_ROOT}/config/agents/AGENTS.md"
+AGENTS_DST="${REPO_ROOT}/config/codex/AGENTS.md"
+if [[ -f "${AGENTS_SRC}" ]] && ! diff -q "${AGENTS_SRC}" "${AGENTS_DST}" >/dev/null 2>&1; then
+    cp "${AGENTS_SRC}" "${AGENTS_DST}"
+    git add "config/codex/AGENTS.md"
+    echo "pre-commit: synced config/codex/AGENTS.md from config/agents/AGENTS.md"
+fi
+
 TARGET="config/codex/config.toml"
 SANITIZER="${REPO_ROOT}/config/git/hooks/sanitize-codex-config.awk"
 
@@ -33,16 +46,3 @@ fi
 
 git update-index --cacheinfo "100644,${sanitized_blob},${TARGET}"
 echo "pre-commit: sanitized ${TARGET} (runtime state stripped from commit; working tree untouched)"
-
-# --- AGENTS.md SSoT sync ---
-# config/agents/AGENTS.md is the single source for global instructions. Codex
-# must read its copy as a real file (it does not follow file-symlinks), so keep
-# config/codex/AGENTS.md byte-identical to the source. One-directional: source
-# -> codex copy. (Claude reads the source via @import in CLAUDE.md, no copy.)
-AGENTS_SRC="${REPO_ROOT}/config/agents/AGENTS.md"
-AGENTS_DST="${REPO_ROOT}/config/codex/AGENTS.md"
-if [[ -f "${AGENTS_SRC}" ]] && ! diff -q "${AGENTS_SRC}" "${AGENTS_DST}" >/dev/null 2>&1; then
-    cp "${AGENTS_SRC}" "${AGENTS_DST}"
-    git add "config/codex/AGENTS.md"
-    echo "pre-commit: synced config/codex/AGENTS.md from config/agents/AGENTS.md"
-fi

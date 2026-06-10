@@ -54,8 +54,8 @@ timeout = 10
 type = "command"
 
 [marketplaces.openai-bundled]
-source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"
 source_type = "local"
+source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
 source_type = "local"

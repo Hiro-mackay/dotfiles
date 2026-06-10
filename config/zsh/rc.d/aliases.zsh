@@ -34,7 +34,7 @@ alias ccconf="cd $XDG_CONFIG_HOME/claude"
 # -----------------
 #  Codex
 # -----------------
-alias cx="codex --ask-for-approval on-request"
+alias cx="codex --dangerously-bypass-approvals-and-sandbox"
 alias cxconf="cd $XDG_CONFIG_HOME/codex"
 
 # -----------------

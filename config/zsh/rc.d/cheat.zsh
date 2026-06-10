@@ -213,7 +213,7 @@ SHEET
     ccconf         cd to claude config dir
 
   CODEX
-    cx             codex (on-request approvals)
+    cx             codex (no approvals, no sandbox)
     cxconf         cd to codex config dir
     cx1..cx6       open N codex sessions in Warp
 

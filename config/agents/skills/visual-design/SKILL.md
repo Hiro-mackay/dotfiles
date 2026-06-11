@@ -1,6 +1,13 @@
 ---
 name: visual-design
 description: Visual design principles covering typography, color, layout, spacing, motion, and AI anti-patterns. Applies when building UI components, designing pages, or reviewing visual quality of interfaces.
+paths:
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.css"
+  - "**/*.scss"
+  - "**/*.html"
+  - "**/tailwind.config.*"
 ---
 
 # Visual Design Principles

@@ -1,6 +1,15 @@
 ---
 name: test-strategy
 description: TDD workflow (t-wada style), test reliability, test scope strategy, and AI-era testing guardrails. Applies when writing tests, planning test coverage, or practicing test-driven development.
+paths:
+  - "**/*_test.*"
+  - "**/test_*.*"
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/conftest.py"
+  - "**/tests/**"
+  - "**/__tests__/**"
+  - "**/e2e/**"
 ---
 
 # Test Strategy (t-wada Style)

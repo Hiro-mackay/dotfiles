@@ -4,6 +4,7 @@ description: UX design evaluation using Nielsen heuristics, cognitive load analy
 user-invocable: true
 argument-hint: "[target component, page, or feature]"
 context: fork
+agent: design-reviewer
 allowed-tools: Read, Glob, Grep, Bash(git diff *), Bash(git log *)
 ---
 

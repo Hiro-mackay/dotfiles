@@ -1,6 +1,19 @@
 ---
 name: db-schema-design
 description: Database schema design decisions, data modeling strategy, and relationship patterns. Applies when planning database schemas, choosing between normalization approaches, or designing data models. For SQL implementation rules (naming, queries, indexing, transactions), see the sql-implementation skill (auto-loaded for .sql files).
+paths:
+  - "**/*.sql"
+  - "**/migrations/**"
+  - "**/*.prisma"
+  - "**/drizzle/**"
+  - "**/drizzle.config.*"
+  - "**/db/schema*"
+  - "**/models.py"
+  - "**/alembic/**"
+  - "**/ent/schema/**"
+  - "**/sqlc.*"
+  - "**/repository/**"
+  - "**/repositories/**"
 ---
 
 # Database Design Principles

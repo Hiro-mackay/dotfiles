@@ -8,7 +8,8 @@
 - Be concise: skip filler and trailing summaries; no emojis in output
 
 ## Workflow
-- 3+ steps or architectural decisions: make the plan explicit before starting
+- 3+ steps or architectural decisions: enter plan mode and make the plan explicit before starting
+- Architectural decisions, unclear design shape, or multi-system changes: have the planner subagent draft the plan
 - Fix the root cause, not the symptom
 - Non-trivial changes: pause once and ask "is there a simpler shape?"
 - Delegate to parallel subagents only at 3+ independent file edits or 10+ uniform mechanical ops; otherwise work inline (see `delegation` skill for spawn template)
@@ -26,6 +27,7 @@
 - No features, abstractions, or fallbacks beyond what the task requires
 - No comments unless the WHY is non-obvious; no current-task references in comments
 - When writing or reviewing code, apply the `readable-code` and `naming-conventions` skills -- enforce them above the project's default bar
+- When implementing business logic, apply the `ddd-principles` skill
 
 ## Git
 - IMPORTANT: Never commit, push, or open a PR unless I explicitly ask in this session -- finishing work is not a trigger
@@ -37,11 +39,12 @@
 ## Fixing Errors
 - Diagnose with the project's own tools; keep linter rules and configs as-is
 - Stay within the scope of the failing change
-- If the same fix fails twice, change approach -- don't retry variants
+- If the same fix fails twice, hand the diagnosis to the debugger subagent (fresh context, contaminated hypotheses discarded) before the next attempt
 - Escalate after 3 failed attempts or when the fix needs architectural change
 
 ## Reviewers
 - Run code-reviewer / security-reviewer proactively after writing code
+- After implementing or modifying UI components or styles: run design-reviewer as well
 - Substantial changes: add cross-provider review (Claude <-> Codex)
 
 ## Context

@@ -1,8 +1,10 @@
 ---
 name: security-reviewer
-description: Security audit specialist. Use proactively when reviewing authentication, authorization, input handling, or any security-sensitive code.
-tools: Read, Glob, Grep
-model: opus
+description: Security audit specialist. Use when the diff or files under review touch auth flows, session handling, input parsing, secrets handling, or cryptography -- or when the user explicitly asks for a security audit.
+tools: Read, Glob, Grep, Bash
+model: fable
+skills:
+  - security-principles
 memory: user
 ---
 

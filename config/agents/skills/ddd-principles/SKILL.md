@@ -1,6 +1,17 @@
 ---
 name: ddd-principles
-description: Domain-Driven Design tactical patterns including aggregates, domain events, bounded contexts, and anti-corruption layers. Applies when modeling business domains or designing domain layers.
+description: Domain-Driven Design tactical patterns including aggregates, domain events, bounded contexts, and anti-corruption layers. Applies when modeling business domains, designing domain layers, or implementing business logic anywhere in the codebase.
+paths:
+  - "**/domain/**"
+  - "**/usecase/**"
+  - "**/usecases/**"
+  - "**/application/**"
+  - "**/service/**"
+  - "**/services/**"
+  - "**/repository/**"
+  - "**/repositories/**"
+  - "**/aggregate/**"
+  - "**/entity/**"
 ---
 
 # Domain-Driven Design Principles

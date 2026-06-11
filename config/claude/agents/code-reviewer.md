@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Expert code review specialist. Use proactively after writing or modifying code to catch quality, security, and maintainability issues.
 tools: Read, Glob, Grep, Bash
-model: sonnet
+model: opus
 memory: user
 ---
 

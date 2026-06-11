@@ -1,6 +1,20 @@
 ---
 name: api-design
 description: REST API design conventions for error responses, pagination, versioning, request/response patterns, and observability. Applies when designing or implementing HTTP APIs.
+paths:
+  - "**/api/**"
+  - "**/apis/**"
+  - "**/routes/**"
+  - "**/router/**"
+  - "**/routing/**"
+  - "**/handler/**"
+  - "**/handlers/**"
+  - "**/controller/**"
+  - "**/controllers/**"
+  - "**/endpoint/**"
+  - "**/endpoints/**"
+  - "**/*openapi*"
+  - "**/*swagger*"
 ---
 
 # API Design Principles

@@ -1,6 +1,25 @@
 ---
 name: security-principles
-description: Security implementation patterns for authentication, authorization, input validation, secrets management, and cryptography. Applies when writing auth flows, handling user input, managing secrets, or implementing encryption.
+description: Security implementation patterns for authentication, authorization, input validation, secrets management, and cryptography. Applies when writing auth flows, handling user input, managing secrets, or implementing encryption. Zero-trust: loaded for all commonly touched engineering files, since vulnerabilities are not confined to auth directories.
+paths:
+  - "**/*.go"
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.js"
+  - "**/*.jsx"
+  - "**/*.py"
+  - "**/*.sql"
+  - "**/*.sh"
+  - "**/*.bash"
+  - "**/*.tf"
+  - "**/*.tfvars"
+  - "**/*.hcl"
+  - "**/*.yaml"
+  - "**/*.yml"
+  - "**/*.toml"
+  - "**/Dockerfile*"
+  - "**/docker-compose*"
+  - "**/.env*"
 ---
 
 # Security Implementation Principles

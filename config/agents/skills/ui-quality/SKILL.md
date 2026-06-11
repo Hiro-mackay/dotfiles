@@ -1,6 +1,12 @@
 ---
 name: ui-quality
 description: UI implementation quality covering accessibility, responsive design, interactive states, error/empty/loading states, and UX writing. Applies when implementing UI components, handling edge cases, or improving interface resilience and usability.
+paths:
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.css"
+  - "**/*.scss"
+  - "**/*.html"
 ---
 
 # UI Quality Principles

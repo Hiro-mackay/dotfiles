@@ -204,9 +204,8 @@ SHEET
     k              kubectl
 
   EDITORS
-    co             open Cursor here
+    co             open VS Code here
     em             emacs
-    note           open Obsidian vault in Cursor
 
   CLAUDE CODE
     ccode          claude (skip permissions)

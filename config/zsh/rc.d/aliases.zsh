@@ -21,9 +21,8 @@ alias howlong='fc -lDt "%Y-%m-%d %H:%M:%S" -1'
 # -----------------
 #  editor
 # -----------------
-alias co='"/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" .'
+alias co="code ."
 alias em="emacs"
-alias note='"/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" "$HOME/Google Drive/My Drive/ObsidianVault"'
 
 # -----------------
 #  Claude
@@ -40,7 +39,7 @@ alias cxconf="cd $XDG_CONFIG_HOME/codex"
 # -----------------
 #  zsh config
 # -----------------
-alias edzsh='"/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" "$ZDOTDIR"'
+alias edzsh="code $ZDOTDIR"
 alias sozsh="source $ZDOTDIR/.zshrc"
 
 # -----------------

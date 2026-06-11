@@ -23,6 +23,9 @@
 #   - [tui.model_availability_nux]  (per-machine UX nudge counters)
 #   - [mcp_servers.*]               (machine-local MCP server paths)
 #   - last_updated / last_revision keys inside [marketplaces.*]
+#   - top-level notify = ...        (machine-local .app path; the one runtime
+#                                    key the section whitelist can't catch since
+#                                    it sits before the first section)
 #   - any section not explicitly whitelisted
 
 function is_shared_section(name) {
@@ -49,9 +52,11 @@ BEGIN {
     skip = 0
     in_marketplaces = 0
     pending_blank = 0
+    seen_section = 0
 }
 
 /^\[/ {
+    seen_section = 1
     header = $0
     sub(/[[:space:]]+$/, "", header)
 
@@ -74,6 +79,10 @@ BEGIN {
 
 {
     if (skip) next
+
+    # Drop a top-level notify key (before the first section): it carries a
+    # machine-local .app path. A notify under [tui] is kept (portable form).
+    if (!seen_section && $0 ~ /^[[:space:]]*notify[[:space:]]*=/) next
 
     if (in_marketplaces && ($0 ~ /^[[:space:]]*last_updated[[:space:]]*=/ \
                          || $0 ~ /^[[:space:]]*last_revision[[:space:]]*=/)) {

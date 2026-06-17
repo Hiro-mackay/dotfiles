@@ -36,7 +36,14 @@ Review the code changes. Apply these criteria with language-specific rigor:
 
 ### Quality (Medium)
 - Apply `readable-code` skill criteria (function length, nesting, parameters, naming)
-- Premature abstraction or unnecessary indirection
+
+### Over-engineering (Medium)
+- `delete`: dead code, unused flexibility, speculative feature
+- `stdlib`: hand-rolled thing the standard library ships -- name the function
+- `native`: dependency doing what the platform already provides -- name the feature
+- `yagni`: abstraction with one implementation, config nobody sets, layer with one caller
+- `shrink`: same logic, fewer lines -- show the shorter form
+- A single smoke test or assert-based self-check is not bloat; do not flag it
 
 ### Tests (Medium)
 - Coverage gaps for changed code paths

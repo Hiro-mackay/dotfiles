@@ -21,6 +21,7 @@ description: Code readability guidelines covering function length, nesting depth
 ## Comments
 - WHY only, never WHAT (code must be self-documenting)
 - Delete commented-out code -- version control exists
+- Mark deliberate simplifications with their ceiling and upgrade trigger — e.g. `// global lock; switch to per-account if throughput matters`
 
 ## Abstraction
 - Rule of Three -- do not abstract until the third duplication (see `architecture-decisions` for system-level YAGNI)

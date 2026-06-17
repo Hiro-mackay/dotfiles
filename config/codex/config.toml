@@ -10,7 +10,6 @@ review_model = "gpt-5.5"
 sandbox_mode = "workspace-write"
 service_tier = "fast"
 
-
 [agents]
 max_depth = 2
 max_threads = 6
@@ -89,6 +88,9 @@ enabled = true
 enabled = true
 
 [plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
 enabled = true
 
 [sandbox_workspace_write]

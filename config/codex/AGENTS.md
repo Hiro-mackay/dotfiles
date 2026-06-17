@@ -24,6 +24,7 @@
 ## Code Constraints
 - IMPORTANT: Keep files under 500 lines
 - IMPORTANT: Secrets live in environment variables -- never hardcoded
+- Before writing code, stop at the first rung that holds: (1) does this need to exist? skip if speculative; (2) stdlib does it? use it; (3) native platform feature? use it; (4) installed dep solves it? use it; (5) one line? write one line; (6) only then: minimum that works
 - No features, abstractions, or fallbacks beyond what the task requires
 - No comments unless the WHY is non-obvious; no current-task references in comments
 - When writing or reviewing code, apply the `readable-code` and `naming-conventions` skills -- enforce them above the project's default bar

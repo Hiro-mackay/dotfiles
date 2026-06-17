@@ -26,6 +26,7 @@ cheat() {
     glme  my commits       glt   since midnight
     gln 5 last 5 commits   gls   log + file stats
     glg "text"  search messages   glS "text"  search code
+    glf <file>  follow file history (tracks renames)
 
   BRANCH
     gco <branch>   switch           gcb <branch>  create + track
@@ -33,8 +34,9 @@ cheat() {
     gb             list             gbm <name>    rename
     gbclean        delete gone branches
 
-  DISCARD (with confirmation)
-    gcd    restore all + clean      greset  hard reset HEAD
+  DISCARD
+    gca    restore all (no prompt)
+    gcd    restore all + clean (confirms)   greset  hard reset HEAD (confirms)
 
   WORKTREE
     gwa <branch>   create new branch worktree
@@ -47,11 +49,11 @@ cheat() {
     gcreate --template o/r <name>     create from a template repo
 
   REBASE
-    rebase                            fetch + rebase onto origin/main
-    rebase-remote <branch>            fetch + rebase onto origin/<branch>
+    rebase [branch]                   fetch + rebase onto origin/<branch> (default: main)
 
   OTHER
-    push / pull    push / pull (--force-with-lease via pushf)
+    fetch          fetch + prune gone remote branches
+    push / pull / pullff   push / pull / pull --ff-only (pushf = --force-with-lease)
     ghopen         open repo on GitHub
 SHEET
       ;;
@@ -179,6 +181,9 @@ SHEET
     rndl -s                32-char with symbols
     rndl -s 16             16-char with symbols
 
+  DISPOSABLE ENV
+    ubuntu           docker/podman: run ubuntu bash shell
+
   OTHER
     howlong          timestamp of last command
     c / e            clear / exit
@@ -210,6 +215,7 @@ SHEET
   CLAUDE CODE
     ccode          claude (skip permissions)
     ccconf         cd to claude config dir
+    c1..c6         open N claude sessions in Warp
 
   CODEX
     cx             codex (no approvals, no sandbox)

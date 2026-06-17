@@ -11,6 +11,7 @@ alias push="git push"
 alias pushf="git push --force-with-lease"
 alias pull="git pull"
 alias pullff="git pull --ff-only"
+alias fetch="git fetch --prune"
 
 # -----------------
 #  Git: diff

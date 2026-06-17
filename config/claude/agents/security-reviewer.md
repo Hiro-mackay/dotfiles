@@ -2,7 +2,7 @@
 name: security-reviewer
 description: Security audit specialist. Use when the diff or files under review touch auth flows, session handling, input parsing, secrets handling, or cryptography -- or when the user explicitly asks for a security audit.
 tools: Read, Glob, Grep, Bash
-model: fable
+model: opus
 skills:
   - security-principles
 memory: user

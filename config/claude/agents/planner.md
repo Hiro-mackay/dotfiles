@@ -2,7 +2,7 @@
 name: planner
 description: Planning specialist. Use before implementation for architectural decisions, designs whose shape is unclear, or changes spanning multiple systems. Also when the user explicitly asks for a plan draft.
 tools: Read, Glob, Grep, Bash
-model: fable
+model: opus
 skills:
   - architecture-decisions
   - module-design

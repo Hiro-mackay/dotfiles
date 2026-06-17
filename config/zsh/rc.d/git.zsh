@@ -229,7 +229,7 @@ USAGE
 # -----------------
 #  Git: rebase
 # -----------------
-rebase-remote() {
+rebase() {
   local current_branch=$(git branch --show-current)
   local target="${1:-main}"
 
@@ -241,8 +241,6 @@ rebase-remote() {
   git fetch origin -p || return 1
   git rebase "origin/$target" || return 1
 }
-
-alias rebase='rebase-remote main'
 
 # -----------------
 #  Git: worktree

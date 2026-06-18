@@ -1,6 +1,6 @@
 ---
 name: security-principles
-description: Security implementation patterns for authentication, authorization, input validation, secrets management, and cryptography. Applies when writing auth flows, handling user input, managing secrets, or implementing encryption. Zero-trust: loaded for all commonly touched engineering files, since vulnerabilities are not confined to auth directories.
+description: "Security implementation patterns for authentication, authorization, input validation, secrets management, and cryptography. Applies when writing auth flows, handling user input, managing secrets, or implementing encryption. Zero-trust: loaded for all commonly touched engineering files, since vulnerabilities are not confined to auth directories."
 paths:
   - "**/*.go"
   - "**/*.ts"

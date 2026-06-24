@@ -59,7 +59,6 @@
       "Write(**/secrets/**)"
     ]
   },
-  "model": "opusplan",
   "hooks": {
     "Stop": [
       {

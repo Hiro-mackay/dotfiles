@@ -29,3 +29,9 @@ export NI_GLOBAL_AGENT="pnpm"
 #  Claude Code
 # -----------------
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000
+
+# -----------------
+#  VS Code
+# -----------------
+# Snapshot installed extensions into dotfiles (run after adding/removing one).
+alias codeexport="code --list-extensions | sort > ${XDG_CONFIG_HOME:-$HOME/.config}/vscode/extensions"

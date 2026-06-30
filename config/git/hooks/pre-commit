@@ -21,6 +21,19 @@ if [[ -f "${AGENTS_SRC}" ]] && ! diff -q "${AGENTS_SRC}" "${AGENTS_DST}" >/dev/n
     echo "pre-commit: synced config/codex/AGENTS.md from config/agents/AGENTS.md"
 fi
 
+# --- VS Code extension drift warning (advisory only, never blocks) ---
+# The extensions list is a declarative snapshot restored by setup-vscode.sh.
+# VS Code has no hook for extension changes, so warn here when the working tree
+# list has drifted from what is actually installed. Skip silently when the code
+# CLI is unavailable (CI / non-VS Code machines).
+VSCODE_EXTENSIONS="${REPO_ROOT}/config/vscode/extensions"
+if command -v code >/dev/null 2>&1 && [[ -f "${VSCODE_EXTENSIONS}" ]]; then
+    installed="$(code --list-extensions 2>/dev/null | sort || true)"
+    if [[ -n "${installed}" ]] && ! diff -q <(print -r -- "${installed}") "${VSCODE_EXTENSIONS}" >/dev/null 2>&1; then
+        echo "pre-commit: VS Code extensions drifted from ${VSCODE_EXTENSIONS}; run 'codeexport' to update." >&2
+    fi
+fi
+
 TARGET="config/codex/config.toml"
 SANITIZER="${REPO_ROOT}/config/git/hooks/sanitize-codex-config.awk"
 

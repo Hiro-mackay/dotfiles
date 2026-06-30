@@ -26,3 +26,19 @@ else
     _log_error "Failed to link settings.json."
     exit 1
 fi
+
+# Restore declared extensions. `code --install-extension` is idempotent: it
+# skips anything already installed, so re-running is safe.
+DOTFILES_EXTENSIONS_FILE="${DOTFILES_VSCODE_DIR}/extensions"
+if ! command -v code >/dev/null 2>&1; then
+    _log_skip "code CLI not found; skipping extension install."
+elif [[ ! -f "${DOTFILES_EXTENSIONS_FILE}" ]]; then
+    _log_skip "extensions list not found at ${DOTFILES_EXTENSIONS_FILE}."
+else
+    _log_run "Installing VS Code extensions..."
+    while IFS= read -r ext; do
+        [[ -z "${ext}" ]] && continue
+        code --install-extension "${ext}" >/dev/null 2>&1
+    done < "${DOTFILES_EXTENSIONS_FILE}"
+    _log_ok "VS Code extensions installed."
+fi

@@ -168,13 +168,21 @@ USAGE
 # -----------------
 #  claude remote control
 # -----------------
-# Start a Remote Control session in the Vault, keeping the Mac awake
-# (lid closed too) for the session. Sleep is restored on exit, including
-# Ctrl-C / kill -- but not a hard power loss, so verify when idle with:
+# Start a Remote Control session in the current dir for lid-closed mobile
+# use: keep the Mac awake (lid closed too) and pause Power Nap for the
+# session. Low Power Mode is left to the global "on battery" setting. Both
+# are restored on exit (incl. Ctrl-C / kill, but not a hard power loss), so
+# verify when idle with:
 #   pmset -g | grep -i sleep   # SleepDisabled should be 0
-vault-go() {
-  trap 'sudo pmset -a disablesleep 0' EXIT INT TERM
-  sudo pmset -a disablesleep 1
-  cd "/Users/mackay/Library/CloudStorage/GoogleDrive-johnmackay150@gmail.com/My Drive/ObsidianVault" \
-    && claude --remote-control "Vault"
+#
+# SECURITY: --dangerously-skip-permissions bypasses every approval prompt
+# because a lid-closed mobile session cannot answer them. The agent then runs
+# with full, unattended permissions. Launch ccgo only from a trusted working
+# directory -- never anywhere a destructive command (rm -rf, etc.) or a prompt
+# injection could do real damage without anyone watching.
+ccgo() {
+  trap 'sudo pmset -a disablesleep 0; sudo pmset -b powernap 1' EXIT INT TERM
+  sudo pmset -a disablesleep 1   # stay awake lid-closed
+  sudo pmset -b powernap 0       # no background wake during the session
+  claude --remote-control "${PWD:t}" --dangerously-skip-permissions
 }

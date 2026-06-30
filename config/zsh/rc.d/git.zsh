@@ -259,6 +259,16 @@ _gwt_main_path() {
 
 _gwt_remote_ref() { git for-each-ref --format='%(refname)' "refs/remotes/*/${1}" 2>/dev/null | head -1 }
 
+# Name of origin's default branch (e.g. main), falling back to "main".
+_gwt_default_branch() {
+  local ref
+  if ref=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null); then
+    printf '%s\n' "${ref#refs/remotes/origin/}"
+  else
+    printf 'main\n'
+  fi
+}
+
 _gwt_open() {
   local full_branch="${1%/}"
   local start_point="${2%/}"
@@ -308,7 +318,8 @@ _gwt_open() {
 
 gwa() {
   local full_branch="${1%/}"
-  [[ -z "$full_branch" ]] && { echo "Usage: gwa <new-branch-name>"; return 1; }
+  [[ -z "$full_branch" ]] && { echo "Usage: gwa <new-branch-name> [start-point]"; return 1; }
+  local start_point="${2%/}"
   git show-ref --verify --quiet "refs/heads/$full_branch" &&
     { echo "error: local branch already exists: $full_branch" >&2; return 1; }
   [[ -n "$(_gwt_remote_ref "$full_branch")" ]] &&
@@ -320,7 +331,41 @@ gwa() {
       echo "error: cannot verify origin branch: $full_branch" >&2; return 1
     fi
   fi
-  _gwt_open "$full_branch"
+  # Default base = freshest origin default branch, so a worktree never forks from a
+  # stale local main (which later collides on merge). Pass an explicit start-point as
+  # $2 to branch from something else (e.g. stacking on another branch).
+  if [[ -z "$start_point" ]] && git remote get-url origin >/dev/null 2>&1; then
+    local def; def=$(_gwt_default_branch)
+    echo "Fetching origin/$def ..."
+    git fetch origin "$def" || { echo "error: git fetch origin $def failed" >&2; return 1; }
+    start_point="origin/$def"
+  fi
+  _gwt_open "$full_branch" "$start_point"
+}
+
+# gwi <issue#> — open a worktree for a GitHub issue and drop into /impl in it.
+# Sibling of gwa/gwr: resolves <type>/<slug>-<issue#> from the issue (type from a
+# conventional-commit label, slug from the title), creates the worktree (gwa),
+# assigns ports, then launches Claude Code already running /impl. Collapses the
+# issue->next->impl handoff into one command. To resume an existing worktree, just
+# cd there and run: ccode "/impl <n>".
+gwi() {
+  emulate -L zsh
+  local n=${1#\#}
+  [[ $n == <-> ]] || { echo "usage: gwi <issue#>"; return 1; }
+
+  local json type slug branch
+  json=$(gh issue view "$n" --json title,labels) || return 1
+  type=$(jq -r '.labels[].name' <<<"$json" | grep -m1 -E '^(feat|fix|refactor|chore|docs|test|perf)$')
+  : ${type:=chore}
+  slug=$(jq -r '.title' <<<"$json" | tr '[:upper:]' '[:lower:]' \
+         | sed -E 's/[^a-z0-9]+/-/g; s/(^-|-$)//g' | cut -d- -f1-4)
+  branch="$type/$slug-$n"
+
+  echo "→ $branch"
+  gwa "$branch" || return 1
+  task worktree:init || return 1
+  claude --permission-mode bypassPermissions "/impl $n"
 }
 
 gwr() {

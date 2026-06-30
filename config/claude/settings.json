@@ -165,8 +165,9 @@
   },
   "language": "ja",
   "effortLevel": "high",
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",
-  "skipAutoPermissionPrompt": true,
-  "tui": "fullscreen"
+  "preferredNotifChannel": "terminal_bell",
+  "skipAutoPermissionPrompt": true
 }

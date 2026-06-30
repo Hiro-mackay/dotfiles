@@ -164,3 +164,17 @@ USAGE
   LC_ALL=C tr -dc "$chars" < /dev/urandom | head -c "$len"
   echo
 }
+
+# -----------------
+#  claude remote control
+# -----------------
+# Start a Remote Control session in the Vault, keeping the Mac awake
+# (lid closed too) for the session. Sleep is restored on exit, including
+# Ctrl-C / kill -- but not a hard power loss, so verify when idle with:
+#   pmset -g | grep -i sleep   # SleepDisabled should be 0
+vault-go() {
+  trap 'sudo pmset -a disablesleep 0' EXIT INT TERM
+  sudo pmset -a disablesleep 1
+  cd "/Users/mackay/Library/CloudStorage/GoogleDrive-johnmackay150@gmail.com/My Drive/ObsidianVault" \
+    && claude --remote-control "Vault"
+}

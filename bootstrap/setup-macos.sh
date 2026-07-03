@@ -16,7 +16,11 @@ _log_run "Configuring system general..."
 sudo nvram SystemAudioVolume=" "
 sudo defaults write /Library/Preferences/com.apple.loginwindow AdminHostInfo HostName
 defaults write NSGlobalDomain NSWindowResizeTime -float 0.1
-defaults write com.apple.LaunchServices LSQuarantine -bool false
+# Disabling LSQuarantine turns off the "downloaded from the internet" check.
+# Opt-in only, since it weakens Gatekeeper and may conflict with local policy.
+if [[ "${DOTFILES_DISABLE_QUARANTINE}" == "1" ]]; then
+    defaults write com.apple.LaunchServices LSQuarantine -bool false
+fi
 defaults write com.apple.CrashReporter DialogType -string none
 defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bool false
 defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false

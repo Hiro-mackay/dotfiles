@@ -15,3 +15,10 @@
 	autoSetupRemote = true
 [ghq]
 	root = ~/Repository
+# Per-directory identity override for repos under the ghq root. The actual
+# identity lives only on the machine in ~/.gitconfig.local (outside this repo,
+# so it cannot be staged). Silently ignored when the file is absent, leaving
+# the default [user] above in effect. A directory condition is used on purpose
+# so no remote/host string is stored in this tracked config.
+[includeIf "gitdir:~/Repository/"]
+	path = ~/.gitconfig.local

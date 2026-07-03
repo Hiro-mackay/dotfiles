@@ -7,6 +7,16 @@
 
 set -e
 
+# --- git-secrets scan (MUST stay first; the early exits below would skip it) ---
+# Block commits that contain the machine-local private identity. Prohibited
+# patterns live in this repo's local git config (registered by setup-link.sh
+# from ~/.gitconfig.local) and are never tracked. core.hooksPath points here,
+# so git-secrets is wired in by hand rather than via `git secrets --install`.
+# No-op on machines where git-secrets is not installed.
+if git secrets --list >/dev/null 2>&1; then
+    git secrets --pre_commit_hook -- "$@"
+fi
+
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 # --- AGENTS.md SSoT sync (MUST run before the config.toml early-exits below) ---

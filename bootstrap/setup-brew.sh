@@ -36,12 +36,26 @@ if [[ ! -f "${BREWFILE_PATH}" ]]; then
     exit 1
 fi
 
-_log_run "Installing Homebrew bundle..."
+_log_run "Installing Homebrew bundle (CLI)..."
 if brew bundle --file="${BREWFILE_PATH}"; then
     _log_ok "Homebrew bundle installed."
 else
     _log_error "Failed to install Homebrew bundle."
     exit 1
+fi
+
+# GUI casks are optional and non-critical: skip entirely on headless/CI machines
+# with DOTFILES_SKIP_CASKS=1, and a single unavailable cask never aborts setup.
+CASKFILE_PATH="${DOTFILES_CONFIG_DIR}/brew/Brewfile.cask"
+if [[ "${DOTFILES_SKIP_CASKS}" == "1" ]]; then
+    _log_warn "DOTFILES_SKIP_CASKS=1 set; skipping Homebrew casks."
+elif [[ -f "${CASKFILE_PATH}" ]]; then
+    _log_run "Installing Homebrew casks (non-fatal)..."
+    if brew bundle --file="${CASKFILE_PATH}"; then
+        _log_ok "Homebrew casks installed."
+    else
+        _log_warn "Some casks failed to install; continuing."
+    fi
 fi
 
 _log_run "Cleaning up Homebrew cache..."

@@ -1,60 +1,21 @@
 # dotfiles
 
-macOS development environment setup.
+macOS development environment setup
 
-## What's Included
+## Install
 
-- **Shell** - zsh configuration (aliases, functions, PATH)
-- **Homebrew** - packages, casks, and dependencies
-- **Git** - global config and gitignore
-- **macOS** - system preferences, Dock, Trackpad, Finder
-- **Tools** - mise (runtime manager), Rust/Cargo, VS Code, Claude Code, Codex
-- **Keyboard** - Karabiner-Elements key remapping
-
-## Installation
-
-### Prerequisites
+Prerequisite: `xcode-select --install`
 
 ```sh
-xcode-select --install
-```
-
-### Setup
-
-```sh
+# Remote (one-shot): download a snapshot and run setup
 curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.sh | zsh
+
+# Local (clone for git-based updates), then run setup
+git clone https://github.com/Hiro-mackay/dotfiles.git ~/.dotfiles && ~/.dotfiles/install.sh
 ```
 
-### Re-apply
+Re-apply anytime with `~/.dotfiles/install.sh`.
 
-```sh
-~/.dotfiles/install.sh
-```
+## Docs
 
-## Structure
-
-```
-.dotfiles/
-├── install.sh            # Entry point
-├── bootstrap/
-│   ├── env.sh            # Environment variables
-│   ├── setup.sh          # Orchestrator
-│   ├── setup-dir.sh      # XDG / SSH directories
-│   ├── setup-link.sh     # Symlinks (~/.config, ~/.zshenv, ~/.claude, ~/.codex)
-│   ├── setup-brew.sh     # Homebrew + Brewfile
-│   ├── setup-lang.sh     # mise runtimes (node, python, rust, go, etc.)
-│   ├── setup-macos.sh    # macOS system preferences
-│   ├── setup-vscode.sh   # VS Code settings
-│   ├── setup-claude.sh   # Claude Code plugins + hooks
-│   └── setup-codex.sh    # Codex CLI, hooks, and shared skills
-└── config/               # Symlinked to ~/.config
-    ├── zsh/              # .zshrc, .zshenv
-    ├── git/              # config, ignore
-    ├── brew/             # Brewfile
-    ├── mise/             # Runtime versions (node, python, go, etc.)
-    ├── karabiner/        # Keyboard remapping
-    ├── gh/               # GitHub CLI
-    ├── vscode/           # Settings + extensions list
-    ├── claude/           # Claude Code settings + scripts
-    └── codex/            # Codex settings + scripts
-```
+- [Git identity & secret guardrail](docs/git-identity-and-secrets.md)

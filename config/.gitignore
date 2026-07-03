@@ -4,6 +4,10 @@
 !*/
 
 # Allowlist
+# NOTE: brew/*, git/*, mise/*, vscode/* below are broadly allowlisted, so ANY
+# file dropped into those dirs gets tracked. Never put machine-local overrides
+# (private identity, secrets) here — keep them in $HOME (e.g. ~/.gitconfig.local),
+# which sits outside this working tree and cannot be staged.
 !.gitignore
 !brew/*
 !zsh/.zshenv

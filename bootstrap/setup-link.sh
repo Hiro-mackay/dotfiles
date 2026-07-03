@@ -53,6 +53,18 @@ fi
 _log_run "Linking .codex -> .config/codex"
 ln -sfnv "$HOME/.config/codex" "$HOME/.codex"
 
+# Backup and replace existing ~/.hammerspoon directory if it exists (not a symlink).
+# Hammerspoon reads ~/.hammerspoon/init.lua and does not honor XDG by default.
+if [[ -d "$HOME/.hammerspoon" ]] && [[ ! -L "$HOME/.hammerspoon" ]]; then
+    backup_dir="$HOME/.hammerspoon.backup.$(date +%Y%m%d%H%M%S)"
+    _log_warn "Backing up existing ~/.hammerspoon to $backup_dir"
+    mv "$HOME/.hammerspoon" "$backup_dir"
+fi
+
+# .hammerspoon -> .config/hammerspoon
+_log_run "Linking .hammerspoon -> .config/hammerspoon"
+ln -sfnv "$HOME/.config/hammerspoon" "$HOME/.hammerspoon"
+
 # Point this repo's git at the tracked hooks directory so the pre-commit
 # sanitizer for Codex's config.toml runs without per-machine setup.
 DOTFILES_DIR="${HOME}/.dotfiles"

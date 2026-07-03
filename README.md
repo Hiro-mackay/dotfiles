@@ -19,3 +19,4 @@ Re-apply anytime with `~/.dotfiles/install.sh`.
 ## Docs
 
 - [Git identity & secret guardrail](docs/git-identity-and-secrets.md)
+- [英数/かな key switching (Hammerspoon)](docs/eisu-kana-key.md)

@@ -17,7 +17,7 @@
 !bttpreset/*
 !git/*
 !git/hooks/**
-!karabiner/karabiner.json
+!hammerspoon/*
 !vscode/*
 !mise/*
 !gh/config.yml

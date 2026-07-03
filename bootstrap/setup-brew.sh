@@ -44,17 +44,30 @@ else
     exit 1
 fi
 
-# GUI casks are optional and non-critical: skip entirely on headless/CI machines
-# with DOTFILES_SKIP_CASKS=1, and a single unavailable cask never aborts setup.
-CASKFILE_PATH="${DOTFILES_CONFIG_DIR}/brew/Brewfile.cask"
-if [[ "${DOTFILES_SKIP_CASKS}" == "1" ]]; then
-    _log_warn "DOTFILES_SKIP_CASKS=1 set; skipping Homebrew casks."
-elif [[ -f "${CASKFILE_PATH}" ]]; then
-    _log_run "Installing Homebrew casks (non-fatal)..."
-    if brew bundle --file="${CASKFILE_PATH}"; then
-        _log_ok "Homebrew casks installed."
+# Essential casks: always attempted, non-fatal. Not gated by DOTFILES_SKIP_CASKS
+# so a required tool (e.g. Hammerspoon for 英数/かな) is still installed on
+# restricted machines; failure only warns, leaving it to a manual install.
+ESSENTIAL_CASKFILE="${DOTFILES_CONFIG_DIR}/brew/Brewfile.cask"
+if [[ -f "${ESSENTIAL_CASKFILE}" ]]; then
+    _log_run "Installing essential casks (non-fatal)..."
+    if brew bundle --file="${ESSENTIAL_CASKFILE}"; then
+        _log_ok "Essential casks installed."
     else
-        _log_warn "Some casks failed to install; continuing."
+        _log_warn "Some essential casks failed; install them manually."
+    fi
+fi
+
+# Optional GUI casks: skip entirely with DOTFILES_SKIP_CASKS=1 (headless/CI or
+# restricted machines), and a single unavailable cask never aborts setup.
+OPTIONAL_CASKFILE="${DOTFILES_CONFIG_DIR}/brew/Brewfile.cask.optional"
+if [[ "${DOTFILES_SKIP_CASKS}" == "1" ]]; then
+    _log_warn "DOTFILES_SKIP_CASKS=1 set; skipping optional casks."
+elif [[ -f "${OPTIONAL_CASKFILE}" ]]; then
+    _log_run "Installing optional casks (non-fatal)..."
+    if brew bundle --file="${OPTIONAL_CASKFILE}"; then
+        _log_ok "Optional casks installed."
+    else
+        _log_warn "Some optional casks failed to install; continuing."
     fi
 fi
 

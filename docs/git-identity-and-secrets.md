@@ -69,9 +69,16 @@ git grep -nI -e '<private-identifier>'               # -> no matches in tracked 
 
 ## Optional: skip GUI casks
 
-GUI apps live in `config/brew/Brewfile.cask` (separate from the critical CLI
-`Brewfile`) and are installed non-fatally. To skip them entirely on a
-headless/CI machine, set `DOTFILES_SKIP_CASKS=1` before running setup.
+Casks are split into three files under `config/brew/`:
+
+- `Brewfile` — CLI tools (critical; aborts setup on failure)
+- `Brewfile.cask` — essential casks (always attempted, non-fatal; e.g. Hammerspoon)
+- `Brewfile.cask.optional` — optional GUI apps (non-fatal, skippable)
+
+Set `DOTFILES_SKIP_CASKS=1` before running setup to skip only the **optional**
+GUI apps (headless/CI or restricted machines). Essential casks are still
+attempted; if a restricted machine blocks even those, install them by hand
+(`brew install --cask hammerspoon`).
 
 ## Optional: Gatekeeper quarantine
 

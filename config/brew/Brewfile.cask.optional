@@ -1,0 +1,14 @@
+# Optional GUI casks — installed non-fatally by setup-brew.sh and skipped
+# entirely when DOTFILES_SKIP_CASKS=1 (e.g. restricted/headless machines).
+# Essential casks live in Brewfile.cask; CLI tools in Brewfile.
+cask "appcleaner"
+cask "codex"
+cask "deepl"
+cask "discord"
+cask "docker-desktop"
+cask "google-chrome"
+cask "notion"
+cask "slack"
+cask "spotify"
+cask "visual-studio-code"
+cask "zoom"

@@ -1,16 +1,4 @@
-# GUI casks — installed non-fatally by setup-brew.sh, so one unavailable cask
-# cannot abort the whole setup. CLI tools live in Brewfile (critical).
-cask "appcleaner"
-cask "codex"
-cask "cursor"
-cask "deepl"
-cask "discord"
-cask "docker-desktop"
-cask "google-chrome"
-cask "karabiner-elements"
-cask "notion"
-cask "slack"
-cask "spotify"
-cask "visual-studio-code"
-cask "warp"
-cask "zoom"
+# Essential casks — always attempted by setup-brew.sh (non-fatal, and NOT
+# skipped by DOTFILES_SKIP_CASKS). Optional GUI apps live in Brewfile.cask.optional.
+cask "hammerspoon"   # 英数/かな switching (see docs/eisu-kana-key.md); required
+cask "warp"          # primary terminal

@@ -38,6 +38,10 @@ run_step "setup-link" "$BOOTSTRAP_DIR/setup-link.sh" true
 run_step "setup-brew" "$BOOTSTRAP_DIR/setup-brew.sh" true
 
 # Non-critical steps (continue on failure)
+# Register git-secrets patterns from ~/.gitconfig.local. Runs here (not in
+# setup-link) because it needs git-secrets, which setup-brew installs above.
+run_step "setup-secrets" "$BOOTSTRAP_DIR/setup-secrets.sh"
+
 # Project the shared agents SSoT (config/agents) into Claude + Codex. Tool-neutral
 # (only manipulates the dotfiles tree) so it runs even if an agent CLI is absent.
 run_step "setup-agents" "$BOOTSTRAP_DIR/setup-agents.sh"

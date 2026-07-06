@@ -71,23 +71,8 @@ DOTFILES_DIR="${HOME}/.dotfiles"
 if [[ -d "${DOTFILES_DIR}/.git" ]]; then
     _log_run "Setting core.hooksPath -> config/git/hooks (repo-local)"
     git -C "${DOTFILES_DIR}" config core.hooksPath config/git/hooks
-
-    # Register the machine-local private identity as a git-secrets prohibited
-    # pattern so it can never be committed to this public repo. The value is
-    # read from ~/.gitconfig.local (untracked) — nothing private is hardcoded
-    # here. Skipped silently when git-secrets or the local config is absent.
-    GITCONFIG_LOCAL="${HOME}/.gitconfig.local"
-    if command -v git-secrets >/dev/null 2>&1 && [[ -f "${GITCONFIG_LOCAL}" ]]; then
-        _log_run "Registering git-secrets patterns from ~/.gitconfig.local"
-        existing="$(git -C "${DOTFILES_DIR}" config --get-all secrets.patterns 2>/dev/null || true)"
-        for key in user.name user.email; do
-            value="$(git config -f "${GITCONFIG_LOCAL}" "${key}" 2>/dev/null || true)"
-            [[ -z "${value}" ]] && continue
-            if ! print -r -- "${existing}" | grep -qxF -- "${value}"; then
-                git -C "${DOTFILES_DIR}" secrets --add "${value}"
-            fi
-        done
-    fi
 fi
+# NOTE: git-secrets pattern registration lives in setup-secrets.sh, which runs
+# after setup-brew installs git-secrets (it is unavailable at this point).
 
 _log_ok "All links created."

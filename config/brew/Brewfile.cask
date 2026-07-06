@@ -1,4 +1,4 @@
 # Essential casks — always attempted by setup-brew.sh (non-fatal, and NOT
 # skipped by DOTFILES_SKIP_CASKS). Optional GUI apps live in Brewfile.cask.optional.
-cask "hammerspoon"   # 英数/かな switching (see docs/eisu-kana-key.md); required
+cask "hammerspoon"   # 英数/かな switching (see docs/additional-setup.md); required
 cask "warp"          # primary terminal

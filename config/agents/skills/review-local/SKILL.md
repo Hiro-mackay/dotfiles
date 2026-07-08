@@ -58,3 +58,7 @@ For each finding:
 - Suggested fix
 
 End with a brief overall assessment.
+
+## Remediation Order (for the caller)
+
+When the findings get fixed in batch: fix all Critical/High, then Medium; sweep remaining Low in already-touched files in the same pass. Findings that need design work go to a follow-up issue, not into this diff.

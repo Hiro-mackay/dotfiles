@@ -19,6 +19,18 @@ Do NOT delegate:
 
 When unsure, inline is the correct default. If a session never hits these triggers, zero delegations is the right outcome -- measure parallelism captured, not delegation count.
 
+## Script, agent, or inline
+Before spawning an agent for a sweep, pick the cheapest reliable tool:
+- Mechanical checks (existence, cross-references, counts, format validation) -> write a deterministic script. Agent comprehension misreports exactly this class of work; a script is rerunnable, diffable, and does not hallucinate
+- Full-corpus scan where only a semantic judgment can decide -> agent
+- Transforming one to a few known files -> inline
+If a check can be expressed as a script, the script IS the deliverable -- do not delegate it to agent reading.
+
+## Batch reliability contract
+When delegating batch work over N items:
+- The agent reports counts: N given, K skipped (named), M processed, and M = N - K must hold. Silently narrowing scope is a defect, not a judgment call
+- A "done" claim requires passing a mechanical check (script, test, grep) after the work; the agent's own completion report is not verification
+
 ## Parallel spawning
 Send one batch of independent tasks in a single message (multiple agent calls). Sequential calls are not parallel; use them only when Task B depends on Task A, tasks edit the same file, or scopes overlap. Sweet spot: 3-5 agents; beyond that coordination cost usually exceeds gains -- batch into waves.
 

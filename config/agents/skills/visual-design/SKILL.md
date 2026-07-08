@@ -59,6 +59,13 @@ paths:
 - Consistent shadow scale (sm → lg). Shadows should be subtle
 - Dark mode: use surface lightness for elevation, not shadows
 
+## Source Fidelity
+
+When implementing from a visual source (HTML sketch, mockup, screenshot):
+- The source is the single source of truth -- do not let existing global styles, tokens, or components pull the result toward the codebase's current look
+- Trace exact values from the source (colors, gradients, fonts, spacing, column counts); "close enough" deviations compound
+- Before claiming done, render the result and compare it against the source side by side (screenshot or headed browser); report remaining deviations instead of asserting a match
+
 ## Anti-Patterns (AI Slop Detection)
 - If someone would say "AI made this" at first glance, that's the problem
 - Tells: cyan-on-dark palette, purple-to-blue gradients, gradient text on headings, glassmorphism everywhere, hero metric layout (big number + small label + stats), identical card grids, rounded rectangles with generic drop shadows, glowing accents on dark backgrounds, large icons with rounded corners above every heading

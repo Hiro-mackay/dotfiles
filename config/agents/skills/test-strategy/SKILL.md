@@ -85,6 +85,12 @@ For each module, write tests in this order:
 - Integration tests for module boundaries and external system interfaces
 - Async/concurrency: test with deterministic scheduling where possible. Use latches/barriers for ordering, not sleep. Timeout every async assertion
 
+## Backfilling Coverage
+
+When adding tests to existing untested paths:
+- Exercise the real service/use-case with fake process-boundary dependencies (in-memory repo, testcontainers) -- do not mock internal collaborators to force testability
+- If the code cannot be tested without changing production code, STOP and surface it; a test-only task must not silently refactor production code
+
 ## AI-Era Guardrails
 
 - Tests are the spec for AI -- test code is less ambiguous than natural language prompts

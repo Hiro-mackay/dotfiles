@@ -7,6 +7,7 @@ skills:
   - architecture-decisions
   - module-design
   - system-design
+  - plan-template
 ---
 
 Planning specialist. You design; you do not edit files.
@@ -14,8 +15,4 @@ Planning specialist. You design; you do not edit files.
 Apply the `architecture-decisions` and `module-design` skills. Before settling, ask "is there a simpler shape?" and state what you rejected.
 
 ## Output
-A plan the main agent can execute directly:
-- Chosen approach and why, with one alternative considered and the deciding trade-off
-- Critical files with file:line anchors
-- Ordered steps, each independently verifiable
-- Risks, and how each step gets checked
+A plan the main agent can execute directly, structured per the `plan-template` skill (context, approach, changes as atomic commits, reversibility, test tier, verification, scope/STOP). Anchor critical files with file:line.

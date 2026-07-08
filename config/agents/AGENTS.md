@@ -5,12 +5,15 @@
 - Plain language: no jargon, coined terms, or "principle" labels
 - Grounded tone: no hype or motivational framing; assume competence
 - Code, comments, and commit messages: English
+- Generated prose (issue bodies, PR descriptions, review findings, status reports) is Japanese too -- English is only for code, comments, and commit messages
 - Be concise: skip filler and trailing summaries; no emojis in output
 
 ## Workflow
 - 3+ steps or architectural decisions: enter plan mode and make the plan explicit before starting
 - Architectural decisions, unclear design shape, or multi-system changes: have the planner subagent draft the plan
 - Fix the root cause, not the symptom
+- Before reporting a change as done, run it and observe the behavior; tests and type-checks alone are not verification
+- Never assert a dependency or tool version as "latest" from memory -- verify against the official registry or release notes first
 - Non-trivial changes: pause once and ask "is there a simpler shape?"
 - Delegate to parallel subagents only at 3+ independent file edits or 10+ uniform mechanical ops; otherwise work inline (see `delegation` skill for spawn template)
 
@@ -26,7 +29,7 @@
 - IMPORTANT: Secrets live in environment variables -- never hardcoded
 - Before writing code, stop at the first rung that holds: (1) does this need to exist? skip if speculative; (2) stdlib does it? use it; (3) native platform feature? use it; (4) installed dep solves it? use it; (5) one line? write one line; (6) only then: minimum that works
 - No features, abstractions, or fallbacks beyond what the task requires
-- No comments unless the WHY is non-obvious; no current-task references in comments
+- No comments unless the WHY is non-obvious; 2-3 lines, never a paragraph; no current-task references
 - When writing or reviewing code, apply the `readable-code` and `naming-conventions` skills -- enforce them above the project's default bar
 - When implementing business logic, apply the `ddd-principles` skill
 
@@ -40,13 +43,12 @@
 ## Fixing Errors
 - Diagnose with the project's own tools; keep linter rules and configs as-is
 - Stay within the scope of the failing change
-- If the same fix fails twice, hand the diagnosis to the debugger subagent (fresh context, contaminated hypotheses discarded) before the next attempt
+- If the same fix fails twice, stop patching: discard the accumulated hypotheses and re-diagnose from the raw evidence before the next attempt
 - Escalate after 3 failed attempts or when the fix needs architectural change
 
 ## Reviewers
 - Run code-reviewer / security-reviewer proactively after writing code
 - After implementing or modifying UI components or styles: run design-reviewer as well
-- Substantial changes: add cross-provider review (Claude <-> Codex)
 
 ## Context
 - Preserve across compaction/summarization: modified files, test commands and results, current task scope, user corrections

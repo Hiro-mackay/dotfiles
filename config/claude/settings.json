@@ -111,6 +111,15 @@
             "command": "~/.claude/script/hooks/filter-test-output.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/script/hooks/block-no-verify.sh"
+          }
+        ]
       }
     ],
     "SubagentStart": [
@@ -164,7 +173,7 @@
     }
   },
   "language": "ja",
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",

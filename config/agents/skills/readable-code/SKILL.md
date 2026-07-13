@@ -19,13 +19,22 @@ description: Code readability guidelines covering function length, nesting depth
 - Group related parameters into a struct/object
 
 ## Comments
-- Default to none. Write one only when the code cannot carry the meaning itself.
-- WHY only, never WHAT (code must be self-documenting)
-- 2 lines by default, 3 at most. Needing more means the fix is naming or structure, not more prose.
-- Say each rationale once. Don't repeat an explanation across sibling functions — hoist it to a file- or type-level doc.
-- A comment block longer than the code beneath it is a smell — compress to the point.
-- Delete commented-out code -- version control exists
-- Mark deliberate simplifications with their ceiling and upgrade trigger — e.g. `// global lock; switch to per-account if throughput matters`
+Zero by default. The bar is not "is this useful?" — it is "can the code not say this itself?" Almost always it can.
+
+Write a comment ONLY when it is one of these three:
+1. A doc comment the language's tooling or a public API contract requires
+2. A fact the code cannot state: an external spec or protocol quirk, a workaround for someone else's bug, an ordering the compiler won't enforce but the domain does, a non-obvious invariant
+3. A deliberate simplification, with its upgrade trigger — `// global lock; switch to per-account if throughput matters`
+
+Everything else is not written. If it is already there, delete it:
+- Restating WHAT the next line does — `// increment the counter`, `// loop over users`, `// initialize the client`
+- Narrating the change or the task — `// added for the retry feature`, `// per review feedback`, `// new in v2`
+- Section banners — `// --- helpers ---`, `// ===== main logic =====`
+- Doc comments that only echo the signature — `// GetUser returns the user.`
+- Restating a name that already says it — if the comment is needed to understand the name, fix the name (see `naming-conventions`)
+- Commented-out code — version control exists
+
+Length: 1 line, 2 at most. Say each rationale once — don't repeat it across sibling functions; hoist it to a file- or type-level doc. A comment block longer than the code beneath it is a smell.
 
 ### Compressing an over-long comment
 Bad — 6-line paragraph restating the test flow:

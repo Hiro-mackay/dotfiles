@@ -36,6 +36,7 @@ Review the code changes. Apply these criteria with language-specific rigor:
 
 ### Quality (Medium)
 - Apply `readable-code` skill criteria (function length, nesting, parameters, naming)
+- Comments: flag every comment the diff adds that isn't (a) required by tooling or a public API contract, (b) a fact the code cannot state, or (c) a deliberate simplification with its upgrade trigger. The fix is "delete it". WHAT-restatements, change/task narration, section banners, and doc comments that echo the signature all go. This is not a formatting nit -- do not skip it
 
 ### Over-engineering (Medium)
 - `delete`: dead code, unused flexibility, speculative feature

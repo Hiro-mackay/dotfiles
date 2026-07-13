@@ -17,8 +17,8 @@ paths:
 - Short receiver names (1-2 chars), consistent across methods (not `this`/`self`)
 
 ## Commentary
-- Doc comments on exported names, starting with the declared name: `// Foo does...`
-- Package comments required for non-trivial packages
+- Doc comments only on exported names of a package consumed outside its own module, starting with the declared name: `// Foo does...`. Inside an app's internal packages, skip them -- a doc comment that echoes the signature (`// GetUser returns the user`) is noise
+- Package comment only when the package's purpose isn't obvious from its name
 - Error strings: lowercase, no trailing punctuation, prefix with origin (`pkg: message`)
 
 ## Control Structures

@@ -29,7 +29,8 @@
 - IMPORTANT: Secrets live in environment variables -- never hardcoded
 - Before writing code, stop at the first rung that holds: (1) does this need to exist? skip if speculative; (2) stdlib does it? use it; (3) native platform feature? use it; (4) installed dep solves it? use it; (5) one line? write one line; (6) only then: minimum that works
 - No features, abstractions, or fallbacks beyond what the task requires
-- No comments unless the WHY is non-obvious; 2-3 lines, never a paragraph; no current-task references
+- IMPORTANT: Write zero comments by default. One is allowed ONLY if it is (1) a doc comment the language's tooling or a public API contract requires, (2) a fact the code cannot state -- an external spec, a workaround for someone else's bug, a forced ordering, a non-obvious invariant -- or (3) a deliberate simplification with its upgrade trigger. Everything else (restating WHAT the code does, section headers, narrating the change or the task) is not written, and is deleted when found
+- An allowed comment is 1 line, 2 at most. Wanting more means the fix is naming or structure, not prose
 - When writing or reviewing code, apply the `readable-code` and `naming-conventions` skills -- enforce them above the project's default bar
 - When implementing business logic, apply the `ddd-principles` skill
 

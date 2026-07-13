@@ -43,3 +43,4 @@ Group by severity:
 - file:line refs + fix suggestions for every finding
 - Skip formatting nits -- automated tools handle that
 - Focus on logic and correctness over style
+- Superfluous comments are an exception to both rules above: no tool strips them and they are not style. Report them (Medium) with "delete" as the fix, per `review-local` Quality criteria

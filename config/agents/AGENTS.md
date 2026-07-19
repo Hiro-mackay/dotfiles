@@ -7,6 +7,8 @@
 - Code, comments, and commit messages: English
 - Generated prose (issue bodies, PR descriptions, review findings, status reports) is Japanese too -- English is only for code, comments, and commit messages
 - Be concise: skip filler and trailing summaries; no emojis in output
+- IMPORTANT: Any Japanese prose that describes or explains something -- issue bodies, design docs, reports, notes, and explanations written to me in chat -- applies the `japanese-tech-writing` skill. Unconditional; skip only for one-or-two-line replies. Its 一文一行 rule is for prose written to files, not chat responses
+- When that prose is meant to be read as a piece (a walkthrough, a rationale, an explanation of how something works -- in chat as much as in a file, not only articles), layer `cognitive-rhythm-writing` on top. Still lead with the conclusion; the rhythm rules govern the body, not the order
 
 ## Workflow
 - 3+ steps or architectural decisions: enter plan mode and make the plan explicit before starting
@@ -15,7 +17,8 @@
 - Before reporting a change as done, run it and observe the behavior; tests and type-checks alone are not verification
 - Never assert a dependency or tool version as "latest" from memory -- verify against the official registry or release notes first
 - Non-trivial changes: pause once and ask "is there a simpler shape?"
-- Delegate to parallel subagents only at 3+ independent file edits or 10+ uniform mechanical ops; otherwise work inline (see `delegation` skill for spawn template)
+- Delegate to parallel subagents only at 3+ independent file edits or 10+ uniform mechanical ops; otherwise work inline (see `delegation` skill for spawn template). Exception: broad searches go to a subagent that returns the conclusion, not the file contents
+- Read only the range you need: locate with Grep first, then Read with offset/limit. Never read a whole file to find one symbol, and never re-read a file already read this session
 
 ## Collaboration
 - Stay in the requested scope; don't solve unrequested problems or add tooling I won't use

@@ -18,7 +18,11 @@ Use the appropriate diff command for context, and `--name-only` variant for the 
 
 ## Task
 
-Review the code changes. Apply these criteria with language-specific rigor:
+Assume this diff is wrong and try to break it. You are not checking it against a standard -- you are looking for the input, state, or sequence that makes it fail. Do not write down what is good about it.
+
+Where a finding turns on a fact you are not certain of (a library's actual behavior, a platform guarantee, an API contract), read the source or the vendored code to confirm it. If you cannot confirm it, say so in the finding instead of asserting it.
+
+Hunt along these lines, with language-specific rigor:
 
 ### Bugs (Critical/High)
 - Logic errors, off-by-one, null/nil handling, race conditions
@@ -52,13 +56,16 @@ Review the code changes. Apply these criteria with language-specific rigor:
 
 ## Output Format
 
-Group findings by severity (Critical > High > Medium > Low).
+Before writing a finding, state to yourself the concrete failure it produces: the input or sequence, and the wrong result. A finding you cannot ground that way is a guess -- drop it rather than hedging it into the list. Padding the list with plausible-sounding items is the failure mode here, and it costs more than a miss: every one of them gets chased.
+
+Group surviving findings by severity (Critical > High > Medium > Low).
 For each finding:
 - File and line number
-- Issue description
+- The failure: what input or state makes this go wrong, and what happens
+- Confidence: high or medium (low-confidence findings were already dropped)
 - Suggested fix
 
-End with a brief overall assessment.
+End with `What held up:` and one or two lines on what you attacked and could not break. Be specific about what you tried -- "reviewed and looks fine" means the attack was never made. If nothing broke anywhere, say that plainly rather than promoting a weak finding to fill the list.
 
 ## Remediation Order (for the caller)
 

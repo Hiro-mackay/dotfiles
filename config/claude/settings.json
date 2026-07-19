@@ -59,6 +59,7 @@
       "Write(**/secrets/**)"
     ]
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "Stop": [
       {
@@ -120,6 +121,15 @@
             "command": "~/.claude/script/hooks/block-no-verify.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/script/hooks/filter-verbose-output.sh"
+          }
+        ]
       }
     ],
     "SubagentStart": [
@@ -152,7 +162,6 @@
   "enabledPlugins": {
     "hookify@claude-code-plugins": true,
     "commit-commands@claude-code-plugins": true,
-    "context7-plugin@context7-marketplace": true,
     "security-guidance@claude-code-plugins": true,
     "codex@openai-codex": true,
     "code-simplifier@claude-plugins-official": true,
@@ -174,6 +183,7 @@
   },
   "language": "ja",
   "effortLevel": "xhigh",
+  "advisorModel": "opus",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",

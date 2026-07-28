@@ -5,44 +5,38 @@ description: Web platform performance principles covering image optimization, fo
 
 # Web Performance Principles
 
-## Core Web Vitals
-- **LCP** (Largest Contentful Paint): < 2.5s. Preload hero image/font. Inline critical CSS. Avoid render-blocking resources
-- **FID/INP** (Interaction to Next Paint): < 200ms. Break long tasks (> 50ms) with `requestIdleCallback` or `scheduler.yield()`. Defer non-critical JS
-- **CLS** (Cumulative Layout Shift): < 0.1. Set explicit `width`/`height` on images/video. Reserve space for dynamic content. `font-display: swap` with fallback metric matching
+The numbers and the platform specifics. General "make it fast" advice is deliberately absent.
 
-## Image Optimization
-- Format: WebP for photos, SVG for icons/illustrations, AVIF for maximum compression (with WebP fallback)
-- Responsive: `srcset` with width descriptors + `sizes` attribute. Let browser choose optimal resolution
-- Lazy loading: `loading="lazy"` for below-fold images. `loading="eager"` + `fetchpriority="high"` for hero
-- Sizing: always set `width` and `height` attributes to prevent layout shift
-- `<picture>` for art direction (different crops by viewport), not just resolution switching
+## Targets
+- LCP under 2.5s: preload the hero image and font, inline critical CSS, remove render-blocking resources
+- INP under 200ms: break tasks longer than 50ms with `scheduler.yield()` or `requestIdleCallback`, defer non-critical JS
+- CLS under 0.1: explicit `width` and `height` on every image and video, reserved space for anything injected later, and a fallback font whose metrics match
+- Initial JS under 200KB compressed, measured with `source-map-explorer` or the bundler's analyzer
+- Critical CSS inlined under 14KB, the rest deferred
 
-## Font Loading
-- `font-display: swap` to prevent invisible text (FOIT)
-- Match fallback font metrics (`size-adjust`, `ascent-override`, `descent-override`) to minimize layout shift
-- Preload critical fonts: `<link rel="preload" href="font.woff2" as="font" crossorigin>`
-- Subset fonts to used character ranges. WOFF2 only (best compression)
-- System fonts for body text are a valid choice: instant load, native feel
+## Images
+- AVIF with a WebP fallback for photos, SVG for icons and illustrations
+- `srcset` with width descriptors plus `sizes`, and let the browser pick
+- `loading="lazy"` below the fold; the hero gets `loading="eager"` with `fetchpriority="high"`. Lazy-loading the hero is a common way to make LCP worse
+- `<picture>` when the crop changes by viewport. For resolution alone, `srcset` is enough
 
-## Bundle Optimization
-- Code split by route: each page loads only what it needs
-- Dynamic `import()` for heavy components (editors, charts, maps) triggered by user action
-- Tree-shake: use ES modules, avoid barrel files that defeat tree-shaking
-- Analyze with `webpack-bundle-analyzer` or `source-map-explorer`. Target: < 200KB initial JS (compressed)
-- Defer non-critical third-party scripts (analytics, chat widgets) until after interactive
+## Fonts
+- `font-display: swap`, WOFF2 only, subset to the character ranges actually used
+- `size-adjust`, `ascent-override`, and `descent-override` on the fallback so the swap doesn't move the page
+- `<link rel="preload" as="font" crossorigin>` for fonts on the critical path
+- System fonts for body text are a legitimate choice, not a compromise: nothing to load and nothing to shift
 
-## Animation Performance
-- For motion design rules (easing, duration, `prefers-reduced-motion`), see `visual-design`
-- Scroll-triggered: `IntersectionObserver`, not scroll events. Unobserve after first animation
-- `content-visibility: auto` + `contain-intrinsic-size` for long lists -- skip layout/paint for off-screen items
+## Loading
+- Code split by route; `import()` heavy components (editors, charts, maps) on the interaction that needs them
+- `<link rel="preconnect">` for third-party origins you will certainly hit -- CDN, API, font host
+- Hashed asset filenames with a long `max-age` and `immutable`; HTML itself `no-cache`
+- Brotli over gzip, configured at the CDN or server
 
-## Resource Loading
-- Critical path: inline critical CSS (< 14KB), defer non-critical. `<link rel="preload">` for key resources
-- `<link rel="preconnect">` for third-party domains (CDN, API, fonts)
-- HTTP caching: immutable assets with content hash (`app.a1b2c3.js`) + long `max-age`. HTML with `no-cache`
-- Compression: Brotli > gzip. Enable at CDN/server level
+## Runtime
+- `IntersectionObserver` for scroll-triggered work, never a scroll listener, and unobserve once it has fired
+- `content-visibility: auto` with `contain-intrinsic-size` on long lists so off-screen items skip layout and paint
+- Easing, duration, and `prefers-reduced-motion`: `visual-design` skill
 
 ## Measurement
-- Synthetic: Lighthouse CI in pipeline, fail on regression
-- Real User Monitoring (RUM): track p75 of CWV from actual users
-- Measure first, optimize second. Don't guess bottlenecks
+- Measure before optimizing. A guessed bottleneck usually costs a day and moves nothing
+- Lighthouse CI in the pipeline, failing on regression, and RUM tracking the p75 of real users -- lab numbers and field numbers disagree, and the field one is the real one

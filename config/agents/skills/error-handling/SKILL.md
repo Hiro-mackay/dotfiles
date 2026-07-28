@@ -5,59 +5,44 @@ description: Cross-language resilience patterns for retry, timeout, circuit brea
 
 # Error Handling & Resilience Patterns
 
-## Retry Strategy
-- Exponential backoff with jitter: `base * 2^attempt + random(0, base)`
-- Max attempts: 3-5 for idempotent operations. NEVER retry non-idempotent without idempotency key
-- Retryable: network timeout, 429, 503, connection reset, DNS failure
-- NOT retryable: 400, 401, 403, 404, 409, 422 -- these won't succeed on retry
-- Cap max backoff (e.g., 30s) to prevent unbounded waits
-- Log each retry with attempt number and reason
+The calls that go wrong under failure. The pattern catalogue itself is deliberately absent.
 
-## Timeout Design
-- Set timeouts on EVERY external call -- no unbounded waits
-- Separate connect timeout (short, 1-5s) from read timeout (longer, varies by operation)
-- Cascade prevention: downstream timeout < upstream timeout. If API has 30s timeout, DB call MUST be < 30s
-- Pass deadline/context through the call chain -- don't create new timeouts at each layer
-- Timeout error MUST include: which operation, configured timeout value, target service
+## Retry
+- Exponential backoff **with jitter** (`base * 2^attempt + random(0, base)`), capped around 30s. Without jitter, every client retries in lockstep and the recovering service falls over again
+- 3-5 attempts for idempotent operations. Never retry a non-idempotent one without an idempotency key
+- Retry timeouts, connection resets, DNS failures, 429, and 503. Nothing in the 4xx range except 429 will succeed on a second try
+- Log the attempt number and the reason each time, or the retry loop is invisible in production
 
-## Circuit Breaker
-- States: CLOSED (normal) -> OPEN (failing) -> HALF-OPEN (testing recovery)
-- Open threshold: N failures in M seconds (e.g., 5 failures in 60s)
-- Open duration: start at 30s, increase on repeated failures
-- Half-open: allow 1 request through. Success -> CLOSED, failure -> OPEN
-- Circuit breaker per dependency, not global
-- When open: fail fast with clear error, use fallback if available
-- Expose circuit state as a metric for monitoring
+## Timeouts
+- Every external call has one. An unbounded wait is a slow outage
+- Connect timeout (1-5s) and read timeout are separate settings with different jobs
+- Downstream timeouts must be shorter than upstream ones. A 30s API budget with a 30s DB call leaves nothing for the rest of the request
+- Pass the deadline down the call chain. Creating a fresh timeout at each layer silently multiplies the total wait
+- A timeout error names the operation, the configured value, and the target
 
-## Fallback Patterns
-- Graceful degradation: serve stale cache, default values, or reduced functionality
-- Fallback MUST be simpler and more reliable than the primary path
-- Never chain fallbacks to other fallbacks -- one level only
-- Cache-aside for read-heavy: try cache -> miss -> fetch -> populate cache
-- Static fallback: pre-computed response when real-time computation fails
-- Feature flags: disable non-critical features under load
+## Circuit breakers and bulkheads
+- One breaker per dependency, never a global one -- otherwise a single failing service opens the circuit for everything
+- Open after roughly 5 failures in 60s, stay open ~30s and back off further on repeat, then let exactly one request through to test
+- While open, fail fast and expose the state as a metric
+- Separate connection pools per downstream service, and separate worker pools for critical versus best-effort work, so one slow dependency cannot consume every thread
+- Bounded queues that reject when full. An unbounded queue converts a throughput problem into a memory problem
 
-## Bulkhead (Resource Isolation)
-- Separate connection pools per downstream service
-- Separate thread/goroutine pools for critical vs. non-critical work
-- Queue with bounded size -- reject when full, don't block indefinitely
-- Prevent one slow dependency from exhausting all resources
+## Fallbacks
+- A fallback must be simpler and more reliable than the path it replaces. A fallback with its own dependencies is just a second way to fail
+- One level only. Never fall back to something that itself falls back
+- Stale cache, a precomputed response, or reduced functionality -- decided in advance, not improvised at the failure site
 
 ## Idempotency
-- All retryable operations MUST be idempotent or use idempotency keys
-- Natural idempotency: DB unique constraint, upsert, state machine transitions
-- Side effects: record "executed" flag in same transaction, check before re-executing on retry
-- For API-level idempotency key design, see `api-design` skill
-- For message processing idempotency and outbox pattern, see `system-design` skill
+- Anything retryable is either naturally idempotent (unique constraint, upsert, state transition) or carries an idempotency key
+- Record the "executed" marker in the same transaction as the side effect. Separate writes reintroduce the race you were trying to close
+- Write-path races and publish-after-commit: `concurrency-idempotency` skill. API-level key design: `api-design` skill. Outbox and message processing: `system-design` skill
 
-## Error Propagation
-- Wrap errors with context at each layer: `"payment failed: charge card: timeout after 5s"`
-- Preserve original error for programmatic handling (`errors.Is`/`errors.As`, `cause` chain)
-- At API boundary: translate internal errors to appropriate HTTP status + error code
-- Never expose internal details (stack traces, SQL, file paths) to external callers
-- Structured error response: machine-readable code + human-readable message
+## Propagation
+- Wrap with context at each layer so the message reads as a path: `payment failed: charge card: timeout after 5s`
+- Keep the original error reachable for `errors.Is` / `errors.As` or an equivalent cause chain
+- Translate to a status code and error code once, at the API boundary -- not at every layer on the way out
 
-## Language-Specific
-- Go: `context.WithTimeout` for deadlines. `errgroup` for concurrent error collection. Wrap with `fmt.Errorf("context: %w", err)`
-- Python: `tenacity` for retry. `asyncio.wait_for` for async timeout. `contextlib.suppress` sparingly
-- TypeScript: `AbortSignal.timeout()` for fetch. `p-retry` for retry. `Promise.race` for timeout fallback
+## By language
+- Go: `context.WithTimeout` for deadlines, `errgroup` for concurrent error collection, `fmt.Errorf("context: %w", err)` to wrap
+- Python: `tenacity` for retry, `asyncio.wait_for` for async timeouts
+- TypeScript: `AbortSignal.timeout()` for fetch, `p-retry` for retry

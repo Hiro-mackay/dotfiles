@@ -1,7 +1,6 @@
 ---
 name: critique
-description: UX design evaluation using Nielsen heuristics, cognitive load analysis, accessibility audit, and persona testing. Use when reviewing, critiquing, or evaluating a UI design, or running a technical quality audit on an interface.
-user-invocable: true
+description: UX design evaluation using Nielsen heuristics, cognitive load analysis, accessibility audit, and persona testing. Run only when the user explicitly asks to review or critique a design or interface, or invokes /critique. Do not run on your own after implementing or modifying UI code.
 argument-hint: "[target component, page, or feature]"
 context: fork
 agent: design-reviewer
@@ -10,73 +9,34 @@ allowed-tools: Read, Glob, Grep, Bash(git diff *), Bash(git log *)
 
 # Design Critique
 
-## Design Context
+## Design context
 
-Before evaluating, ensure design context exists:
+Read `.impeccable.md` from the project root if it exists. If it does not, ask three questions before evaluating, then save the answers there:
 
-1. Check if `.impeccable.md` exists in project root -- if yes, read it
-2. If not, ask the user 3 questions before proceeding:
-   - Who is the target audience and in what context do they use this?
-   - What is the brand personality/tone? (e.g., playful, professional, minimal)
-   - What is the primary user goal on this page/component?
-3. Save answers to `.impeccable.md` for future sessions
+- Who is the audience, and in what situation do they use this?
+- What is the brand personality?
+- What is the primary user goal on this page or component?
 
 ## Evaluation
 
-Read all target files completely, then evaluate across these dimensions:
+Read the target files completely, then work through five dimensions.
 
-### 1. AI Slop Detection (CRITICAL -- evaluate first)
-Does this look AI-generated? Check against `visual-design` skill anti-patterns. Be brutally honest.
+**1. Does it look AI-generated.** Check against the tells in `visual-design`. Answer this one first and without softening it -- if the answer is yes, the rest of the critique is downstream of it.
 
-### 2. Heuristic Evaluation
-Score Nielsen's 10 heuristics 0-4. See [scoring guide](reference/heuristics-scoring.md).
+**2. Nielsen heuristics.** Score all ten from 0 to 4 using the [scoring guide](reference/heuristics-scoring.md), and report the table with a one-line issue against each: visibility of system status, match with the real world, user control and freedom, consistency and standards, error prevention, recognition over recall, flexibility and efficiency, aesthetic and minimalist design, error recovery, help and documentation.
 
-| # | Heuristic | Score | Key Issue |
-|---|-----------|-------|-----------|
-| 1 | Visibility of System Status | ? | |
-| 2 | Match System / Real World | ? | |
-| 3 | User Control and Freedom | ? | |
-| 4 | Consistency and Standards | ? | |
-| 5 | Error Prevention | ? | |
-| 6 | Recognition over Recall | ? | |
-| 7 | Flexibility and Efficiency | ? | |
-| 8 | Aesthetic and Minimalist Design | ? | |
-| 9 | Error Recovery | ? | |
-| 10 | Help and Documentation | ? | |
-| **Total** | | **??/40** | |
+Out of 40: 34+ excellent, 28-33 good, 20-27 acceptable, 12-19 poor, under 12 critical.
 
-Rating: 18-20 Excellent, 14-17 Good, 10-13 Acceptable, 6-9 Poor, 0-5 Critical
+**3. Cognitive load.** Run the [8-item checklist](reference/cognitive-load.md). 0-1 failures is fine, 2-3 is moderate, 4 or more is critical.
 
-### 3. Cognitive Load
-Run the [8-item checklist](reference/cognitive-load.md). Report failure count: 0-1 = low (good), 2-3 = moderate, 4+ = critical.
+**4. Technical quality.** Score accessibility, responsive behavior, performance, and theming 0-4 each. Accessibility and responsive criteria are in `ui-quality` (semantics, contrast, keyboard, ARIA, zoom, touch targets, breakpoints, input detection); theming is in `visual-design` (semantic tokens, dark mode as its own palette rather than an inversion). For performance, score against `web-performance` (lazy loading, bundle weight, font and image handling) plus two things it does not cover: layout thrashing -- reads of `offsetHeight` or `getBoundingClientRect` interleaved with writes inside a loop -- and animation of properties other than `transform` and `opacity`.
 
-### 4. Technical Quality
-- Accessibility: contrast ratios, keyboard nav, ARIA, semantic HTML, zoom support
-- Responsive: mobile breakpoints, touch targets (44px), overflow, input method detection
-- Performance: layout thrashing, expensive animations, missing lazy load
-- Theming: design token usage, dark mode correctness
-
-### 5. Persona Red Flags
-Select 2-3 relevant personas from [reference](reference/personas.md). Walk through primary action as each. Report specific failures.
+**5. Personas.** Pick 2-3 relevant [personas](reference/personas.md) and walk each through the primary action. Report the specific step where each one fails.
 
 ## Output
 
-### Anti-Patterns Verdict
-Pass/fail with specific tells.
-
-### What's Working
-2-3 specific strengths.
-
-### Priority Issues (P0-P3)
-For each:
-- **[P?] Issue**: name clearly
-- **Impact**: how it hurts users
-- **Fix**: concrete recommendation
-
-### Scores
-- Heuristic: ??/40
-- Cognitive Load: ? failures / 8
-- Technical: a11y / responsive / performance / theming (each 0-4, total /16)
-
-### Recommended Next Steps
-Prioritized list of what to fix and in what order.
+- **Verdict on the AI-slop question**: pass or fail, naming the specific tells
+- **Issues, P0 to P3**: each with the issue named plainly, how it hurts users, and a concrete fix
+- **Worth preserving**: anything the design genuinely gets right that a redesign might destroy. If there is nothing, say so rather than filling the section
+- **Scores**: heuristics ??/40, cognitive load ?/8 failures, technical ??/16
+- **Order to fix in**

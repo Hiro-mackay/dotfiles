@@ -8,57 +8,27 @@ paths:
 
 # Python Design Principles
 
-## Type Hints
-- All public functions must have type annotations (params + return)
-- `X | None` over `Optional[X]` (3.10+)
-- `list[str]`, `dict[str, int]` over `List[str]`, `Dict[str, int]` (3.9+)
-- `TypeAlias` (3.10+) or `type` statement (3.12+) -- calibrate to project version
-- `Self` return type for fluent interfaces and classmethods (3.11+)
-- `@override` decorator for explicit method overrides (3.12+)
-- No `Any` without justification
-- Guard heavy imports with `if TYPE_CHECKING:` to avoid runtime cost
+These are the calls you would otherwise get wrong. Idiomatic modern Python and anything `ruff` or `mypy` already flags is deliberately absent.
 
-## Error Handling
-- Catch specific exceptions, never bare `except:` or `except Exception:`
-- `raise ... from e` to preserve exception chains
-- Context managers (`with`) for all resources
-- `contextlib.suppress(SpecificError)` over empty except blocks
-- Derive custom exceptions from domain-specific base, not raw `Exception`
-- Minimize `try` scope -- only wrap the line(s) that can raise
+## Types
+- Annotate params and returns on public functions. No `Any` without a stated reason
+- Guard heavy imports with `if TYPE_CHECKING:` -- a type-only import must not cost anything at runtime
 
-## Modern Python
-- f-strings over `.format()` or `%`
-- `pathlib.Path` over `os.path`
-- `dataclasses` (prefer `frozen=True, slots=True`) or `pydantic` over plain dicts
-- `enum.Enum` for fixed sets of values
-- `match` statement for complex branching (3.10+)
-- `removeprefix()` / `removesuffix()` (3.9+)
-- `dict1 | dict2` merge syntax (3.9+)
-- `tomllib` for TOML config parsing (3.11+)
-- Prefer stdlib: `itertools`, `functools`, `collections`, `contextlib`
+## Errors
+- Catch specific exceptions. Never bare `except:`, never `except Exception:`
+- `raise ... from e` -- dropping the chain makes the next failure unreadable
+- Wrap only the lines that can raise. A `try` around the whole function hides which call failed
+- Custom exceptions derive from a domain base class, not raw `Exception`
 
-## Design Patterns
-- `Protocol` over `ABC` when only structural typing is needed -- duck typing with type safety
-- `__slots__` on data-heavy classes instantiated in bulk
-- `functools.cache` / `lru_cache` for pure function memoization
-- Structured logging: `logging` with structured format or `structlog` -- no bare `print()`
+## Data and logging
+- `dataclasses` with `frozen=True, slots=True`, or `pydantic` -- not plain dicts. `__slots__` on any data-heavy class instantiated in bulk
+- `Protocol` over `ABC` when structural typing is enough
+- `logging` or `structlog`, never a bare `print()`
 
 ## Async
-- `async/await` over `threading` for I/O-bound concurrency
 - Never call blocking I/O inside `async def` without `asyncio.to_thread`
-- `asyncio.TaskGroup` over `gather` (3.11+)
-- Always cancel/cleanup tasks on error
-- Handle `KeyboardInterrupt` / signals for graceful shutdown
+- `asyncio.TaskGroup` over `gather` -- it cancels siblings and propagates the first error for you
 
 ## Security
-- Never `eval()` / `exec()` on untrusted input
-- `subprocess`: always pass `list` args, never `shell=True` with user input
-- `yaml.safe_load()` over `yaml.load()` -- arbitrary code execution risk
-- Never `pickle.loads()` on untrusted data -- use JSON or msgpack
-- `shlex.quote()` when interpolating into shell commands
-- `secrets` module over `random` for tokens and cryptographic values
-
-## Project Structure
-- No circular imports
-- No mutable default arguments (`def f(x=[])`)
-- `__all__` in `__init__.py` to control public surface
+- `subprocess` takes a list, never `shell=True` with interpolated input. Where a shell is unavoidable, `shlex.quote()` every interpolated value
+- `secrets`, never `random`, for tokens and anything cryptographic

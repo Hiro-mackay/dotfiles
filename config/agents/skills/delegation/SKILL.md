@@ -13,11 +13,18 @@ Delegate to reduce wall-time through parallelism, not to "use a cheaper model." 
 - Large-output investigation (reading many files) -> investigation subagent, so the main context stays clean
 
 Do NOT delegate:
+- Anything you can finish yourself in a handful of tool calls
 - 1-2 file edits
 - Sequential edit -> test -> fix loops
 - Work where design decisions surface mid-implementation
 
 When unsure, inline is the correct default. If a session never hits these triggers, zero delegations is the right outcome -- measure parallelism captured, not delegation count.
+
+## Model per spawn
+Pass the model on the Agent tool's `model` parameter; default is inherit (main model).
+- Exploration, broad search, mechanical batch work -> `sonnet`. Speed dominates these tasks and quality differences don't surface; inheriting the main model buys nothing
+- Hardest design work (architecture with unclear shape, multi-system trade-offs) -> `fable`, only when I explicitly ask for it. My explicit request overrides the delegation gate above -- never pick fable as your own choice. In plan mode, the harness's own Plan-agent phase counts as an explicit route
+- Review agents forked via `/review-local` / `/security-audit` / `/critique` keep the model declared in their agent definition
 
 ## Script, agent, or inline
 Before spawning an agent for a sweep, pick the cheapest reliable tool:
@@ -33,6 +40,8 @@ When delegating batch work over N items:
 
 ## Parallel spawning
 Send one batch of independent tasks in a single message (multiple agent calls). Sequential calls are not parallel; use them only when Task B depends on Task A, tasks edit the same file, or scopes overlap. Sweet spot: 3-5 agents; beyond that coordination cost usually exceeds gains -- batch into waves.
+
+If one agent can do the whole task, spawn one rather than several. Splitting work that isn't genuinely independent doubles cost and wall-time instead of halving it.
 
 ## Spawn prompt template
 A good spawn prompt is self-contained:

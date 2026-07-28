@@ -24,59 +24,38 @@ paths:
 
 # Security Implementation Principles
 
-## Auth Architecture
-- **Session-based** when: server-rendered apps, simple auth, single domain. Store session server-side, send cookie
-- **Token-based (JWT)** when: API-first, mobile clients, cross-domain, microservices. Stateless but harder to revoke
-- **OAuth 2.0 + OIDC** when: third-party login, SSO, delegated authorization
-  - Authorization Code + PKCE for public clients (SPA, mobile, CLI)
-  - Client Credentials for service-to-service (no user involved)
-  - NEVER use Implicit flow -- deprecated, tokens exposed in URL
-- Token architecture: access token (short-lived, 15min) + refresh token (long-lived, 7-30 days) + ID token (user identity, OIDC only)
-- Revocation: maintain a deny list or use short-lived tokens with refresh rotation
-
-## Authentication
-- Passwords: argon2id (preferred) or bcrypt with cost >= 12. NEVER MD5, SHA-1, or plain SHA-256
-- JWT: verify signature, issuer, audience, and expiration on EVERY request. Reject expired tokens -- no grace period
-- Refresh tokens: one-time use, store hashed server-side, rotate on each use
-- Session IDs: cryptographically random (>= 128 bits), regenerate after login and privilege change
-- Multi-factor: TOTP or WebAuthn. SMS is a fallback, not primary
-- Rate limit login attempts: 5 failures -> temporary lockout with exponential backoff
+The things that get skipped under delivery pressure, plus the house numbers. Well-known attack names and algorithm trivia are deliberately absent.
 
 ## Authorization
-- Default deny -- explicitly grant, never explicitly revoke
-- Check authorization at the resource level, not just the route/endpoint
-- IDOR prevention: validate that the authenticated user owns the requested resource
-- RBAC: roles map to permissions, check permissions not role names in code
-- Never trust client-side role/permission data -- always verify server-side
-- Principle of least privilege for service accounts and API keys
+- Authorize at the resource, not just the route. A handler that checks "is logged in" and then loads by an ID from the request is an IDOR -- confirm this user owns this object
+- Default deny. Grant explicitly; never build a system where you have to remember to revoke
+- Check permissions, not role names, in code. Never trust a role or permission that arrived from the client
+- Service accounts and API keys get the narrowest scope that works, plus an expiry
 
-## Input Validation
-- Validate at system boundary ONLY -- inner functions receive trusted data
-- Allowlist over denylist: define what IS valid, not what isn't
-- Validate type, length, range, and format. Reject early with clear errors
-- SQL: parameterized queries ONLY. Never string interpolation
-- HTML: sanitize with a proven library (DOMPurify, bluemonday). Never regex
-- Path traversal: resolve to canonical path, verify it starts with allowed prefix
-- File uploads: validate MIME type by content (magic bytes), not extension. Limit size
+## Authentication
+- Verify signature, issuer, audience, and expiry on every request. No grace period on expiry
+- Access tokens ~15 minutes, refresh tokens 7-30 days. Refresh tokens are one-time use, stored hashed, and rotated on every use
+- Regenerate the session ID after login and after any privilege change. Session IDs are >= 128 bits from a cryptographic source
+- Passwords: argon2id, or bcrypt at cost >= 12
+- Authorization Code + PKCE for anything public (SPA, mobile, CLI); Client Credentials for service-to-service
+- TOTP or WebAuthn for MFA, SMS only as fallback. Lock out after ~5 failed logins with exponential backoff
 
-## Secrets Management
-- NEVER hardcode secrets -- environment variables or secret manager (Vault, AWS SSM, GCP Secret Manager)
-- Rotate secrets on schedule and immediately on suspected compromise
-- API keys: scope to minimum required permissions, set expiration
-- Logging: NEVER log secrets, tokens, passwords, or PII. Mask or redact
-- Git: `.gitignore` for `.env`, credentials files. Pre-commit hook to scan for secrets
+## Input
+- Validate at the system boundary only. Inner functions receive data that is already trusted
+- Define what is valid, not what is forbidden -- allowlists survive encodings that denylists don't
+- Parameterized queries, always. Sanitize HTML with a real library (DOMPurify, bluemonday), never a regex
+- Paths: resolve to canonical form, then confirm the result is still under the allowed prefix
+- Uploads: decide the type from magic bytes, not the extension or the declared MIME. Cap the size
+- Never deserialize or evaluate untrusted input: no `pickle.loads`, no `yaml.load` without `SafeLoader`, no `eval` / `exec` / `Function()` on anything that crossed a boundary. These are remote code execution, not input validation bugs, and no default linter configuration flags them
 
-## Cryptography
-- Encryption at rest: AES-256-GCM or ChaCha20-Poly1305
-- Encryption in transit: TLS 1.2+ minimum, prefer 1.3
-- Key derivation: PBKDF2 (>= 600k iterations), scrypt, or argon2
-- Random values: use cryptographic RNG only. NEVER use math random functions for security
-- Don't invent crypto -- use well-audited libraries
+## Secrets and crypto
+- Never log a secret, token, password, or PII. Redact at the logging boundary rather than trusting call sites
+- `.env` and credential files in `.gitignore`, with a pre-commit scan behind it
+- AES-256-GCM or ChaCha20-Poly1305 at rest, TLS 1.2+ (prefer 1.3) in transit, PBKDF2 at >= 600k iterations or scrypt/argon2 for derivation
+- Cryptographic RNG only -- a language's default random function is never acceptable for anything security-bearing
+- Use audited libraries. Do not assemble primitives yourself
 
-## HTTP Security Headers
-- `Content-Security-Policy`: restrict script sources, no `unsafe-inline` without nonce
-- `Strict-Transport-Security`: `max-age=31536000; includeSubDomains`
-- `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY` (or CSP `frame-ancestors 'none'`)
-- `Referrer-Policy: strict-origin-when-cross-origin`
-- CORS: explicit origin allowlist, never `*` with credentials
+## Response headers
+- `Content-Security-Policy` with no `unsafe-inline` unless it carries a nonce; `Strict-Transport-Security: max-age=31536000; includeSubDomains`
+- `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` (or CSP `frame-ancestors 'none'`), `Referrer-Policy: strict-origin-when-cross-origin`
+- CORS: an explicit origin allowlist. `*` with credentials is never valid

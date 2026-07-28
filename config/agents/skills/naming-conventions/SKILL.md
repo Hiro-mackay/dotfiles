@@ -28,11 +28,8 @@ description: Naming as a design tool covering naming signals, problem detection 
 - Abbreviations: only universally understood ones (`id`, `url`, `http`). Spell out domain terms
 
 ## Metaphor Awareness
-- Metaphors shape thinking: "pipeline" implies linear flow, "tree" implies hierarchy
-- Choose metaphors that match the domain's actual structure
-- Bad metaphor = wrong mental model = wrong design decisions
-- Watch for metaphor mismatch: if your "queue" allows random access, it's not a queue
-- Resist extending metaphors beyond their useful range ("the factory's factory's builder")
+- A borrowed word imports its structure: "pipeline" promises linear flow, "tree" promises hierarchy. Readers will design against that promise, so a mismatch produces wrong decisions, not just an odd name. If your "queue" allows random access, it is not a queue
+- Do not extend a metaphor past where it still explains anything ("the factory's factory's builder")
 
 ## Anti-patterns
 - **Naming by implementation**: `HashMap`, `LinkedList` in domain code -- name by purpose, not structure

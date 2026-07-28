@@ -5,52 +5,31 @@ description: Module boundary design covering coupling, cohesion, dependency dire
 
 # Module Design Principles
 
-## Cohesion & Coupling
-- High cohesion: a module does one thing well. Everything inside relates to the same concern
-- Low coupling: modules interact through narrow, stable interfaces. Internal changes don't leak
-- Change together = belong together. If A always changes when B changes, they're one module
-- Cohesion test: can you describe the module's purpose in one sentence without "and"?
-- Coupling test: can you replace this module's internals without changing its callers?
+The boundary calls that go wrong. Definitions of coupling and cohesion are deliberately absent.
 
-## Dependency Direction
-- Depend toward stability: volatile modules depend on stable ones, never the reverse
-- Stable: rarely changes, many dependents (domain model, core interfaces)
-- Volatile: changes often, few dependents (UI, adapters, configuration)
-- Dependency Inversion: high-level policy MUST NOT depend on low-level detail. Both depend on abstractions
-- The interface belongs to the CONSUMER, not the provider. Define interfaces where they're needed
+## Where the boundary goes
+- Things that always change together are one module. If A's every change drags B along, the split is in the wrong place
+- Split by domain capability, not by technical layer. `controller/`, `service/`, `repository/` groups code by what it is instead of what it is for, so every feature change touches all three
+- Change frequency, team ownership, and independent deployability are all real boundaries. Weekly-churn code next to yearly-churn code is two modules
+- Premature splitting costs as much as premature abstraction. Keep it merged until the boundary is obvious rather than predicted
+- A microservice only when independent deployment or independent scaling is actually required. Start as a module inside the monolith
 
-## Boundary Detection
-- Split along change frequency: code that changes weekly vs code that changes monthly = different modules
-- Split along team ownership: different teams = different modules with explicit contracts
-- Split along deployment: if A can deploy without B, they're separate modules
-- Do NOT split along technical layers alone (controller/service/repo). Split by domain capability
-- Premature splitting is as harmful as premature abstraction -- merge until the boundary is obvious
+## Two tests
+- Can you state the module's purpose in one sentence with no "and" in it?
+- Can you replace its internals without touching a single caller?
 
-## Interface Design
-- Postel's Law: be liberal in what you accept, conservative in what you produce
-- Principle of Least Surprise: behave as callers expect. Name reveals behavior
-- Narrow interfaces: expose the minimum necessary. Every public API is a commitment
-- Complete interfaces: callers should not need to know internals to use the API correctly
-- Error contracts: document what errors can occur and what the caller should do about each
+## Dependency direction
+- Volatile depends on stable, never the reverse. Stable means rarely changed with many dependents (domain model, core interfaces); volatile means often changed with few (UI, adapters, config)
+- The interface belongs to the consumer. Define it where it is needed, not next to the implementation that happens to satisfy it
+- A module that is both stable and concrete is the pain point in any codebase -- either give it an abstraction or reduce what depends on it
 
-## Circular Dependency Resolution
-- Circular dependencies signal a missing abstraction or incorrect boundary
-- Resolution strategies:
-  1. Extract shared concept into a new module that both depend on
-  2. Invert one dependency through an interface (dependency inversion)
-  3. Replace direct call with event/message (async decoupling)
-  4. Merge the modules -- they may actually be one concern
-- Never resolve with runtime tricks (lazy loading, service locator) -- fix the design
+## Interfaces
+- Expose the minimum. Every public name is a commitment you cannot withdraw without breaking someone
+- But expose enough: a caller who has to know your internals to use the API correctly has an incomplete interface, not a simple one
+- Accept liberally, return precisely
+- Document which errors a caller can receive and what they are expected to do about each. An undocumented error contract makes every caller guess
 
-## Package/Module Sizing
-- Too small: explosion of tiny modules with high coordination cost, import ceremony
-- Too large: monolithic modules that change for unrelated reasons
-- Right size: one team can own it, one sentence describes it, changes are usually internal
-- Monorepo modules: share build tooling, but maintain clear dependency boundaries
-- Microservice boundary: only when independent deployment and scaling are required. Start as a module within a monolith
-
-## Stability & Volatility
-- Stable components: abstract, depended upon, hard to change (changing breaks dependents)
-- Volatile components: concrete, few dependents, easy to change
-- The Stable Abstractions Principle: stable modules should be abstract (interfaces/types). Volatile modules should be concrete (implementations)
-- If a module is both stable AND concrete, it's a pain point -- add abstractions or reduce dependents
+## Cycles
+- A circular dependency is a missing abstraction or a misplaced boundary, never a build-tool problem
+- Fix it by extracting the shared concept, inverting one direction through a consumer-owned interface, replacing the call with an event, or merging the two -- they may genuinely be one thing
+- Never by lazy loading, a service locator, or an import moved inside a function. Those hide the cycle and keep the design wrong

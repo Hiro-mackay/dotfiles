@@ -5,64 +5,35 @@ description: Trade-off analysis, complexity management, reversibility thinking, 
 
 # Architecture Decision Principles
 
-## Trade-off Analysis
-- No "best" solution exists -- only trade-offs in context. Make trade-offs explicit before choosing
-- Evaluate on 4 axes: complexity, performance, maintainability, operational cost
-- State what you're GAINING and what you're GIVING UP. If you can't name the downside, you don't understand the trade-off
-- Prefer reversible decisions over optimal ones. Optimize for learning speed, not for being right the first time
-- Constraints are not obstacles -- they're design inputs. Embrace them early
+How to decide and what to write down. General advice about trade-offs existing is deliberately absent.
 
-## Decision Types (Bezos Type 1/Type 2)
-- **Type 1 (irreversible)**: database choice, public API contract, data model for persisted data, language/framework for core system
-  - Invest in analysis. Prototype. Get multiple perspectives. Sleep on it
-- **Type 2 (reversible)**: internal API shape, library choice, folder structure, naming conventions
-  - Decide fast. Prefer convention. Course-correct later
-- When unsure which type: ask "what's the cost of changing this in 6 months?"
+## Deciding
+- Score the options on four axes: complexity, performance, maintainability, operational cost
+- Say what you gain and what you give up. Not being able to name the downside means you have not understood the option, and a comparison with no losing column is not a comparison
+- Prefer the reversible decision over the optimal one. Being able to change your mind in a month beats being right today
+- Ask what it costs to change this in six months. Cheap means decide fast and follow convention -- internal API shape, library choice, folder layout. Expensive means prototype it, get another perspective, and sleep on it -- database engine, public API contract, the data model of anything persisted
+- Not deciding is a legitimate decision when the information is not there yet. Design so the component can be swapped, spike to reduce the uncertainty, and choose later
+- Put an abstraction at a decision boundary you intend to defer -- and only there. An abstraction everywhere is not flexibility, it is indirection
 
-## Architecture Decision Records (ADR)
-- Document significant decisions, not every choice
-- Format: Title, Status, Context, Decision, Consequences
-- Context: what forces are at play? What constraints exist?
-- Decision: what was chosen and WHY (not just what)
-- Consequences: what becomes easier, what becomes harder
-- Record rejected alternatives with reasons -- future readers need to know why NOT
+## Complexity
+- Abstraction is only justified when it removes more understanding cost than it adds. Direct code is easier to trace, debug, and change than indirect code
+- Wait for the third use case before extracting the pattern. Two is a coincidence
+- Do not add parameters for hypothetical callers, or queues, caches, and services without a measured need
+- Code that does not exist has no bugs, needs no tests, and cannot drift out of date. Deleting is worth more than adding
+- Every dependency is a standing liability. Ask periodically whether you still need each one
 
-## Build vs Buy vs Adopt
-- **Build** when: core differentiator, unique constraints, no adequate solution exists
-- **Buy/SaaS** when: commodity problem, time-to-market matters, operational burden is acceptable
-- **Adopt (OSS)** when: active community, escape hatch exists, team can maintain if abandoned
-- Migration cost is always higher than estimated -- factor 2-3x
+## Technology choice
+- A team can carry about three novel technologies at once. Spend that budget on the product, not the infrastructure
+- Follow the framework's conventions unless you have a measured reason not to
+- Build only for a core differentiator or a genuinely unique constraint. Buy when it is a commodity and the operational burden is acceptable. Adopt open source when the community is active and you could maintain it yourself if it were abandoned
+- Whatever migration you are estimating, it costs two to three times that
 
-## Deferring Decisions
-- "Not deciding now" is a valid decision when information is insufficient
-- Design for replaceability: if you can swap component X later, you don't need to choose X now
-- Use interfaces/abstractions at decision boundaries -- but ONLY at decision boundaries (not everywhere)
-- Spike/prototype to reduce uncertainty before committing
+## Writing it down
+- ADRs are for significant decisions, not every choice
+- Title, Status, Context, Decision, Consequences. Context names the forces and constraints; Decision says what and **why**; Consequences say what got easier and what got harder
+- Record the alternatives you rejected and why. That is the part future readers actually need, and the part nobody writes
 
-## Complexity Management
-- Essential complexity: inherent in the problem domain. Cannot be removed, only managed
-- Accidental complexity: introduced by our tools, abstractions, and decisions. CAN and SHOULD be removed
-- Before adding complexity, ask: "Is this solving a real problem or a hypothetical one?"
-- Every layer of abstraction adds understanding cost. Justified ONLY when it simplifies more than it complicates
-- Direct code is easier to debug, trace, and modify than indirect code
-
-## YAGNI at Every Scale
-- Function level: don't add parameters "in case someone needs them"
-- Module level: don't create abstractions until the third use case proves the pattern
-- System level: don't add message queues, caches, or microservices until measured need
-- Code that doesn't exist has no bugs, needs no tests, and requires no documentation
-- Removing code is more valuable than adding code
-- Every dependency is a liability. Regularly audit: "Do we still need this?"
-
-## Choose Boring Technology
-- Each team has a limited innovation budget (roughly 3 novel technologies at a time)
-- Boring technology: well-understood failure modes, abundant documentation, easy hiring
-- Novel technology: unknown failure modes, sparse expertise, excitement-driven adoption
-- Innovation should go into the product, not the infrastructure
-- Follow framework conventions unless there's a measured reason to deviate
-
-## Simplicity Litmus Tests
-- Can a new team member understand this in 15 minutes?
-- Can you explain the architecture in one whiteboard diagram?
-- If you removed this component, what would break? If nothing, remove it
-- Is this the simplest solution that solves the actual (not hypothetical) problem?
+## Checks before committing
+- Could a new team member follow this in fifteen minutes?
+- Does the architecture fit on one whiteboard?
+- If this component were removed, what would break? If the answer is nothing, remove it

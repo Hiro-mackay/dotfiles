@@ -19,80 +19,42 @@ paths:
 
 # API Design Principles
 
-## Resource Design
-- Resources are nouns, not verbs: `/users`, `/orders` -- not `/getUsers`, `/createOrder`
-- Hierarchy for ownership: `/users/{id}/orders` when orders belong to a user
-- Flat when independent: `/orders?user_id={id}` when orders exist outside user context
-- Collection (plural) and item (singular ID): `GET /users` vs `GET /users/{id}`
-- Avoid nesting beyond 2 levels: `/users/{id}/orders` is fine, `/users/{id}/orders/{id}/items/{id}/notes` is not -- flatten with top-level resources
+House conventions and the calls that go wrong. Standard REST shape and HTTP semantics are deliberately absent.
 
-## HTTP Methods & Status Codes
-- `GET`: read, cacheable, idempotent. 200 with body, 304 if not modified
-- `POST`: create or action, NOT idempotent (use `Idempotency-Key` header). 201 + `Location` header for creation, 200 for actions
-- `PUT`: full replace, idempotent. 200 or 204
-- `PATCH`: partial update, NOT idempotent. 200 with updated resource
-- `DELETE`: remove, idempotent. 204 (no body) or 200 (with deleted resource)
-- Client errors: 400 (malformed), 401 (unauthenticated), 403 (unauthorized), 404 (not found), 409 (conflict), 422 (valid syntax but semantic error)
-- Server errors: 500 (unexpected), 502 (upstream failure), 503 (overloaded/maintenance), 504 (upstream timeout)
-
-## Error Responses
-- Consistent error envelope across all endpoints:
-  ```json
-  { "error": { "code": "VALIDATION_ERROR", "message": "human-readable", "details": [...] } }
-  ```
-- Machine-readable `code` (constant string), human-readable `message`
-- `details` array for field-level validation errors with `field`, `reason`
-- Never expose stack traces, SQL, or internal paths
+## Shape
+- Nest for ownership (`/users/{id}/orders`), stay flat when the resource exists independently (`/orders?user_id=`). Never nest beyond two levels -- flatten with a top-level resource instead
+- Every response is enveloped: `{ "data": ... }` for both collections and single items
+- Errors use one envelope everywhere: `{ "error": { "code": "VALIDATION_ERROR", "message": "human-readable", "details": [{ "field": ..., "reason": ... }] } }`. `code` is a machine-readable constant; `message` is for a person. Stack traces, SQL, and internal paths never appear in either
+- IDs are strings (UUID). 422 for a well-formed request that is semantically wrong, 400 only for malformed
 
 ## Pagination
-- Cursor-based for real-time data or large datasets: `?cursor=abc&limit=20`
-- Offset-based only for static, small datasets: `?page=1&per_page=20`
-- Response: `data` + `pagination` (next_cursor or total_count + total_pages)
-- Default limit: 20, max cap: 100
+- Cursor-based (`?cursor=&limit=`) for anything real-time or large. Offset paging only for small static datasets
+- Default limit 20, hard cap 100. Response carries `pagination` with `next_cursor`, or `total_count` + `total_pages` for offset
+
+## Idempotency
+- Non-idempotent operations accept an `Idempotency-Key` header. Store the key with its response, TTL 24-48 hours
+- Same key, same body: return the stored response with 200, not 201
+- Same key, different body: reject with 422 -- this is misuse, not a retry
+- Same key still in flight: 409, or hold until the first request finishes
 
 ## Versioning
-- URL path versioning for major breaking changes: `/v1/`, `/v2/`
-- Additive changes (new fields, new endpoints) are NOT breaking -- no version bump
-- Breaking: field removal, type change, semantic change, required field addition
-- Support N-1 version minimum during migration period
+- Major breaking changes get a URL path version (`/v1/`). Support N-1 through the migration window
+- Breaking means removing a field, changing its type or meaning, or adding a required one. New fields and new endpoints are additive -- no bump
+- Contract first (OpenAPI), implementation second. Deprecate with a `Sunset` header and at least two release cycles of notice
 
-## Request/Response Design
-- Timestamps in ISO 8601 / RFC 3339
-- IDs as strings (UUID)
-- Envelope responses: `{ "data": [...] }` for collections, `{ "data": {} }` for singles
-- Idempotency keys for non-idempotent operations: `Idempotency-Key` header for POST
-  - Store key + response in DB. TTL: 24-48 hours
-  - Same key + same request body = return cached response (200, not 201)
-  - Same key + different body = reject with 422 (prevent misuse)
-  - In-flight duplicate: return 409 or hold until first request completes
-- Partial responses with `?fields=id,name,email` for bandwidth optimization
+## Rate limiting
+- Scope per client (API key or user ID), never per IP -- shared NAT makes IP limits punish the wrong people
+- Token bucket or sliding window. Fixed windows produce a thundering herd at the boundary
+- Over limit: 429 with `Retry-After`, plus `X-RateLimit-Limit` / `-Remaining` / `-Reset` on normal responses
 
-## Authentication at API Layer
-- See `security-principles` skill for auth architecture, token design, and implementation details
-- API layer specifics: `Authorization: Bearer <token>` header, `X-API-Key` for service-to-service (never in URL)
-- Webhook signatures: HMAC-SHA256 with shared secret for inbound webhooks
+## Headers
+- Cacheable reads carry a validator: `ETag` answered by `If-None-Match`, or `Last-Modified` answered by `If-Modified-Since`, returning 304 with no body. Without one, every conditional request pays for the full payload again
+- `Vary` whenever the response depends on a request header (`Vary: Accept, Authorization`) -- omitting it is how proxies serve one user's data to another
+- `Cache-Control: private, no-cache` on user-specific endpoints, `no-store` on sensitive ones
+- `Authorization: Bearer <token>`, or `X-API-Key` for service-to-service. Never a credential in the URL
+- Inbound webhooks are verified by HMAC-SHA256 over the raw body with a shared secret
+- `X-Request-Id` for tracing, generated server-side when the client didn't send one
 
-## Rate Limiting
-- Scope: per-client (API key / user ID), not per-IP (shared NAT breaks this)
-- Algorithm: token bucket or sliding window. Fixed window causes thundering herd at boundary
-- Differentiate by tier: free (60/min), paid (600/min), internal (no limit)
-- Response: 429 Too Many Requests + `Retry-After` header (seconds until reset)
-- Headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
-
-## Caching
-- `ETag` + `If-None-Match` for content-based cache validation (304 Not Modified)
-- `Cache-Control: max-age=N` for time-based caching. `no-store` for sensitive data
-- `Last-Modified` + `If-Modified-Since` for timestamp-based validation
-- `Vary` header when response differs by request header (e.g., `Vary: Accept, Authorization`)
-- Private endpoints: `Cache-Control: private, no-cache` -- prevent proxy caching of user-specific data
-
-## Advanced Patterns
-- Async operations, batch/bulk, file handling, content negotiation: see [reference](reference/advanced-patterns.md)
-
-## Observability Headers
-- `X-Request-Id` header for distributed tracing -- generate server-side if not provided
-- Health checks and application-level observability: see `observability` skill
-
-## Evolution
-- API contract first (OpenAPI spec), implement second
-- Deprecation: `Sunset` header + minimum 2 release cycles notice
+## See also
+- Token lifetimes, session handling, and OAuth flow selection: `security-principles` skill. Health checks and metrics: `observability` skill
+- Async operations, batch/bulk, file handling, content negotiation: [reference](reference/advanced-patterns.md)

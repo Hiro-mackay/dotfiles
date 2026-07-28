@@ -5,44 +5,19 @@ description: Git workflow conventions for branching strategy, PR creation, code 
 
 # Git Workflow Conventions
 
-## Branch Naming
-- Format: `{type}/{short-description}`
-- Types: `feature/`, `fix/`, `refactor/`, `chore/`, `docs/`, `test/`
-- Use kebab-case: `feature/add-user-auth`, not `feature/addUserAuth`
-- Include ticket ID when available: `fix/PROJ-123-login-timeout`
+House conventions. Commit message format and the rule against committing unasked live in the global instructions.
 
-## PR Size & Scope
-- Target: under 300 lines changed (excluding generated files, lock files)
-- One concern per PR -- do not mix feature + refactor + fix
-- If a PR grows too large, split into stacked PRs with clear dependency chain
-- Draft PR early for visibility on long-running work
+## Branches
+- `{type}/{kebab-case-description}` with type from feature, fix, refactor, chore, docs, test. Ticket ID in front of the description when there is one: `fix/PROJ-123-login-timeout`
+- Delete the branch after merge. Squash merge feature branches; keep a merge commit only where the intermediate commits carry meaning
 
-## PR Description
-- Title: imperative mood, under 70 characters, same conventions as commit messages
-- Body structure:
-  - **Summary**: 1-3 bullet points of what changed and why
-  - **Test plan**: how to verify the changes work
-  - **Breaking changes**: if any, with migration steps
-- Link related issues with `Closes #123` or `Fixes #123`
-- Include before/after screenshots for UI changes
+## Pull requests
+- Under 300 lines changed, excluding generated and lock files. One concern per PR -- never a feature and a refactor and a fix together
+- Past that size, stack them: each PR based on the previous branch rather than main, marked draft until its base merges, rebased onto main once it does, and each one independently reviewable
+- Open a draft early on long-running work so it is visible before it is finished
+- Title in imperative mood, under 70 characters. Body carries a summary of what changed and why, a test plan describing how to verify it, and breaking changes with their migration steps. `Closes #123` for the linked issue, before-and-after screenshots for UI
 
-## Code Review
-- Review within 1 business day -- unblock teammates
-- Approve when "good enough to ship" -- not "exactly how I would write it"
-- Comment types:
-  - `nit:` style preference, non-blocking
-  - `suggestion:` improvement idea, author decides
-  - `blocking:` MUST fix before merge (bugs, security, correctness)
-- Reviewer checks: correctness, edge cases, test coverage, naming, security implications
-- Author resolves all blocking comments before merge
-
-## Merge Strategy
-- Squash merge for feature branches (clean history)
-- Merge commit for long-lived branches with meaningful intermediate commits
-- Delete branch after merge
-
-## Stacked PRs
-- Base each PR on the previous PR's branch, not main
-- Mark as draft until the base PR is merged
-- Rebase onto main after base PR merges
-- Keep each PR independently reviewable
+## Review
+- Within one business day. A blocked teammate costs more than the review does
+- Approve at "good enough to ship", not "how I would have written it". The alternative turns review into rewriting
+- Prefix by intent: `nit:` for a style preference the author can ignore, `suggestion:` for an idea the author decides on, `blocking:` for bugs, security, and correctness. Everything marked blocking is resolved before merge

@@ -18,47 +18,25 @@ paths:
 
 # Database Design Principles
 
-## Schema Decisions
-- Primary keys: UUID for public-facing IDs, auto-increment for internal-only
-- Every table has `created_at` and `updated_at` timestamps
-- Foreign keys with explicit `ON DELETE` behavior -- choose intentionally:
-  - CASCADE: child has no meaning without parent (order_items when order deleted)
-  - SET NULL: child can exist independently (assigned_user on task)
-  - RESTRICT: deletion should be blocked (user with active orders)
+House conventions and the calls that go wrong. Standard relational modeling is deliberately absent.
 
-## Normalization Strategy
-- Normalize to 3NF by default -- denormalize only with documented reason
-- Valid denormalization reasons: measured read performance bottleneck, reducing complex joins for critical queries, pre-computed aggregates for dashboards
-- Invalid reasons: "joins are slow" (they're not with proper indexes), "it's simpler" (it's not when data drifts)
+## Conventions
+- UUID for public-facing IDs, auto-increment for internal-only
+- `created_at` and `updated_at` on every table
+- Every foreign key states its `ON DELETE` deliberately: CASCADE when the child is meaningless without the parent (order items), SET NULL when it stands alone (assigned user on a task), RESTRICT when the deletion should be refused (user with active orders)
+- Status and enum columns get a CHECK constraint or a reference table, never free text
+- Hard delete by default. `deleted_at` needs a stated reason -- legal retention, undo, audit compliance. When you do add it, add a partial index on `deleted_at IS NULL` and make sure every query filters
 
-## Relationship Patterns
-- **1:1**: consider merging into one table unless access patterns differ significantly or one side is optional
-- **1:N**: FK on the many side. If N is unbounded, plan for pagination
-- **M:N**: junction table with composite PK or surrogate key. Add `created_at` if the relationship has temporal meaning
-- **Polymorphic**: prefer separate FK columns (`commentable_post_id`, `commentable_photo_id`) over type+id pattern. Type+id breaks referential integrity
+## Normalization
+- 3NF by default; denormalize only with the reason written down. Measured read bottlenecks, joins on a critical path, and precomputed dashboard aggregates qualify
+- "Joins are slow" and "it's simpler" do not. Joins are fine with the right indexes, and denormalized data stops being simple the moment it drifts
 
-## Soft Delete
-- Hard delete by default. Soft delete (`deleted_at`) requires documented justification:
-  - Legal retention requirements
-  - Undo/restore workflows
-  - Audit compliance
-- If soft delete: add partial index on `deleted_at IS NULL` for query performance. Ensure all queries filter by default
+## Relationships and domain mapping
+- Polymorphic associations get separate FK columns (`commentable_post_id`, `commentable_photo_id`), not a type+id pair -- type+id gives up referential integrity
+- One aggregate root maps to one primary table plus its owned child tables. Value objects embed as columns unless shared across aggregates
+- History goes in a separate `_history` table fed by a trigger, not versioning inside the main table
 
-## Data Modeling from Domain
-- One aggregate root = one primary table + owned child tables
-- Value Objects: embed as columns (not separate table) unless shared across aggregates
-- Enum/status fields: use CHECK constraint or reference table, not free-text
-- Temporal data: if "when" matters, store timestamps. If history matters, use event log or history table
-- Audit trail: separate `_history` table with trigger, not versioning in main table
-
-## Read Replica Strategy
-- Read replicas for read-heavy workloads (reporting, search, dashboards)
-- Application-level routing: writes → primary, reads → replica. Framework support or explicit connection switching
-- Replication lag awareness: critical reads (read-after-write) MUST go to primary
-- Replica count: scale read capacity horizontally, but each replica adds replication load on primary
-
-## Capacity Planning
-- Estimate row count at 1 year and 5 years. Design indexes and partitioning for 5-year scale
-- Tables exceeding 100M rows: consider range partitioning (by date) or hash partitioning (by tenant)
-- Archive strategy: move cold data to separate table/store, not delete
-- Connection pool sizing: plan for peak concurrent connections across all application instances. Set DB `max_connections` > sum of all pool `max_open` with headroom for admin/migration connections
+## Scale
+- Read-after-write goes to the primary. Replication lag makes any other routing a correctness bug, not a performance choice
+- Estimate row counts at one year and five, and design indexes and partitioning for the five-year number. Past ~100M rows, consider range partitioning by date or hash by tenant, and archive cold data rather than deleting it
+- `max_connections` must exceed the sum of every application instance's pool maximum, with headroom left for admin and migration connections

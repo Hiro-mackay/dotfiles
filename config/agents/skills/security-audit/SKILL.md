@@ -1,6 +1,6 @@
 ---
 name: security-audit
-description: Security audit of local code changes (auth, input handling, secrets, injection, crypto) before commit
+description: Security audit of local code changes (auth, input handling, secrets, injection, crypto). Run only when the user explicitly asks for a security audit or invokes /security-audit. Do not run on your own after implementing or before committing.
 context: fork
 agent: security-reviewer
 allowed-tools: Read, Glob, Grep, Bash(git diff *), Bash(git log *)

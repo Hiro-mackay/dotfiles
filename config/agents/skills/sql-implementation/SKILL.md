@@ -9,69 +9,46 @@ paths:
 ---
 
 # SQL Implementation Rules
-<!-- For schema design decisions and data modeling, use /db-schema-design skill -->
 
-## Naming Conventions
-- `snake_case` for tables and columns
-- Plural table names: `users`, `orders`, `order_items`
-- Foreign keys: `{referenced_table_singular}_id` (e.g., `user_id`, `order_id`)
-- Boolean columns: `is_` or `has_` prefix (`is_active`, `has_verified_email`)
-- Indexes: `idx_{table}_{columns}` (e.g., `idx_orders_user_id_created_at`)
+House conventions and the calls that go wrong. Schema design decisions live in the `db-schema-design` skill.
 
-## Query Patterns
-- **N+1 prevention**: use JOINs or batch loading (IN clause), never loop queries
-- SELECT only needed columns, never `SELECT *` in application code
-- Use parameterized queries / prepared statements -- never string interpolation
-- LIMIT results by default; unbounded queries are a production risk
-- Use EXISTS over COUNT for existence checks: `WHERE EXISTS (...)` not `WHERE (SELECT COUNT ...) > 0`
-- Prefer `UNION ALL` over `UNION` when duplicates are impossible
+## Naming
+- `snake_case`, plural table names (`users`, `order_items`), foreign keys as `{singular_table}_id`, booleans prefixed `is_` / `has_`, indexes as `idx_{table}_{columns}`
+
+## Queries
+- No query inside a loop. JOIN or batch with `IN`
+- Name the columns; `SELECT *` does not belong in application code
+- `LIMIT` by default -- an unbounded query is a production incident waiting for the table to grow
+- `WHERE EXISTS (...)` for existence checks, not `COUNT(...) > 0`. `UNION ALL` when duplicates are impossible
+- A function on an indexed column in `WHERE` (`LOWER(email) = ?`) discards the index. Use a functional index or a generated column
+- Keyset pagination (`WHERE id > ?`) rather than `OFFSET` once the table is large
+- `EXPLAIN ANALYZE` any new query that touches a large table. Watch for sequential scans, nested loops over unindexed joins, and estimated rows far from actual
 
 ## Indexing
-- Index every foreign key column
-- Index columns used in WHERE, ORDER BY, and JOIN conditions
-- Composite indexes: put equality conditions first, range conditions last
-- Covering indexes for frequent queries to avoid table lookups
-- Do not over-index: each index slows writes. Monitor and remove unused indexes
+- Index every foreign key column -- most engines do not do this for you
+- Composite indexes put equality conditions first and the range condition last
+- Every index slows writes. Remove ones nothing uses
 
-## Transactions & Locking
-- Keep transactions short -- no network calls or user interaction inside a transaction
-- Use appropriate isolation level (READ COMMITTED default; SERIALIZABLE for financial)
-- Optimistic locking with version column for concurrent updates
-- Retry on serialization failures with exponential backoff
-- Deadlock prevention: acquire locks in consistent order across all code paths
-- Deadlock detection: set `lock_timeout` (PostgreSQL) or `innodb_lock_wait_timeout` (MySQL). Catch and retry
-- Avoid `SELECT ... FOR UPDATE` on large result sets -- lock only the rows you need
+## Transactions and locking
+- Short transactions. No network call, no user interaction, nothing that can block inside one
+- Acquire locks in the same order on every code path, set `lock_timeout` / `innodb_lock_wait_timeout`, and retry serialization failures with backoff
+- Optimistic locking with a version column for concurrent updates
+- `SELECT ... FOR UPDATE` locks only the rows you actually need, never a large result set
 
-## Connection Pool
-- Size: start with `(2 * CPU cores) + effective_spindle_count`. Measure and adjust
-- Set `max_idle` close to `max_open` to avoid connection churn
-- `max_lifetime`: 5-10 minutes. Rotate before infrastructure-level timeout (load balancer, PgBouncer)
-- `connect_timeout`: 3-5 seconds. Fail fast, don't queue indefinitely
-- Health check: `SELECT 1` or driver-level ping on checkout from pool
-- One pool per database role. Separate pools for read replicas
+## Connection pool
+- Start at `(2 * CPU cores) + effective_spindle_count` and measure. `max_idle` close to `max_open` to avoid churn
+- `max_lifetime` 5-10 minutes so connections rotate before a load balancer or PgBouncer kills them mid-query. `connect_timeout` 3-5 seconds -- fail fast instead of queueing
+- One pool per database role, and a separate pool for read replicas
 
-## Query Performance
-- `EXPLAIN ANALYZE` before deploying new queries touching large tables
-- Watch for: sequential scans on large tables, nested loops on unindexed joins, high row estimates vs actuals
-- Slow query logging: set threshold (100ms-500ms), review weekly
-- Avoid functions in WHERE on indexed columns (`WHERE LOWER(email) = ?`) -- use functional index or generated column
-- Pagination: keyset (`WHERE id > ?`) over offset (`OFFSET 1000`) for large datasets
-
-## Bulk Operations
-- Batch INSERT: 100-1000 rows per statement. Too small = overhead, too large = lock contention
-- PostgreSQL `COPY` for initial data loads -- orders of magnitude faster than INSERT
-- Bulk UPDATE/DELETE in chunks with `LIMIT` to avoid long-running transactions and lock escalation
-- Use `ON CONFLICT` (PostgreSQL) / `ON DUPLICATE KEY` (MySQL) for upserts
+## Bulk work
+- 100-1000 rows per batched INSERT. `COPY` for initial loads in PostgreSQL
+- Bulk UPDATE and DELETE run in `LIMIT`ed chunks, so no single transaction holds locks long enough to escalate
 
 ## Tracing
-- Propagate request_id / trace_id as query comment: `/* trace_id=abc123 */ SELECT ...`
-- Tag queries with caller context for slow query attribution
-- Log query duration at application level with bound parameters (not interpolated values)
+- Carry the trace ID into the query as a comment (`/* trace_id=abc123 */ SELECT ...`) so slow queries can be attributed to a caller
+- Log duration with bound parameters, never the interpolated string
 
-## Migration Safety
-- Additive migrations only in zero-downtime deployments: add column, add table, add index
-- Breaking changes require multi-step: add new -> migrate data -> remove old
-- Add columns as nullable or with defaults -- never add NOT NULL without default to existing table
-- Create indexes CONCURRENTLY (PostgreSQL) to avoid table locks
-- Every migration must be reversible (up + down)
-- Test migrations against production-sized dataset before deploy
+## Migration safety
+- Zero-downtime means additive only: add column, add table, add index. Anything breaking becomes add new, backfill, then remove old, across separate deploys
+- New columns are nullable or carry a default. `NOT NULL` without a default on an existing table locks and fails
+- `CREATE INDEX CONCURRENTLY` in PostgreSQL. Every migration has a working down, and gets tested against a production-sized dataset first

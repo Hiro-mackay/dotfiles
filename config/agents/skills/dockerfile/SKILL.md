@@ -11,37 +11,25 @@ paths:
 
 # Dockerfile & Container Principles
 
-## Multi-Stage Builds
-- ALWAYS use multi-stage: builder stage for compile/install, minimal runtime image for deploy
-- Runtime image: distroless, alpine, or slim variant. NEVER use full OS images in production
-- Copy only artifacts needed at runtime -- no source code, build tools, or dev dependencies
+The steps that get skipped when the build works. Docker syntax is deliberately absent.
 
-## Layer Cache Optimization
-- Order: system deps -> language deps -> application code (least → most frequently changed)
-- Copy dependency manifests first (`go.mod`, `package.json`, `requirements.txt`), install, THEN copy source
-- Pin base image versions with digest or specific tag -- never `latest`
-- Combine related `RUN` commands with `&&` to reduce layers
-- Use `--mount=type=cache` for package manager caches (BuildKit)
+## Build
+- Multi-stage, always: a builder stage that compiles or installs, and a runtime stage that receives only the artifacts. No source, no build tools, no dev dependencies in the final image
+- Runtime base is distroless, alpine, or a slim variant -- never a full OS image
+- Pin the base image by digest or an exact tag. `latest` makes the build unreproducible the moment upstream moves
+- Order layers least-changing to most-changing: system deps, then language deps, then application code. Copy the dependency manifest and install before copying source, or every code edit reinstalls everything
+- `--mount=type=cache` for package manager caches
 
 ## Security
-- Run as non-root: `USER nonroot:nonroot` or numeric UID (e.g., `USER 65534`)
-- No secrets in image: use build-time secrets (`--mount=type=secret`) or runtime env vars
-- Read-only filesystem where possible: `--read-only` flag in docker-compose / k8s
-- Scan images for vulnerabilities (Trivy, Grype) in CI
-- Drop all capabilities, add back only what's needed
+- `USER nonroot:nonroot` or a numeric UID. A container running as root is the default, not a choice you made
+- Secrets arrive via `--mount=type=secret` at build time or environment at runtime. A secret in a layer stays in the layer even after a later `RUN` deletes it
+- Read-only root filesystem where the workload allows, all capabilities dropped and only the needed ones added back
+- Image scanning (Trivy, Grype) in CI
 
 ## .dockerignore
-- MUST exist alongside every Dockerfile
-- Exclude: `.git`, `node_modules`, `__pycache__`, `.env`, test fixtures, documentation, IDE config
-- Include only what the build actually needs
+- One exists beside every Dockerfile. Without it the whole working tree becomes build context, including `.git` and `.env`
+- Exclude `.git`, `node_modules`, `__pycache__`, `.env`, fixtures, docs, and IDE config
 
-## Health Checks
-- `HEALTHCHECK` instruction in Dockerfile or health check in orchestrator config
-- Use `curl` or dedicated health binary -- not full application startup
-- Interval: 30s, timeout: 5s, retries: 3
-
-## Compose
-- Explicit `depends_on` with `condition: service_healthy` for startup ordering
-- Named volumes for persistent data, tmpfs for ephemeral
-- Resource limits: `mem_limit`, `cpus` to prevent runaway containers
-- `.env` file for environment-specific config, never hardcoded in compose file
+## Runtime
+- A `HEALTHCHECK` that probes the serving endpoint, not one that re-runs application startup. 30s interval, 5s timeout, 3 retries
+- Compose: `depends_on` with `condition: service_healthy` for ordering, named volumes for persistence and tmpfs for scratch, `mem_limit` and `cpus` set so one container cannot starve the host, and config from an `.env` file rather than literals in the compose file

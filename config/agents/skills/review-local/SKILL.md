@@ -1,6 +1,6 @@
 ---
 name: review-local
-description: Review code changes for quality and security after implementation, before commit
+description: Review local code changes for quality and security. Run only when the user explicitly asks for a review or invokes /review-local. Do not run on your own after implementing or before committing.
 context: fork
 agent: code-reviewer
 allowed-tools: Read, Glob, Grep, Bash(git diff *), Bash(git log *), Bash(git stash *)
@@ -39,7 +39,7 @@ Hunt along these lines, with language-specific rigor:
 - Non-idempotent retry logic
 
 ### Quality (Medium)
-- Apply `readable-code` skill criteria (function length, nesting, parameters, naming)
+- Apply `readable-code` criteria (function length, nesting, parameters) and `naming-conventions` criteria (names that hide their purpose, generic suffixes, negated booleans)
 - Comments: flag every comment the diff adds that isn't (a) required by tooling or a public API contract, (b) a fact the code cannot state, or (c) a deliberate simplification with its upgrade trigger. The fix is "delete it". WHAT-restatements, change/task narration, section banners, and doc comments that echo the signature all go. This is not a formatting nit -- do not skip it
 
 ### Over-engineering (Medium)
@@ -56,16 +56,20 @@ Hunt along these lines, with language-specific rigor:
 
 ## Output Format
 
-Before writing a finding, state to yourself the concrete failure it produces: the input or sequence, and the wrong result. A finding you cannot ground that way is a guess -- drop it rather than hedging it into the list. Padding the list with plausible-sounding items is the failure mode here, and it costs more than a miss: every one of them gets chased.
+Report everything you found. Do not pre-filter for severity, drop a finding because it looks minor, or stop because the list is getting long. Sorting happens in the second pass below, not while you are still looking.
 
-Group surviving findings by severity (Critical > High > Medium > Low).
+Then sort the list you just wrote into two groups:
+
+- **Confirmed** -- you can name the input or sequence, the code path it takes, and the wrong result that follows
+- **Suspected** -- the shape is wrong but you could not trace a failing path. Report these under their own heading with the specific thing you could not confirm. Do not promote them into the confirmed group and do not delete them
+
+Group confirmed findings by severity (Critical > High > Medium > Low).
 For each finding:
 - File and line number
 - The failure: what input or state makes this go wrong, and what happens
-- Confidence: high or medium (low-confidence findings were already dropped)
 - Suggested fix
 
-End with `What held up:` and one or two lines on what you attacked and could not break. Be specific about what you tried -- "reviewed and looks fine" means the attack was never made. If nothing broke anywhere, say that plainly rather than promoting a weak finding to fill the list.
+End with `What held up:` and one or two lines on what you attacked and could not break. Be specific about what you tried -- "reviewed and looks fine" means the attack was never made.
 
 ## Remediation Order (for the caller)
 

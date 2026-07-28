@@ -1,6 +1,7 @@
 ---
 name: plan-template
-description: Implementation-plan structure -- required sections including reversibility notes and test-tier declaration. Apply when drafting an implementation plan in plan mode or as the planner subagent.
+description: Implementation-plan structure -- required sections including reversibility notes and test-tier declaration. Apply when drafting an implementation plan in plan mode.
+user-invocable: false
 ---
 
 # Plan Template

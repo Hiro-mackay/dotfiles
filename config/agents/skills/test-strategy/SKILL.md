@@ -14,86 +14,36 @@ paths:
 
 # Test Strategy (t-wada Style)
 
-TDD is a programming workflow with clear start/end conditions, not just "writing tests first."
+TDD is a workflow with explicit start and end conditions, not "writing tests first". These are the calls you would otherwise get wrong; standard testing vocabulary and structure is deliberately absent.
 
-## TDD Workflow (5 Steps)
+## The loop
+1. **Test list** -- enumerate the behaviors the change needs. This is the start condition
+2. **Red** -- take one item and write a failing test, starting from the assertion
+3. **Green** -- minimum code to pass
+4. **Refactor** -- clean up while green. Implementation design happens here, not in Green
+5. Repeat until the list is empty. That is the end condition
 
-1. **Test List** -- list behaviors needed for the change. This IS the start condition
-2. **Red** -- pick one item, write a failing test. Start from the assertion (assert-first)
-3. **Green** -- write the minimum code to pass. Fake It is legitimate
-4. **Refactor** -- clean up while tests stay green. Implementation design happens here
-5. **Repeat** -- until the test list is empty. This IS the end condition
+- "Working" and "clean" are separate goals, which is why Green and Refactor are separate steps
+- Green is allowed to be ugly: hardcoded values, duplication, a faked return. Generalize in Refactor, or with triangulation, and delete the scaffolding tests once you have
+- Never refactor while red
+- Red is interface design: write the call the way a caller would want it, before the thing exists
 
-## Red-Green-Refactor Discipline
+## Writing the test
+- Assertion first, setup second. It fixes the purpose and stops the test from drifting in scope
+- One behavior per test. Name it as a specification: "should [behavior] when [condition]"
+- Test the public API. Do not test getters and setters, private methods, framework internals, third-party behavior, or generated code
+- Delete tests that stopped earning their maintenance cost -- triangulation scaffolding, duplicates
+- A bug fix starts with a failing test that reproduces it. That test is the regression guard
 
-- Divide and conquer: "working" and "clean" are separate goals. Green = working, Refactor = clean
-- Red phase is interface design -- write code as a user would call it (use before build)
-- Green phase allows shortcuts -- hardcoded values, duplication, ugly code. Speed over elegance
-- Never refactor on Red -- all refactoring happens only when tests pass
-- Commit at each phase boundary -- Red: test commit, Green: feat commit, Refactor: refactor commit(s)
+## Reliability
+- No flaky tests: fix or quarantine on sight. Past roughly 1% flaky, people stop reading results at all
+- Test behavior, not structure -- a test that breaks on an unrelated refactor is a liability
+- Each test builds its own state. No shared mutable state, and parallel execution must be safe
+- Factories and builders over shared fixtures; fixtures drift and couple tests invisibly. Tear down by transaction rollback or truncate, never by relying on execution order
+- Async: deterministic scheduling, latches or barriers for ordering, never `sleep`. Every async assertion gets a timeout
 
-## Implementation Strategies
-
-Choose one per Green step:
-
-- **Fake It** -- return a hardcoded value, then generalize. Use when unsure of the algorithm
-- **Obvious Implementation** -- write the real code directly. Use when the solution is clear
-- **Triangulation** -- add test cases to force generalization. Use when direction is unclear. Delete scaffolding tests once generalized
-
-## Test Writing Rules
-
-- One test, one behavior -- each test verifies exactly one thing
-- AAA structure: Arrange, Act, Assert. Visually separate the three sections
-- Assert-first -- write the assertion before setup. Fixes purpose and prevents scope drift
-- Test names as specifications: "should [behavior] when [condition]"
-- Tests are executable specifications -- a new developer should understand the spec by reading tests
-- Test the public API, not internal methods
-- Delete unnecessary tests -- triangulation tests, redundant tests. Tests have maintenance cost
-- Do NOT test: getters/setters, framework internals, third-party library behavior, private methods, generated code
-
-## Test Prioritization
-
-For each module, write tests in this order:
-1. **Happy path**: core functionality with valid inputs
-2. **Error handling**: error branches, edge cases, invalid inputs
-3. **Boundary conditions**: empty inputs, nil/null, max values
-
-## Test Reliability
-
-- No flaky tests -- fix or quarantine immediately. Above ~1% flaky rate, developers ignore all test results
-- No brittle tests -- tests MUST NOT break on unrelated implementation changes. Test behavior, not structure
-- Test isolation: each test creates its own state, no shared mutable state between tests. Parallel execution MUST be safe
-- Test data: use factories/builders over shared fixtures. Fixtures drift and create hidden coupling between tests
-- Teardown: transaction rollback (fastest) or truncate. Never rely on test execution order for cleanup
-- Bug fix workflow: reproduce the bug as a failing test FIRST, then fix. The test IS the regression guard
-
-## Test Doubles
-
-- **Stub**: returns canned data. Use for queries / read operations
-- **Mock**: verifies interactions. Use sparingly -- only when the side effect IS the behavior (e.g., "email was sent")
-- **Fake**: working lightweight implementation (in-memory DB, local filesystem). Use for integration-like speed at unit cost
-- **Spy**: records calls for later assertion. Prefer over mock when you need to verify AND get return values
-- Mock at process boundaries -- DB, external APIs, filesystem. Do NOT mock internal collaborators unless for speed
-- Over-mocking signal: if a test has more mock setup than assertions, you're testing wiring, not behavior
-
-## Test Scope
-
-- Test pyramid: many unit tests, fewer integration, fewest E2E
-- 3x3 matrix: Size (small/medium/large) x Scope (unit/integration/E2E). Keep most tests small + unit
-- Start where testability is highest: small scope, observable output, controllable input
-- Coverage targets: 80% minimum overall, 90%+ for critical business logic
-- Integration tests for module boundaries and external system interfaces
-- Async/concurrency: test with deterministic scheduling where possible. Use latches/barriers for ordering, not sleep. Timeout every async assertion
-
-## Backfilling Coverage
-
-When adding tests to existing untested paths:
-- Exercise the real service/use-case with fake process-boundary dependencies (in-memory repo, testcontainers) -- do not mock internal collaborators to force testability
-- If the code cannot be tested without changing production code, STOP and surface it; a test-only task must not silently refactor production code
-
-## AI-Era Guardrails
-
-- Tests are the spec for AI -- test code is less ambiguous than natural language prompts
-- Human owns architecture and cohesion -- delegate mechanical test implementation to AI
-- Use TDD vocabulary in prompts -- "TDD style", "Red-Green-Refactor", pattern names give AI effective context
-- Degradation is faster with AI -- without tests as guardrails, codebase quality degrades in days, not months
+## Doubles and scope
+- Mock at process boundaries only -- DB, external APIs, filesystem. Internal collaborators get the real thing unless speed forces otherwise
+- More mock setup than assertions means the test is checking wiring, not behavior
+- 80% coverage minimum, 90%+ on critical business logic. Integration tests cover module boundaries and external interfaces
+- Backfilling coverage on untested code: exercise the real service with fake process-boundary dependencies (in-memory repo, testcontainers). If it cannot be tested without changing production code, stop and say so -- a test-only task must not quietly refactor production code

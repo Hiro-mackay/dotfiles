@@ -1,6 +1,6 @@
 ---
 name: readable-code
-description: Code readability guidelines covering function length, nesting depth, naming conventions, and abstraction decisions. Applies when writing or reviewing any code.
+description: Code readability guidelines covering function length, nesting depth, and abstraction decisions. Applies when writing or reviewing any code. For naming itself, see the naming-conventions skill.
 ---
 
 # Readable Code Rules
@@ -49,7 +49,6 @@ Good — 2 lines, only what the code can't say:
 
 ## Abstraction
 - Rule of Three -- do not abstract until the third duplication (see `architecture-decisions` for system-level YAGNI)
-- Name things for what they represent, not how they work
 
 ## Branching
 - if/else exceeding 3 branches -> switch/match or polymorphism

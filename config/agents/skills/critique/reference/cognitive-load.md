@@ -27,7 +27,7 @@ Evaluate the interface. Count failures: 0-1 = low (good), 2-3 = moderate, 4+ = c
 
 ## Working Memory Limits
 
-- Navigation: 5 top-level items max
+- Navigation: 5-7 top-level items max (matches `ui-quality`)
 - Form sections: 4 fields per visual group
 - Action buttons: 1 primary, 1-2 secondary, group rest in menu
 - Dashboard: 4 key metrics without scrolling

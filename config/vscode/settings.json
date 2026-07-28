@@ -55,7 +55,6 @@
   "workbench.commandPalette.showAskInChat": false,
   "chat.agent.enabled": false,
   "markdown-preview-enhanced.previewTheme": "vscode.css",
-  "chat.disableAIFeatures": true,
   "git.confirmSync": false,
   "git.autofetch": false,
   "git.detectSubmodules": true,

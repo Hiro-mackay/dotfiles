@@ -1,8 +1,9 @@
 ---
 name: security-reviewer
-description: Security audit specialist. Use when the diff or files under review touch auth flows, session handling, input parsing, secrets handling, or cryptography -- or when the user explicitly asks for a security audit.
+description: Security audit specialist. Use only when the user explicitly asks for a security audit or review, or via /security-audit. Do not invoke on your own, even when the diff touches auth flows, secrets handling, or cryptography.
 tools: Read, Glob, Grep, Bash
 model: opus
+effort: xhigh
 skills:
   - security-principles
 memory: user

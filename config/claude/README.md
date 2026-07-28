@@ -35,15 +35,23 @@ claude/
 ## エージェント
 
 サブエージェントとして起動されるレビュー専門エージェント。ドメイン知識は skills に委譲し、プロセス・出力形式のみ定義。
+いずれも明示呼び出し専用（`/review-local` / `/security-audit` / `/critique`、または明示依頼）。自発起動はしない。
 
-| エージェント | モデル | 役割 |
-|------------|--------|------|
-| `code-reviewer` | sonnet | 汎用コードレビュー。言語を検出し対応 skill を適用。静的解析ツールを実行 |
-| `security-reviewer` | opus | セキュリティ監査。security-principles skill を適用し CWE 参照付きで報告 |
+| エージェント | モデル | effort | preload | 役割 |
+|------------|--------|--------|---------|------|
+| `code-reviewer` | opus | xhigh | readable-code, naming-conventions | 汎用コードレビュー。言語を検出し対応 skill を適用。静的解析ツールを実行 |
+| `security-reviewer` | opus | xhigh | security-principles | セキュリティ監査。CWE 参照付きで報告 |
+| `design-reviewer` | opus | 継承 | critique, visual-design, ui-quality | UI/UX レビュー |
+
+`effort` は subagent frontmatter でセッション値を上書きする。レビューは低頻度・明示呼び出しなので、テスト時計算を積む価値がある側に振ってある。
+preload は `paths:` を持たない on-demand skill を fork 内で確実に読ませるための指定（fork は Skill ツールを持たないため、本文で名指しするだけでは届かない）。
+
+planner は 2026-07-27 に削除（6 firings/2ヶ月。計画は plan mode が担う）。
+モデル配分は Opus 5 主射、最難の設計のみ明示依頼時に Agent tool の `model: fable`、探索・機械作業は `model: sonnet`（delegation skill の Model per spawn 節参照）。
 
 ## スキル（言語別、paths 付き）
 
-ファイルパターンに一致すると自動でコンテキストに読み込まれる。各言語の命名規則、型安全性、エラーハンドリング、パフォーマンスパターンなど、実装レベルの具体的な指針。`user-invocable: false` で `/` メニューから隠している。
+ファイルパターンに一致すると自動でコンテキストに読み込まれる。各言語の命名規則、型安全性、エラーハンドリング、パフォーマンスパターンなど、実装レベルの具体的な指針。`user-invocable: false` で `/` メニューから隠している（paths なしの plan-template も同じキーで非表示。こちらは AGENTS.md の plan mode 行から名指しでロードされる）。
 
 | スキル | トリガー | 内容 |
 |-------|---------|------|
@@ -100,6 +108,12 @@ claude/
 | スキル | 内容 |
 |-------|------|
 | `review-local` | `/review-local` で手動起動。git diff を取得し code-reviewer エージェントで構造化レビュー |
+| `security-audit` | `/security-audit` で手動起動。security-reviewer エージェントでセキュリティ監査 |
+| `delegation` | 委譲判断の規範。fan-out 閾値、spawn ごとのモデル選択（sonnet/fable）、バッチ信頼性契約 |
+| `plan-template` | 実装計画の必須構成（reversibility / test tier）。plan mode 時に AGENTS.md から名指しロード |
+| `concurrency-idempotency` | usecase/repository/worker パスで自動ロード。冪等性・競合状態の実装指針 |
+| `japanese-tech-writing` | 日本語技術文書の文章規範。説明的な日本語 prose に適用 |
+| `cognitive-rhythm-writing` | 読み物向けの緩急設計。japanese-tech-writing の上に重ねる |
 
 ## Hooks
 

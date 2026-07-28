@@ -1,8 +1,12 @@
 ---
 name: code-reviewer
-description: Expert code review specialist. Use proactively after writing or modifying code to catch quality, security, and maintainability issues.
+description: Expert code review specialist. Use only when the user explicitly asks for a code review, or via /review-local. Do not invoke on your own after writing or modifying code.
 tools: Read, Glob, Grep, Bash
 model: opus
+effort: xhigh
+skills:
+  - readable-code
+  - naming-conventions
 memory: user
 ---
 

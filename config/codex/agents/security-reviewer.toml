@@ -1,6 +1,6 @@
 name = "security-reviewer"
 description = """
-Security audit specialist. Use for authentication, authorization, input handling, secrets, cryptography, dependency risk, or other security-sensitive code.
+Security audit specialist. Use only when the user explicitly asks for a security audit or review. Do not run on your own, even when the diff touches authentication, secrets, or cryptography.
 """
 model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"

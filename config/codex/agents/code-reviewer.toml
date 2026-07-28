@@ -1,6 +1,6 @@
 name = "code-reviewer"
 description = """
-Expert code review specialist. Use after writing or modifying code to catch correctness, security, maintainability, and test coverage issues.
+Expert code review specialist. Use only when the user explicitly asks for a code review. Do not run on your own after writing or modifying code.
 """
 sandbox_mode = "read-only"
 approval_policy = "never"

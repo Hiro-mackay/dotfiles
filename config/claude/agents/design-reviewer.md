@@ -1,6 +1,6 @@
 ---
 name: design-reviewer
-description: UI/UX design review specialist. Use after implementing or modifying UI components, pages, or styles -- or when the user asks to critique a design or interface.
+description: UI/UX design review specialist. Use only when the user explicitly asks to review or critique a design, UI component, or interface. Do not invoke on your own after implementing or modifying UI code.
 tools: Read, Glob, Grep, Bash
 model: opus
 skills:

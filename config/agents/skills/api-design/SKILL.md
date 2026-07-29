@@ -57,4 +57,4 @@ House conventions and the calls that go wrong. Standard REST shape and HTTP sema
 
 ## See also
 - Token lifetimes, session handling, and OAuth flow selection: `security-principles` skill. Health checks and metrics: `observability` skill
-- Async operations, batch/bulk, file handling, content negotiation: [reference](reference/advanced-patterns.md)
+- Async operations, batch/bulk, file handling, content negotiation: [reference](${CLAUDE_SKILL_DIR}/reference/advanced-patterns.md)

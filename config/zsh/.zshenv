@@ -46,19 +46,6 @@ export RUSTUP_HOME="$XDG_DATA_HOME/.rustup"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 
 # -----------------
-#  PATH
-# -----------------
-typeset -U path
-path=(
-    $HOME/.local/bin(N-/)
-    ${BREW_HOME}/bin(N-/)
-    ${BREW_HOME}/sbin(N-/)
-    ${CARGO_HOME}/bin(N-/)
-    ${PNPM_HOME}(N-/)
-    $path
-)
-
-# -----------------
 #  ni - use the right package manager
 # -----------------
 export NI_CONFIG_FILE="$XDG_CONFIG_HOME/ni/nirc"

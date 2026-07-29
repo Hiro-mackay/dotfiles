@@ -51,4 +51,4 @@ The judgment calls, not the pattern catalogue. Standard distributed-systems voca
 - The rollback plan exists before the migration starts, not after it goes wrong
 
 ## Reference
-- Stream processing, CDC, event sourcing, schema evolution: [reference](reference/data-patterns.md)
+- Stream processing, CDC, event sourcing, schema evolution: [reference](${CLAUDE_SKILL_DIR}/reference/data-patterns.md)

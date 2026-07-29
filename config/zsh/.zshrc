@@ -34,6 +34,19 @@ if [[ -f "$HOME/.google-cloud-sdk/completion.zsh.inc" ]]; then
 fi
 
 # -----------------
+#  PATH
+# -----------------
+typeset -U path
+path=(
+    $HOME/.local/bin(N-/)
+    ${BREW_HOME}/bin(N-/)
+    ${BREW_HOME}/sbin(N-/)
+    ${CARGO_HOME}/bin(N-/)
+    ${PNPM_HOME}(N-/)
+    $path
+)
+
+# -----------------
 #  load modules
 # -----------------
 for rc in "$ZDOTDIR"/rc.d/*.zsh(N); do

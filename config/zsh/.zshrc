@@ -52,3 +52,10 @@ path=(
 for rc in "$ZDOTDIR"/rc.d/*.zsh(N); do
   source "$rc"
 done
+
+# -----------------
+#  load local config
+# -----------------
+if [[ -f "$ZDOTDIR/.zshrc.local" ]]; then
+  source "$ZDOTDIR/.zshrc.local"
+fi

@@ -1,15 +1,15 @@
 # -----------------
 #  basic
 # -----------------
-alias ls="eza --group-directories-first --icons"
+alias ls="eza --group-directories-first --icons=auto"
 alias l="ls"
 alias la="ls -a"
 alias ll="ls -l"
 alias lla="ls -la"
-alias lt="ls --tree"
-alias lt1="ls --tree --level=1"
-alias lt2="ls --tree --level=2"
-alias lt3="ls --tree --level=3"
+alias lt="ls --tree -a"
+alias lt1="ls --tree --level=1 -a"
+alias lt2="ls --tree --level=2 -a"
+alias lt3="ls --tree --level=3 -a"
 alias cat="bat"
 alias c="clear"
 alias e="exit"

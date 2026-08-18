@@ -1,0 +1,19 @@
+# Ghostty terminal config. cmux reads this file directly for terminal
+# rendering (font, theme, colors, cursor) -- see:
+# https://ghostty.org/docs/config/reference
+# https://cmux.com/ja/docs/configuration
+#
+# cmux also reads a few cmux-specific extra keys from this same file:
+# sidebar-font-size, surface-tab-bar-font-size, split-divider-color.
+
+# Long-running Claude Code / Codex agent sessions produce a lot of output;
+# raise scrollback well above the default so history isn't lost mid-task.
+scrollback-limit = 50000000
+
+# Pulls in whatever theme was last saved via `ghostty +list-themes` (press
+# `w` on a theme to write it here). `?` makes this a no-op if the file is
+# ever missing, instead of erroring. Currently resolves to "Dark Modern".
+config-file = ?auto/theme.ghostty
+
+# font-family = <optional, no current preference set anywhere else>
+# font-size = <optional>

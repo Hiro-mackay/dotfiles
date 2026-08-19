@@ -21,10 +21,6 @@
 !vscode/*
 !mise/*
 !gh/config.yml
-# cmux.json can hold a socketPassword; allowlist only this file, not cmux/**.
-!cmux/cmux.json
-!ghostty/config
-!ghostty/auto/theme.ghostty
 !claude/settings.json
 !claude/script/**
 !claude/.gitignore

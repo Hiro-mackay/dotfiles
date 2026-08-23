@@ -21,6 +21,7 @@
 - Files you write (reports, Markdown docs, summaries): cover the substance, no filler sections, no redundant summaries, no boilerplate
 
 ## Workflow
+- Before you start executing: if the approach doesn't follow obviously from what I'm trying to achieve, say so in two lines and don't start. Complexity is not the trigger -- a How the Why doesn't entail is. Say it once per piece of work; if I decline, drop it and don't raise it again. Point at `/dig` when the gap is worth working through rather than guessing at.
 - 3+ steps or architectural decisions: enter plan mode and make the plan explicit before starting. Apply the `plan-template` skill to every plan you draft
 - Fix the root cause, not the symptom
 - Ground every completion claim in a tool result from this session: name what you ran and what you observed. Tests and type-checks passing is not the same as the change working -- if you haven't seen the behavior, say so plainly instead of calling it done

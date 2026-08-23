@@ -55,7 +55,9 @@
       "Read(id_ed25519)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
-      "Edit(**/secrets/**)"
+      "Write(**/secrets/**)",
+      "Edit(**/secrets/**)",
+      "NotebookEdit(**/secrets/**)"
     ]
   },
   "model": "opus[1m]",

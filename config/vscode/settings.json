@@ -48,8 +48,6 @@
   "gitlens.advanced.messages": {
     "suppressGitVersionWarning": true
   },
-  "gitlens.ai.model": "vscode",
-  "gitlens.ai.vscode.model": "copilot:oswe-vscode-modelD",
   "chat.viewSessions.orientation": "stacked",
   "workbench.browser.enableChatTools": false,
   "workbench.commandPalette.showAskInChat": false,

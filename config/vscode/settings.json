@@ -16,14 +16,13 @@
   "editor.indentSize": "tabSize",
   "editor.inlineSuggest.enabled": true,
   "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "always"
+  },
   "html.format.wrapLineLength": 0,
   "html.format.enable": false,
   "html.format.indentInnerHtml": true,
-  "javascript.updateImportsOnFileMove.enabled": "always",
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "[rust]": {
-    "editor.defaultFormatter": "matklad.rust-analyzer"
-  },
+  "js/ts.updateImportsOnFileMove.enabled": "always",
   "[go]": {
     "editor.insertSpaces": true,
     "editor.formatOnSave": true,
@@ -37,9 +36,6 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "ms-python.python",
     "editor.formatOnType": true
-  },
-  "[prisma]": {
-    "editor.defaultFormatter": "Prisma.prisma"
   },
   "redhat.telemetry.enabled": true,
   "go.toolsManagement.autoUpdate": true,
@@ -86,5 +82,26 @@
     "**/.pnpm/**": true,
     "**/pnpm-lock.yaml": true,
     "**/cdk.out/**": true
-  }
+  },
+  "auto-close-tag.activationOnLanguage": [
+    "xml",
+    "php",
+    "blade",
+    "ejs",
+    "jinja",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "plaintext",
+    "markdown",
+    "vue",
+    "liquid",
+    "erb",
+    "lang-cfml",
+    "cfml",
+    "HTML (EEx)",
+    "HTML (Eex)",
+    "plist"
+  ]
 }

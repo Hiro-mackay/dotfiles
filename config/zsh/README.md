@@ -157,7 +157,6 @@ Fixed shortcuts to common locations:
 | `dotfiles` | `~/.dotfiles` |
 | `dotconf` | `~/.config` |
 | `drive` | `~/Google Drive/My Drive` |
-| `ob` | ObsidianVault |
 
 ### Repository jump (`g`)
 

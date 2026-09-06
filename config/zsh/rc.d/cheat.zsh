@@ -129,7 +129,7 @@ SHEET
     ac         ~/Repository/github.com/acompany-develop
     dl / dt / doc   Downloads / Desktop / Documents
     dotfiles   ~/.dotfiles       dotconf  ~/.config
-    drive      Google Drive      ob       ObsidianVault
+    drive      Google Drive
 
   SMART NAVIGATION
     g          fzf select from ghq repos

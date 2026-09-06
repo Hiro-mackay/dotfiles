@@ -24,7 +24,7 @@ Zero by default. The bar is not "is this useful?" — it is "can the code not sa
 Write a comment ONLY when it is one of these three:
 1. A doc comment the language's tooling or a public API contract requires
 2. A fact the code cannot state: an external spec or protocol quirk, a workaround for someone else's bug, an ordering the compiler won't enforce but the domain does, a non-obvious invariant
-3. A deliberate simplification, with its upgrade trigger — `// global lock; switch to per-account if throughput matters`
+3. A deliberate simplification, with its upgrade trigger, prefixed `TRADEOFF:` — `// TRADEOFF: global lock; switch to per-account if throughput matters`
 
 Everything else is not written. If it is already there, delete it:
 - Restating WHAT the next line does — `// increment the counter`, `// loop over users`, `// initialize the client`
@@ -48,7 +48,7 @@ Good — 2 lines, only what the code can't say:
     // 8 rounds: a double-admit only lands when both accepts read pending before either commits.
 
 ## Abstraction
-- Rule of Three -- do not abstract until the third duplication (see `architecture-decisions` for system-level YAGNI)
+- Rule of Three -- do not extract shared code until the third duplication. This is about pulling duplication out, not about introducing an interface; that decision has its own threshold in `module-design`
 
 ## Branching
 - if/else exceeding 3 branches -> switch/match or polymorphism

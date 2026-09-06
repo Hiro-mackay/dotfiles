@@ -17,7 +17,7 @@ How to decide and what to write down. General advice about trade-offs existing i
 
 ## Complexity
 - Abstraction is only justified when it removes more understanding cost than it adds. Direct code is easier to trace, debug, and change than indirect code
-- Wait for the third use case before extracting the pattern. Two is a coincidence
+- Wait for the third use case before extracting the pattern. Two is a coincidence. Counting occurrences settles extraction only; whether to put an interface in front of it is `module-design`'s call
 - Do not add parameters for hypothetical callers, or queues, caches, and services without a measured need
 - Code that does not exist has no bugs, needs no tests, and cannot drift out of date. Deleting is worth more than adding
 - Every dependency is a standing liability. Ask periodically whether you still need each one

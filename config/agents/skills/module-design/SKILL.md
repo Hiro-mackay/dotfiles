@@ -12,7 +12,7 @@ The boundary calls that go wrong. Definitions of coupling and cohesion are delib
 - Split by domain capability, not by technical layer. `controller/`, `service/`, `repository/` groups code by what it is instead of what it is for, so every feature change touches all three
 - Change frequency, team ownership, and independent deployability are all real boundaries. Weekly-churn code next to yearly-churn code is two modules
 - Premature splitting costs as much as premature abstraction. Keep it merged until the boundary is obvious rather than predicted
-- Don't introduce an abstraction until two implementations exist. One implementation behind an interface is indirection, not a seam. Production plus a test double counts as a legitimate two
+- Don't introduce an interface until two implementations exist. One implementation behind an interface is indirection, not a seam. Production plus a test double counts as a legitimate two. This threshold is about polymorphism, not about how often code repeats -- extraction of duplication is `readable-code`'s Rule of Three
 - A microservice only when independent deployment or independent scaling is actually required. Start as a module inside the monolith
 
 ## Three tests

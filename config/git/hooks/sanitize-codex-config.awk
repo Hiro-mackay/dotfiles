@@ -13,7 +13,7 @@
 #   - [agents] [analytics] [auto_review] [feedback] [history] [tools] [tui]
 #   - [sandbox_workspace_write]
 #   - [shell_environment_policy] and [shell_environment_policy.set]
-#   - [[hooks.PermissionRequest|PostToolUse|PreToolUse]] (+ their .hooks)
+#   - [[hooks.PermissionRequest|PostToolUse|PreToolUse|SessionStart]] (+ their .hooks)
 #   - [marketplaces.*]  (source / source_type only)
 #   - [plugins.*]
 #
@@ -39,7 +39,7 @@ function is_shared_section(name) {
         || name == "[sandbox_workspace_write]" \
         || name == "[shell_environment_policy]" \
         || name == "[shell_environment_policy.set]" \
-        || name ~ /^\[\[hooks\.(PermissionRequest|PostToolUse|PreToolUse)(\.hooks)?\]\]$/ \
+        || name ~ /^\[\[hooks\.(PermissionRequest|PostToolUse|PreToolUse|SessionStart)(\.hooks)?\]\]$/ \
         || name ~ /^\[marketplaces\./ \
         || name ~ /^\[plugins\./
 }
@@ -54,6 +54,12 @@ BEGIN {
     pending_blank = 0
     seen_section = 0
 }
+
+# The codebase-memory-mcp installer wraps its section in >>> / <<< markers.
+# Codex rewrites reorder sections and split that wrapper, so a lone marker
+# would otherwise survive into the commit. The section itself is maintained
+# here, not by the installer.
+/^#[[:space:]]*(>>>|<<<)[[:space:]]*codebase-memory-mcp/ { next }
 
 /^\[/ {
     seen_section = 1

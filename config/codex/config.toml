@@ -115,6 +115,13 @@ status_line = [ "model-with-reasoning", "context-remaining", "current-dir", "git
 terminal_title = [ "spinner", "project", "git-branch" ]
 theme = "dark-daltonized"
 
+[[hooks.SessionStart]]
+matcher = "startup|resume|clear|compact"
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = 'echo "Code discovery: prefer codebase-memory-mcp (search_graph, trace_path, get_code_snippet, query_graph, search_code) over grep/file-read; run index_repository first if the project is not indexed."'
+
 [marketplaces.openai-bundled]
 source_type = "local"
 source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"

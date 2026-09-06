@@ -52,3 +52,19 @@ fi
 if [[ ! -f "${CODEX_CONFIG_DIR}/auth.json" ]]; then
     _log_warn "No Codex auth.json found. Run 'codex login' to authenticate."
 fi
+
+# ----------------------
+# Register codebase-memory-mcp (the [mcp_servers.*] section holds a machine-local
+# binary path, so sanitize-codex-config.awk strips it from every commit)
+# ----------------------
+if command -v codebase-memory-mcp &> /dev/null; then
+    if codex mcp get codebase-memory-mcp &> /dev/null; then
+        _log_ok "codebase-memory-mcp is already registered."
+    else
+        _log_run "Registering codebase-memory-mcp..."
+        codex mcp add codebase-memory-mcp -- "$(command -v codebase-memory-mcp)"
+        _log_ok "codebase-memory-mcp registered."
+    fi
+else
+    _log_warn "codebase-memory-mcp not found on PATH. Install it, then re-run setup."
+fi

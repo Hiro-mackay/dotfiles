@@ -45,5 +45,7 @@ TDD is a workflow with explicit start and end conditions, not "writing tests fir
 ## Doubles and scope
 - Mock at process boundaries only -- DB, external APIs, filesystem. Internal collaborators get the real thing unless speed forces otherwise
 - More mock setup than assertions means the test is checking wiring, not behavior
-- 80% coverage minimum, 90%+ on critical business logic. Integration tests cover module boundaries and external interfaces
+- Integration tests cover module boundaries and external interfaces
+- No coverage percentage target. Coverage counts lines, not risk, and chasing a number produces tests for getters. A test earns its place by failing when a named risk fires
+- These always earn one, however small the diff: a bug fix (the failing test that reproduces it is the regression guard), a write-path race (`concurrency-idempotency`), money, and anything crossing a trust boundary
 - Backfilling coverage on untested code: exercise the real service with fake process-boundary dependencies (in-memory repo, testcontainers). If it cannot be tested without changing production code, stop and say so -- a test-only task must not quietly refactor production code

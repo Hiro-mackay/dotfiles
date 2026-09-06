@@ -109,8 +109,7 @@ planner は 2026-07-27 に削除（6 firings/2ヶ月。計画は plan mode が�
 | `delegation` | 委譲判断の規範。fan-out 閾値、spawn ごとのモデル選択（sonnet/fable）、バッチ信頼性契約 |
 | `plan-template` | 実装計画の必須構成（reversibility / test tier）。plan mode 時に AGENTS.md から名指しロード |
 | `concurrency-idempotency` | usecase/repository/worker パスで自動ロード。冪等性・競合状態の実装指針 |
-| `japanese-tech-writing` | 日本語技術文書の文章規範。説明的な日本語 prose に適用 |
-| `cognitive-rhythm-writing` | 読み物向けの緩急設計。japanese-tech-writing の上に重ねる |
+| `japanese-writing` | 日本語の文書を書くときの規範。AGENTS.md の Writing 節（全出力に効く核）の上に、文書にしか要らない部分を足す |
 
 ## Hooks
 

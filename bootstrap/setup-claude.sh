@@ -48,3 +48,19 @@ if ! command -v terminal-notifier &> /dev/null; then
     _log_warn "terminal-notifier is not installed. Notification hooks will not work."
     _log_skip "Install via 'brew install terminal-notifier'."
 fi
+
+# ----------------------
+# Register codebase-memory-mcp (MCP user scope lives in ~/.claude.json, which is
+# outside the dotfiles tree and cannot be tracked)
+# ----------------------
+if command -v codebase-memory-mcp &> /dev/null; then
+    if claude mcp get codebase-memory-mcp &> /dev/null; then
+        _log_ok "codebase-memory-mcp is already registered."
+    else
+        _log_run "Registering codebase-memory-mcp (user scope)..."
+        claude mcp add -s user codebase-memory-mcp -- "$(command -v codebase-memory-mcp)"
+        _log_ok "codebase-memory-mcp registered."
+    fi
+else
+    _log_warn "codebase-memory-mcp not found on PATH. Install it, then re-run setup."
+fi

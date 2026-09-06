@@ -23,6 +23,10 @@
 !gh/config.yml
 !claude/settings.json
 !claude/script/**
+# NOTE: broadly allowlisted like the dirs above. claude/hooks/ holds hooks
+# installed by third-party tools (codebase-memory-mcp); this repo's own
+# hooks live in claude/script/hooks/.
+!claude/hooks/**
 !claude/.gitignore
 !claude/CLAUDE.md
 !claude/README.md

@@ -13,6 +13,7 @@ claude/
   agents/                # コードレビュー用エージェント（サブエージェントとして起動）
   skills/                # 設計原則・言語別ルール（paths: で自動読み込み、または手動呼び出し）
   script/                # hook スクリプト、通知、ステータスライン
+  hooks/                 # 外部ツール（codebase-memory-mcp）が設置する hook。自作の hook は script/hooks/
 ```
 
 ## レイヤー構成と役割分担

@@ -1,7 +1,7 @@
 approval_policy = "on-request"
-model = "gpt-5.5"
+model = "gpt-6-astra"
 model_provider = "openai"
-model_reasoning_effort = "high"
+model_reasoning_effort = "medium"
 model_reasoning_summary = "auto"
 model_verbosity = "medium"
 personality = "pragmatic"
@@ -9,6 +9,7 @@ project_doc_max_bytes = 65536
 review_model = "gpt-5.5"
 sandbox_mode = "workspace-write"
 service_tier = "fast"
+web_search = "cached"
 
 [agents]
 max_depth = 2
@@ -53,10 +54,6 @@ statusMessage = "Checking command policy"
 timeout = 10
 type = "command"
 
-[marketplaces.openai-bundled]
-source_type = "local"
-source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"
-
 [marketplaces.openai-primary-runtime]
 source_type = "local"
 source = "/Users/mackay/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
@@ -100,7 +97,6 @@ writable_roots = [ "/Users/mackay/.dotfiles/config/codex", "/private/tmp" ]
 [shell_environment_policy]
 ignore_default_excludes = false
 inherit = "all"
-web_search = "cached"
 
 [shell_environment_policy.set]
 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
@@ -119,3 +115,6 @@ status_line = [ "model-with-reasoning", "context-remaining", "current-dir", "git
 terminal_title = [ "spinner", "project", "git-branch" ]
 theme = "dark-daltonized"
 
+[marketplaces.openai-bundled]
+source_type = "local"
+source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"

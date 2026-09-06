@@ -2,7 +2,9 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_NEW_INIT": "true"
+    "CLAUDE_CODE_NEW_INIT": "true",
+    "CLAUDE_CODE_THRIFTY_SONIC": "0",
+    "PONYTAIL_SUBAGENT_MATCHER": "^(general-purpose|claude)$"
   },
   "permissions": {
     "allow": [
@@ -59,7 +61,6 @@
     ]
   },
   "model": "opus[1m]",
-  "advisorModel": "fable",
   "hooks": {
     "Stop": [
       {
@@ -221,9 +222,9 @@
     "commit-commands@claude-code-plugins": true,
     "security-guidance@claude-code-plugins": true,
     "codex@openai-codex": true,
-    "code-simplifier@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "understand-anything@understand-anything": true
+    "understand-anything@understand-anything": true,
+    "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -243,10 +244,17 @@
         "source": "github",
         "repo": "Egonex-AI/Understand-Anything"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "language": "ja",
   "effortLevel": "high",
+  "advisorModel": "fable",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",

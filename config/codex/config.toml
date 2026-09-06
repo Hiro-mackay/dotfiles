@@ -75,9 +75,6 @@ enabled = true
 [plugins."spreadsheets@openai-primary-runtime"]
 enabled = true
 
-[plugins."code-simplifier@claude-plugins-official"]
-enabled = true
-
 [plugins."codex@openai-codex"]
 enabled = true
 
@@ -88,6 +85,9 @@ enabled = true
 enabled = true
 
 [plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."ponytail@ponytail"]
 enabled = true
 
 [sandbox_workspace_write]
@@ -125,3 +125,7 @@ command = 'echo "Code discovery: prefer codebase-memory-mcp (search_graph, trace
 [marketplaces.openai-bundled]
 source_type = "local"
 source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.ponytail]
+source_type = "git"
+source = "https://github.com/DietrichGebert/ponytail.git"

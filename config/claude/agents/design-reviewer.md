@@ -19,6 +19,6 @@ Apply the preloaded skills as the evaluation criteria:
 
 ## Output
 
-Group findings by severity (Critical/High/Medium/Low), same format as code-reviewer:
+Group findings by severity (Critical/High/Medium/Low):
 - file:line refs + concrete fix suggestion for every finding
 - Separate what you verified in code from what needs visual confirmation in a running app

@@ -24,7 +24,7 @@ When unsure, inline is the correct default. If a session never hits these trigge
 Pass the model on the Agent tool's `model` parameter; default is inherit (main model).
 - Exploration, broad search, mechanical batch work -> `sonnet`. Speed dominates these tasks and quality differences don't surface; inheriting the main model buys nothing
 - Hardest design work (architecture with unclear shape, multi-system trade-offs) -> `fable`, only when I explicitly ask for it. My explicit request overrides the delegation gate above -- never pick fable as your own choice. In plan mode, the harness's own Plan-agent phase counts as an explicit route
-- Review agents forked via `/review-local` / `/security-audit` / `/critique` keep the model declared in their agent definition
+- `/critique` forks the design-reviewer and keeps the model declared in its agent definition. `/code-review` and `/security-review` are built-in and take their own arguments
 
 ## Script, agent, or inline
 Before spawning an agent for a sweep, pick the cheapest reliable tool:

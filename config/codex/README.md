@@ -37,8 +37,10 @@ codex/
 
 | エージェント | 役割 |
 |------------|------|
-| `code-reviewer` | 汎用コードレビュー。言語を検出し、共有 skill を適用する |
-| `security-reviewer` | 認証、認可、入力処理、secrets、暗号、依存関係の監査 |
+| `design-reviewer` | UI/UX レビュー |
+
+コードレビューとセキュリティ監査の自作エージェントは撤去した。Claude 側では組み込みの
+`/code-review` と `/security-review` に寄せている。
 
 ## Hooks
 
@@ -63,7 +65,6 @@ Codex では `$skill-name` で skill を明示呼び出しできる。これは 
 例:
 
 ```text
-$review-local
 $critique
 $architecture-decisions
 $security-principles

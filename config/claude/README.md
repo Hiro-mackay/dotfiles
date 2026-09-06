@@ -10,7 +10,7 @@ dotfiles + GNU Stow で管理する Claude Code のグローバル設定。
 claude/
   CLAUDE.md              # グローバル指示（全プロジェクトで自動読み込み）
   settings.json          # 権限、hooks、プラグイン、言語設定
-  agents/                # コードレビュー用エージェント（サブエージェントとして起動）
+  agents/                # UI レビュー用エージェント（サブエージェントとして起動）
   skills/                # 設計原則・言語別ルール（paths: で自動読み込み、または手動呼び出し）
   script/                # hook スクリプト、通知、ステータスライン
   hooks/                 # 外部ツール（codebase-memory-mcp）が設置する hook。自作の hook は script/hooks/
@@ -35,13 +35,11 @@ claude/
 
 ## エージェント
 
-サブエージェントとして起動されるレビュー専門エージェント。ドメイン知識は skills に委譲し、プロセス・出力形式のみ定義。
-いずれも明示呼び出し専用（`/review-local` / `/security-audit` / `/critique`、または明示依頼）。自発起動はしない。
+コードレビューとセキュリティ監査は組み込みの `/code-review` と `/security-review` に寄せた。
+自作エージェントは、組み込みに相当物が無い UI レビューだけが残る。明示呼び出し専用（`/critique`、または明示依頼）で自発起動はしない。
 
 | エージェント | モデル | effort | preload | 役割 |
 |------------|--------|--------|---------|------|
-| `code-reviewer` | opus | xhigh | readable-code, naming-conventions | 汎用コードレビュー。言語を検出し対応 skill を適用。静的解析ツールを実行 |
-| `security-reviewer` | opus | xhigh | security-principles | セキュリティ監査。CWE 参照付きで報告 |
 | `design-reviewer` | opus | 継承 | critique, visual-design, ui-quality | UI/UX レビュー |
 
 `effort` は subagent frontmatter でセッション値を上書きする。レビューは低頻度・明示呼び出しなので、テスト時計算を積む価値がある側に振ってある。
@@ -108,8 +106,6 @@ planner は 2026-07-27 に削除（6 firings/2ヶ月。計画は plan mode が�
 
 | スキル | 内容 |
 |-------|------|
-| `review-local` | `/review-local` で手動起動。git diff を取得し code-reviewer エージェントで構造化レビュー |
-| `security-audit` | `/security-audit` で手動起動。security-reviewer エージェントでセキュリティ監査 |
 | `delegation` | 委譲判断の規範。fan-out 閾値、spawn ごとのモデル選択（sonnet/fable）、バッチ信頼性契約 |
 | `plan-template` | 実装計画の必須構成（reversibility / test tier）。plan mode 時に AGENTS.md から名指しロード |
 | `concurrency-idempotency` | usecase/repository/worker パスで自動ロード。冪等性・競合状態の実装指針 |

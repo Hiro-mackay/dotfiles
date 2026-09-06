@@ -12,7 +12,7 @@ description: Code readability guidelines covering function length, nesting depth
 
 ## Nesting
 - 3 levels max. Early return / guard clause first to reduce nesting
-- Invert conditions to eliminate `else` blocks when possible
+- Invert conditions to eliminate `else` blocks
 
 ## Parameters
 - 3 parameters max per function

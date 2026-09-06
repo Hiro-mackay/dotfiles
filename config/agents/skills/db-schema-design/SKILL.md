@@ -38,5 +38,5 @@ House conventions and the calls that go wrong. Standard relational modeling is d
 
 ## Scale
 - Read-after-write goes to the primary. Replication lag makes any other routing a correctness bug, not a performance choice
-- Estimate row counts at one year and five, and design indexes and partitioning for the five-year number. Past ~100M rows, consider range partitioning by date or hash by tenant, and archive cold data rather than deleting it
+- Estimate row counts at one year and five, and design indexes and partitioning for the five-year number. Past ~100M rows, partition by date range or hash by tenant, and archive cold data rather than deleting it
 - `max_connections` must exceed the sum of every application instance's pool maximum, with headroom left for admin and migration connections

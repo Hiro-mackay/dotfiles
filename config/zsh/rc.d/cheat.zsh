@@ -216,6 +216,7 @@ SHEET
     ccode          claude (skip permissions)
     ccconf         cd to claude config dir
     c1..c6         open N claude sessions in Warp
+    sbxc           claude in an sbx sandbox named after this dir
 
   CODEX
     cx             codex (no approvals, no sandbox)

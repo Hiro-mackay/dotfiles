@@ -456,6 +456,16 @@ rndl -s           # 32-character with symbols (!@#$%^&*()_+)
 rndl -s 16        # 16-character with symbols
 ```
 
+### Claude sandbox (`sbxc`)
+
+Runs `claude` inside an `sbx` sandbox named after the current directory, so re-running from the same directory reuses the same sandbox instead of spawning a new one each time:
+
+```sh
+sbxc            # sbx run claude --name claude-<dir-slug>
+```
+
+Warns (without blocking) if that name is already bound to a different directory. Set `$SBX_TEMPLATE` to pass a template to `sbx run`.
+
 ### Other
 
 | Command | Description |

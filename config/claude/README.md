@@ -140,5 +140,5 @@ settings.json で定義。ツール実行の前後に自動で発火するシェ
 
 | エイリアス | コマンド |
 |-----------|---------|
-| `ccode` | `claude --permission-mode bypassPermissions` |
+| `ccode` | `claude --permission-mode auto` |
 | `ccconf` | Claude 設定ディレクトリへ移動 |

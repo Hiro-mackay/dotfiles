@@ -60,7 +60,6 @@
       "Edit(**/secrets/**)"
     ]
   },
-  "model": "opus[1m]",
   "hooks": {
     "Stop": [
       {
@@ -257,8 +256,10 @@
   "advisorModel": "fable",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
   "theme": "dark-daltonized",
   "preferredNotifChannel": "terminal_bell",
   "remoteControlAtStartup": false,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "sonnet"
 }

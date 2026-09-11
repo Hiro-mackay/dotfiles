@@ -27,7 +27,7 @@ alias em="emacs"
 # -----------------
 #  Claude
 # -----------------
-alias ccode="claude --permission-mode bypassPermissions"
+alias ccode="claude --permission-mode auto"
 alias ccconf="cd $XDG_CONFIG_HOME/claude"
 
 # -----------------

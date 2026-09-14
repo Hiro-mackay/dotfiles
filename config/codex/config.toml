@@ -1,4 +1,5 @@
 approval_policy = "on-request"
+approvals_reviewer = "auto_review"
 model = "gpt-6-astra"
 model_provider = "openai"
 model_reasoning_effort = "medium"
@@ -6,7 +7,6 @@ model_reasoning_summary = "auto"
 model_verbosity = "medium"
 personality = "pragmatic"
 project_doc_max_bytes = 65536
-review_model = "gpt-5.5"
 sandbox_mode = "workspace-write"
 service_tier = "fast"
 web_search = "cached"
@@ -76,7 +76,7 @@ enabled = true
 enabled = true
 
 [plugins."codex@openai-codex"]
-enabled = true
+enabled = false
 
 [plugins."chrome@openai-bundled"]
 enabled = true
@@ -102,16 +102,13 @@ inherit = "all"
 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
 CLAUDE_CODE_NEW_INIT = "true"
 
-[tools]
-view_image = true
-
 [tui]
 animations = true
 notification_condition = "unfocused"
 notification_method = "auto"
 notifications = [ "agent-turn-complete", "approval-requested" ]
 show_tooltips = true
-status_line = [ "model-with-reasoning", "context-remaining", "current-dir", "git-branch" ]
+status_line = [ "model-with-reasoning", "context-used", "five-hour-limit", "weekly-limit" ]
 terminal_title = [ "spinner", "project", "git-branch" ]
 theme = "dark-daltonized"
 

@@ -1,80 +1,80 @@
-# Codex グローバル設定
+# Codex は共有ルールと標準機能を使う
 
-dotfiles で管理する Codex CLI のグローバル設定。
+このディレクトリは Codex CLI とアプリの設定を管理する。
+運用ルールの編集元は [共有 AGENTS.md](../agents/AGENTS.md) だ。
+この README は自動読み込みされる指示ではない。
 
-> この `README.md` は Codex のコンテキストに読み込まれない。自動読み込み
-> される運用ルールは `AGENTS.md` に置く。
+## モデルの固定を必要最小限にする
 
-## 運用原則
+通常の作業には `gpt-6-astra` と推論量 `medium` を使う。
+`review_model` は指定せず、レビューも選択中のモデルを使う。
+重い作業だけ推論量を引き上げる。
+モデルと推論量の用途は [OpenAI 公式ドキュメント](https://learn.chatgpt.com/docs/models) に従う。
 
-- Codex が active agent のときは、依頼された作業を end-to-end で所有する
-- 実装、検証、レビュー、ハーネス構築、安全確認を分断せず、納品品質の一部として扱う
-- agent や tool は、タスク適性、文脈、検証ニーズで選ぶ
-- cross-provider review は品質を上げるための独立判断として使う
+Claude Code から Codex を呼ぶ `codex@openai-codex` は、Codex 内では無効にする。
+この用途のスキルやフックを Codex 自身へ追加する必要がないためだ。
+画像表示やシェル実行など、有効な標準機能は重複して設定しない。
 
-## ディレクトリ構成
+Web 検索は `cached` を使う。
+最新のページを直接取得したい CLI セッションでは `codex --search` を使う。
+モードの違いは [設定リファレンス](https://learn.chatgpt.com/docs/config-file/config-reference) を参照する。
 
-```
-codex/
-  AGENTS.md              # グローバル指示（全プロジェクトで自動読み込み）
-  config.toml            # モデル、sandbox、hooks、plugins、MCP、trusted projects
-  agents/                # Codex サブエージェント定義
-  script/                # hook スクリプト、通知、skill bridge
-  skills/                # 共有 agent skills への symlink と Codex system skills
-```
+## 共有ファイルから各ツールの配置を生成する
 
-## レイヤー構成
+| ファイル | 役割 |
+|---|---|
+| `config.toml` | モデル、承認、サンドボックス、フック、プラグイン |
+| `AGENTS.md` | 共有ルールから生成するコピー |
+| `skills/` | 共有スキルへのリンクと Codex 専用スキル |
+| `agents/design-reviewer.toml` | 明示依頼時に使う UI レビュー役 |
+| `script/` | コマンド検査と編集後の検査 |
 
-| レイヤー | 役割 |
-|---------|------|
-| `AGENTS.md` | Codex の運用原則、workflow、review policy、agent coordination |
-| `config.toml` | モデル、reasoning、sandbox、approval、hooks、plugins、MCP |
-| `agents/` | read-only reviewer agents |
-| `script/` | command policy、permission short-circuit、post-edit checks、通知 |
-| `skills/` | Claude/Codex で共有する設計原則・言語別ルール |
+[setup-agents.sh](../../bootstrap/setup-agents.sh) が共有ルールをコピーする。
+共有スキルの実体は `config/agents/skills/` に置く。
+同じスクリプトが Claude と Codex の両方へリンクを作る。
+[setup-codex.sh](../../bootstrap/setup-codex.sh) は CLI、依存コマンド、MCP 登録を確認する。
 
-## エージェント
+スキルは `$critique` のように明示して呼び出せる。
+自動選択の条件は各スキルの `description` に書く。
+`paths:` による拡張子ごとの自動適用を前提にしない。
+作成方法は [公式スキルガイド](https://learn.chatgpt.com/docs/build-skills) を参照する。
 
-| エージェント | 役割 |
-|------------|------|
-| `design-reviewer` | UI/UX レビュー |
+## フックは補助的な検査に使う
 
-コードレビューとセキュリティ監査の自作エージェントは撤去した。Claude 側では組み込みの
-`/code-review` と `/security-review` に寄せている。
+| フック | 動作 |
+|---|---|
+| `pre-tool-policy.sh` | 一部の破壊的コマンドを文字列で検出し、拒否する |
+| `permission-request.sh` | コマンド名に基づいて許可や拒否を返す |
+| `post-edit-check.sh` | デバッグ出力を検出し、Go ファイルの編集後に `go vet` を実行する |
 
-## Hooks
+コマンド名の照合は、引数まで含めた安全性の判定ではない。
+権限の制限はサンドボックスと承認設定で行う。
+`Bash` は `exec_command` にも一致する。
+`apply_patch` は `Edit` と `Write` にも一致する。
+入力形式は [公式フックガイド](https://learn.chatgpt.com/docs/hooks) を参照する。
 
-| Hook | トリガー | 動作 |
-|------|---------|------|
-| `pre-tool-policy.sh` | Bash 実行前 | `sudo`, `git reset`, `git clean`, `rm -rf` などを拒否 |
-| `permission-request.sh` | Bash approval | 一般的な dev command を許可し、危険 command を拒否 |
-| `post-edit-check.sh` | Edit/Write/apply_patch 後 | `console.log`, `fmt.Print*`, `print()` を検出し、Go では `go vet` を実行 |
-| `notify.sh` | TUI 通知 | approval 待ち、入力待ち、完了をデスクトップ通知 |
+TUI 通知は `[tui]` の標準機能を使う。
+`script/notify.sh` は現在の設定からは呼び出していない。
+アプリが追加する `notify` は端末固有の設定として扱う。
 
-## Skills
+## 更新時は実際の CLI で読み込みを確認する
 
-`skills/` は `script/bootstrap.sh` で生成される。現時点では共有 agent skills の
-実体を `~/.config/claude/skills` に置き、Codex 側から symlink する。
-
-この配置に関係なく、skills は複数 agent が同じ品質基準を使うための共有知識
-ベースとして扱う。
-
-Codex では `$skill-name` で skill を明示呼び出しできる。これは Claude の
-`/command` に相当する定常タスク呼び出しとして使える。
-
-例:
-
-```text
-$critique
-$architecture-decisions
-$security-principles
+```sh
+codex --version
+codex features list
+codex --strict-config app-server --listen stdio:// </dev/null
+codex doctor --summary
 ```
 
-`paths:` を持つ language skill は対象ファイルに応じて自動適用される。
-`user-invocable: false` の skill は通常は明示呼び出しせず、ファイル種別や
-関連タスクに応じて適用される。
+2026-09-15 に CLI `0.154.0` で厳密な設定読み込みを確認した。
+`tools.view_image` はこの版で未知の項目として拒否されたため削除した。
+`codex features list` では `view_image` が標準で有効だった。
+アプリ同梱 CLI は `0.153.4` であり、CLI とアプリの版は別々に確認する。
+設定読み込みの成功だけでは、モデル応答やフックの発火までは確認できない。
 
-## Runtime state
+## 端末固有の状態をコミットへ含めない
 
-`auth.json`, session, history, sqlite, cache, generated `skills/` は git に入れない。
-追跡するのは宣言的設定だけにする。
+認証、会話、履歴、SQLite、キャッシュ、生成済みスキルは Git 管理から除く。
+[設定の抽出処理](../git/hooks/sanitize-codex-config.awk) はコミット対象だけを書き換える。
+作業ツリー内の信頼設定やアプリ用 MCP 設定は残す。
+新しい設定セクションを追加する場合は、抽出処理が保持するかも確認する。

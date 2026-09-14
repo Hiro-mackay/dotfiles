@@ -253,6 +253,9 @@
   },
   "language": "ja",
   "effortLevel": "high",
+  "modelSettings": {
+    "claude-opus-5": {}
+  },
   "advisorModel": "fable",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
@@ -260,6 +263,5 @@
   "theme": "dark-daltonized",
   "preferredNotifChannel": "terminal_bell",
   "remoteControlAtStartup": false,
-  "skipAutoPermissionPrompt": true,
-  "model": "sonnet"
+  "skipAutoPermissionPrompt": true
 }

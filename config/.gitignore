@@ -22,11 +22,7 @@
 !mise/*
 !gh/config.yml
 !claude/settings.json
-!claude/script/**
-# NOTE: broadly allowlisted like the dirs above. claude/hooks/ holds hooks
-# installed by third-party tools (codebase-memory-mcp); this repo's own
-# hooks live in claude/script/hooks/.
-!claude/hooks/**
+!claude/script/statusline.sh
 !claude/.gitignore
 !claude/CLAUDE.md
 !claude/README.md
@@ -41,4 +37,3 @@
 !codex/README.md
 !codex/config.toml
 !codex/agents/**
-!codex/script/**

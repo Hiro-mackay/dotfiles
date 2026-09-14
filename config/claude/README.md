@@ -1,144 +1,84 @@
-# Claude Code グローバル設定
+# Claude Code と Codex は共通ルールで運用する
 
-dotfiles + GNU Stow で管理する Claude Code のグローバル設定。
+Claude Code と Codex は、待ち時間と手戻りを減らす構成に揃える。
+作業を受けた主担当が、実装から検証まで責任を持つ。
+この README は運用資料で、自動読み込みする指示は `CLAUDE.md` に置く。
 
-> この `README.md` は Claude Code のコンテキストに読み込まれない。自動読み込みされるのは `CLAUDE.md` のみ。
+## 共通の指示とスキルは一箇所で編集する
 
-## ディレクトリ構成
+| 編集元 | 役割 |
+| --- | --- |
+| `../agents/AGENTS.md` | 日本語、作業手順、Git 操作、引き継ぎの共通ルール |
+| `../agents/skills/` | 両方で使う文書、計画、UI 評価の手順 |
+| `CLAUDE.md` | 共通ルールの読み込みと Claude 固有の補足 |
+| `settings.json` | 権限、推論量、通知、プラグイン |
+| `agents/design-reviewer.md` | 明示依頼された UI 評価の担当 |
 
+Claude は共通ルールを `@import` で読む。
+Codex は導入スクリプトが作る実ファイルのコピーを読む。
+共有スキルは両方の `skills/` にディレクトリリンクとして配置する。
+共有元を変更したら、リポジトリのルートで次を実行する。
+
+```sh
+bash bootstrap/setup-agents.sh
 ```
-claude/
-  CLAUDE.md              # グローバル指示（全プロジェクトで自動読み込み）
-  settings.json          # 権限、hooks、プラグイン、言語設定
-  agents/                # UI レビュー用エージェント（サブエージェントとして起動）
-  skills/                # 設計原則・言語別ルール（paths: で自動読み込み、または手動呼び出し）
-  script/                # hook スクリプト、通知、ステータスライン
-  hooks/                 # 外部ツール（codebase-memory-mcp）が設置する hook。自作の hook は script/hooks/
+
+## 主担当を一人にして、独立した作業だけ分ける
+
+独立して進めると速くなる調査や実装だけを子エージェントへ渡す。
+委任の判断と引き継ぎ項目は共通ルールに従う。
+検証と統合は主担当が行い、同じ調査を両ツールへ重ねて依頼しない。
+
+同じ変更には一人の担当を置き、並行編集しない。
+独立した変更を並行して進めるときは、Git worktree を分ける。
+Claude の Agent Teams を全セッションで有効にする設定は置かない。
+
+UI 評価はユーザーが対象を指定して依頼したときだけ起動する。
+`design-reviewer` は Opus、推論量 `high` を使う。
+評価手順は共有スキルに置き、再委任とファイル書き込みは禁止する。
+Bash の読み取り専用という指示は、OS が強制する権限境界とは異なる。
+
+## 速度と判断品質を優先する
+
+Claude のモデルはこの設定で固定せず、契約とセッションの選択に従う。
+推論量の既定値は `medium` とし、費用節約のための手動切り替えを前提にしない。
+Codex 側は Astra と Standard を既定とし、Fast は必要な作業で明示する。
+設定だけで所要時間の改善を保証せず、完了時間と再修正の回数で判断する。
+
+## 承認と実行範囲を標準機能で制御する
+
+Claude の既定の承認モードは `auto` とする。
+コマンド名による一括許可は置かず、既存の拒否設定を維持する。
+利用条件を満たさず `auto` が使えない場合は Manual へ戻る。
+モードの条件は [公式の承認モード](https://code.claude.com/docs/en/permission-modes) で確認する。
+
+一方、`sandbox.enabled` はコマンドが触れられる範囲を制限する。
+操作を承認するかの判断とは別の仕組みだ。
+OS ごとの適用範囲は [公式の sandbox 説明](https://code.claude.com/docs/en/sandboxing) に従う。
+起動後は `/permissions` と `/sandbox` で適用状態を確認する。
+
+## 検証は変更に合わせ、失敗結果をそのまま扱う
+
+dotfiles 独自の承認、毎編集後の検査、出力加工のフックは使わない。
+主担当が変更に必要な検証をまとめて実行し、終了コードと失敗内容を確認する。
+通知は `terminal_bell`、状態表示は既存の `statusLine` を使う。
+プラグインが提供するフックは、独自フックの撤去とは別に残り得る。
+
+有効なプラグインは次の2個とする。
+
+- `codex@openai-codex`
+- `ponytail@ponytail`
+
+Claude から Codex を呼ぶ経路は残す。
+独立したレビューは明示依頼時だけ使い、通常の完了条件には加えない。
+Git 操作と Go の検証には、標準コマンドとプロジェクトのツールを使う。
+
+`setup-claude.sh` は、利用可能な `codebase-memory-mcp` をユーザースコープへ登録する。
+実行ファイルのパスは端末固有なので、`settings.json`には保存しない。
+
+導入設定は、リポジトリのルートで次を確認する。
+
+```sh
+bash bootstrap/test-setup-agents.sh
+zsh bootstrap/test-setup-claude.zsh
 ```
-
-## レイヤー構成と役割分担
-
-| レイヤー | 読み込み方式 | 役割 |
-|---------|------------|------|
-| `CLAUDE.md` | 常時 | ワークフロー、subagent 委譲方針、memory 運用、コード品質の普遍ルール |
-| `settings.json` | 常時 | 権限制御、hook による機械的強制、プラグイン |
-| `skills/` (paths 付き) | ファイルパターン一致時 | 言語固有の実装ガイドライン |
-| `skills/` (paths なし) | トリガーマッチ時 | ドメイン知識・設計原則 |
-| `agents/` | サブエージェント起動時 | レビュープロセスの定義 |
-
-## エージェント連携原則
-
-- active agent が依頼された作業を end-to-end で所有する
-- agent や tool は、タスク適性、文脈、検証ニーズで選ぶ
-- `/codex:review` などの連携は、cross-provider の独立判断を得るために使う
-- 引き継ぎ時は、scope、変更ファイル、検証結果、未解決リスクを明確に渡す
-
-## エージェント
-
-コードレビューとセキュリティ監査は組み込みの `/code-review` と `/security-review` に寄せた。
-自作エージェントは、組み込みに相当物が無い UI レビューだけが残る。明示呼び出し専用（`/critique`、または明示依頼）で自発起動はしない。
-
-| エージェント | モデル | effort | preload | 役割 |
-|------------|--------|--------|---------|------|
-| `design-reviewer` | opus | 継承 | critique, visual-design, ui-quality | UI/UX レビュー |
-
-`effort` は subagent frontmatter でセッション値を上書きする。レビューは低頻度・明示呼び出しなので、テスト時計算を積む価値がある側に振ってある。
-preload は `paths:` を持たない on-demand skill を fork 内で確実に読ませるための指定（fork は Skill ツールを持たないため、本文で名指しするだけでは届かない）。
-
-planner は 2026-07-27 に削除（6 firings/2ヶ月。計画は plan mode が担う）。
-モデル配分は Opus 5 主射、最難の設計のみ明示依頼時に Agent tool の `model: fable`、探索・機械作業は `model: sonnet`（delegation skill の Model per spawn 節参照）。
-
-## スキル（言語別、paths 付き）
-
-ファイルパターンに一致すると自動でコンテキストに読み込まれる。各言語の命名規則、型安全性、エラーハンドリング、パフォーマンスパターンなど、実装レベルの具体的な指針。`user-invocable: false` で `/` メニューから隠している（paths なしの plan-template も同じキーで非表示。こちらは AGENTS.md の plan mode 行から名指しでロードされる）。
-
-| スキル | トリガー | 内容 |
-|-------|---------|------|
-| `go-principles` | `**/*.go` | 命名（MixedCaps、-er インターフェース）、エラーハンドリング（errors.Is/As、%w）、並行処理（context 伝播、goroutine ライフサイクル）、メモリ安全性 |
-| `typescript-principles` | `**/*.{ts,tsx}` | 型安全（no any、型ガード、discriminated union）、型設計（有効な状態のみ表現）、ジェネリクス、async パターン、エスケープハッチ |
-| `react-principles` | `**/*.{tsx,jsx}` | Server Components、ウォーターフォール排除、バンドル最適化、データフェッチ層設計、再レンダリング最適化、コンポーネント設計 |
-| `python-principles` | `**/*.py` | 型ヒント（3.10+ 構文）、エラーハンドリング（raise...from）、モダン Python（dataclasses、match、Protocol）、async、セキュリティ |
-| `sql-implementation` | `**/*.sql`, `**/migrations/**` | 命名規則、N+1 防止、インデックス戦略、トランザクション設計、バルク操作、マイグレーション安全性 |
-| `dockerfile` | `**/Dockerfile*`, `**/docker-compose*` | マルチステージビルド、レイヤーキャッシュ最適化、セキュリティ（非 root、secrets 除外）、ヘルスチェック |
-
-## スキル（ドメイン知識、paths なし）
-
-タスクの内容に応じて自動的にコンテキストに読み込まれる設計原則・ドメイン知識。
-
-### アーキテクチャ・設計
-
-| スキル | 内容 |
-|-------|------|
-| `architecture-decisions` | トレードオフ分析、Type 1/2 意思決定、ADR フォーマット、build-vs-buy、複雑性管理、YAGNI |
-| `system-design` | CAP 定理、一貫性モデル、レプリケーション、パーティショニング、障害ドメイン、スケーリング戦略。参照: `reference/data-patterns.md`（CDC、イベントソーシング） |
-| `module-design` | 凝集度・結合度、依存方向（安定方向へ）、境界検出、インターフェース設計（Postel の法則）、循環依存の解消 |
-| `ddd-principles` | イベント→コマンド→集約の発見プロセス、境界づけられたコンテキスト、集約サイジング、ユビキタス言語 |
-| `db-schema-design` | UUID vs auto-increment、正規化判断、リレーションシップパターン（1:N, M:N, ポリモーフィック）、ソフトデリート、キャパシティプランニング |
-
-### コード品質
-
-| スキル | 内容 |
-|-------|------|
-| `readable-code` | 関数 30行以下、ネスト 3段以下、引数 3個以下、コメントは WHY のみ、Rule of 3 |
-| `naming-conventions` | 命名は設計シグナル。And = 2つの責務、temp = 無意味。品詞ルール（名詞/動詞/形容詞/前置詞）、メタファー認識 |
-| `test-strategy` | TDD ワークフロー（t-wada 式: テストリスト→Red→Green→Refactor）、実装戦略（Fake It、三角測量）、テストダブル、スコープ戦略、AI 時代のガードレール |
-| `error-handling` | リトライ（指数バックオフ + ジッター）、タイムアウト設計、サーキットブレーカー、フォールバック、バルクヘッド、冪等性 |
-| `git-workflow` | ブランチ命名、PR サイズ（300行未満）、レビュー SLA（1日）、マージ戦略、stacked PR |
-
-### セキュリティ・可観測性
-
-| スキル | 内容 |
-|-------|------|
-| `security-principles` | 認証アーキテクチャ（Session/JWT/OAuth 2.0+PKCE）、認可（default deny、IDOR 防止）、入力バリデーション、シークレット管理、暗号化、HTTP セキュリティヘッダ |
-| `observability` | 構造化ログ（JSON、マスキング）、分散トレーシング（W3C Trace Context）、メトリクス（RED/USE メソッド）、アラート設計、ヘルスチェック |
-| `api-design` | リソース設計、HTTP メソッド・ステータスコード、エラーレスポンス、ページネーション（cursor vs offset）、バージョニング、冪等性キー、キャッシュ。参照: `reference/advanced-patterns.md` |
-
-### UI・デザイン
-
-| スキル | 内容 |
-|-------|------|
-| `visual-design` | タイポグラフィ（モジュラースケール、65ch）、色彩（OKLCH、60-30-10 ルール）、レイアウト（4pt グリッド、ゲシュタルト）、モーション、AI アンチパターン検出 |
-| `ui-quality` | アクセシビリティ（セマンティック HTML、コントラスト 4.5:1、キーボード操作）、レスポンシブ、インタラクティブ状態（8状態）、エラー UX ライティング |
-| `web-performance` | Core Web Vitals（LCP/INP/CLS）、画像最適化、フォント読み込み、バンドル最適化（200KB 以下）、リソースローディング |
-| `critique` | Nielsen ヒューリスティクス評価、認知負荷分析、ペルソナテスト、AI スロップ検出。`/critique` で手動起動。参照: `reference/heuristics-scoring.md`, `reference/personas.md`, `reference/cognitive-load.md` |
-
-### ユーティリティ
-
-| スキル | 内容 |
-|-------|------|
-| `delegation` | 委譲判断の規範。fan-out 閾値、spawn ごとのモデル選択（sonnet/fable）、バッチ信頼性契約 |
-| `plan-template` | 実装計画の必須構成（reversibility / test tier）。plan mode 時に AGENTS.md から名指しロード |
-| `concurrency-idempotency` | usecase/repository/worker パスで自動ロード。冪等性・競合状態の実装指針 |
-| `japanese-writing` | 日本語の文書を書くときの規範。AGENTS.md の Writing 節（全出力に効く核）の上に、文書にしか要らない部分を足す |
-
-## Hooks
-
-settings.json で定義。ツール実行の前後に自動で発火するシェルスクリプト。
-
-| Hook | トリガー | 動作 |
-|------|---------|------|
-| `detect-console-log.sh` | PostToolUse (Edit/Write) | `console.log` / `fmt.Println` / `print()` を検出して警告 |
-| `go-vet.sh` | PostToolUse (Edit/Write) | Go ファイル変更時に `go vet` を実行 |
-| `filter-test-output.sh` | PreToolUse (Bash) | 冗長なテスト出力をフィルタリング |
-| `notify.sh` | Stop / Notification | タスク完了時のデスクトップ通知 |
-
-## プラグイン
-
-| プラグイン | 機能 |
-|-----------|------|
-| `hookify` | Hook の管理・作成 |
-| `commit-commands` | `/commit`, `/commit-push-pr` コマンド |
-| `context7` | ライブラリドキュメントの取得 |
-| `security-guidance` | ファイル編集時のセキュリティチェック |
-| `codex@openai-codex` | OpenAI Codex CLI 連携。`/codex:review`, `/codex:rescue` などで独立レビュー・復旧判断を行う |
-
-> `gopls-lsp`, `typescript-lsp` はプロジェクト単位で有効化。グローバルでは無効。
-
-## シェルエイリアス
-
-`zsh/rc.d/aliases.zsh` で定義:
-
-| エイリアス | コマンド |
-|-----------|---------|
-| `ccode` | `claude --permission-mode auto` |
-| `ccconf` | Claude 設定ディレクトリへ移動 |

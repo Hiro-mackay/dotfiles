@@ -1,6 +1,6 @@
 ---
 name: critique
-description: UX design evaluation using Nielsen heuristics, cognitive load analysis, accessibility audit, and persona testing. Run only when the user explicitly asks to review or critique a design or interface, or invokes /critique. Do not run on your own after implementing or modifying UI code.
+description: Evaluate a specified UI or UX. Use only when the user explicitly requests a design critique or invokes /critique.
 argument-hint: "[target component, page, or feature]"
 context: fork
 agent: design-reviewer
@@ -9,34 +9,35 @@ allowed-tools: Read, Glob, Grep, Bash(git diff *), Bash(git log *)
 
 # Design Critique
 
+Review only the requested target. In Codex, use an available `design-reviewer` role for an explicitly requested critique. If already running as that reviewer, evaluate directly; never spawn another reviewer. If no such role is available, review inline.
+
 ## Design context
 
-Read `.impeccable.md` from the project root if it exists. If it does not, ask three questions before evaluating, then save the answers there:
-
-- Who is the audience, and in what situation do they use this?
-- What is the brand personality?
-- What is the primary user goal on this page or component?
+Read `.impeccable.md` at the project root if present. Otherwise use the task and existing project context to establish the audience, primary user goal, and relevant brand constraints. Return missing context to the parent; when working inline, ask only for information essential to a useful evaluation. Do not create or modify files as part of the critique.
 
 ## Evaluation
 
-Read the target files completely, then work through five dimensions.
+Read the relevant target files and inspect the rendered interface when available. Evaluate these five dimensions without treating source inspection as a visual or interaction test.
 
-**1. Does it look AI-generated.** Check against the tells in `visual-design`. Answer this one first and without softening it -- if the answer is yes, the rest of the critique is downstream of it.
+1. **Visual hierarchy.** Check whether typography, color, spacing, and layout communicate priority and support the interface's purpose.
 
-**2. Nielsen heuristics.** Score all ten from 0 to 4 using the [scoring guide](${CLAUDE_SKILL_DIR}/reference/heuristics-scoring.md), and report the table with a one-line issue against each: visibility of system status, match with the real world, user control and freedom, consistency and standards, error prevention, recognition over recall, flexibility and efficiency, aesthetic and minimalist design, error recovery, help and documentation.
+2. **Nielsen heuristics.** Assess all ten using the [scoring guide](reference/heuristics-scoring.md): status visibility, real-world match, user control, consistency, error prevention, recognition, efficiency, minimalism, error recovery, and help. Score 0-4 only where evidence supports a score. A total out of 40 requires all ten to be assessed.
 
-Out of 40: 34+ excellent, 28-33 good, 20-27 acceptable, 12-19 poor, under 12 critical.
+3. **Cognitive load.** Apply the [8-item checklist](reference/cognitive-load.md). Distinguish observed failures from items that could not be assessed. Use a failure count out of eight only when all items were assessed.
 
-**3. Cognitive load.** Run the [8-item checklist](${CLAUDE_SKILL_DIR}/reference/cognitive-load.md). 0-1 failures is fine, 2-3 is moderate, 4 or more is critical.
+4. **Technical quality.** Assess accessibility, responsive behavior, theming, and measured performance. Label inferred risks and identify the observation needed to confirm them.
 
-**4. Technical quality.** Score accessibility, responsive behavior, performance, and theming 0-4 each. Accessibility and responsive criteria are in `ui-quality` (semantics, contrast, keyboard, ARIA, zoom, touch targets, breakpoints, input detection); theming is in `visual-design` (semantic tokens, dark mode as its own palette rather than an inversion). For performance, score against `web-performance` (lazy loading, bundle weight, font and image handling) plus two things it does not cover: layout thrashing -- reads of `offsetHeight` or `getBoundingClientRect` interleaved with writes inside a loop -- and animation of properties other than `transform` and `opacity`.
-
-**5. Personas.** Pick 2-3 relevant [personas](${CLAUDE_SKILL_DIR}/reference/personas.md) and walk each through the primary action. Report the specific step where each one fails.
+5. **Personas.** Choose 2-3 relevant [personas](reference/personas.md) and trace the primary action for each. Identify the exact failing step. Label hypothetical walkthroughs as predictions, not observed user tests.
 
 ## Output
 
-- **Verdict on the AI-slop question**: pass or fail, naming the specific tells
-- **Issues, P0 to P3**: each with the issue named plainly, how it hurts users, and a concrete fix
-- **Worth preserving**: anything the design genuinely gets right that a redesign might destroy. If there is nothing, say so rather than filling the section
-- **Scores**: heuristics ??/40, cognitive load ?/8 failures, technical ??/16
-- **Order to fix in**
+Use P0-P3 as the only finding groups, ordered by severity. Omit empty groups and do not duplicate findings by evaluation dimension.
+
+- P0: The primary task is blocked for all or nearly all users, requiring immediate correction.
+- P1: A core task is blocked for an affected user group or a severe error lacks recovery.
+- P2: A usability problem causes avoidable effort or confusion but has a workable path.
+- P3: A minor consistency or presentation issue has limited user impact.
+
+For each finding, give the location, evidence, user impact, and concrete fix. Name relevant evaluation dimensions and include scores only when they clarify the finding. Preserve useful existing behavior in the proposed fix.
+
+State unverified areas and missing context in a brief ungrouped paragraph. Do not promote a prediction into a confirmed finding. If no findings are supported, say so and state the limits of the review.

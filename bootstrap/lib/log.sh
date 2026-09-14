@@ -3,7 +3,7 @@
 # Usage: source "$BOOTSTRAP_DIR/lib/log.sh"
 
 # Disable color when NO_COLOR is set or stdout is not a tty
-if [[ -n "$NO_COLOR" ]] || [[ ! -t 1 ]]; then
+if [[ -n "${NO_COLOR-}" ]] || [[ ! -t 1 ]]; then
   _C_RESET="" _C_BOLD="" _C_BLUE="" _C_CYAN="" _C_GREEN="" _C_YELLOW="" _C_RED=""
 else
   _C_RESET=$'\033[0m'

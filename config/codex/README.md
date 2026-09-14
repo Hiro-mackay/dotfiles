@@ -1,80 +1,77 @@
-# Codex は共有ルールと標準機能を使う
+# Codex は短い常設設定と必要時の拡張で動かす
 
-このディレクトリは Codex CLI とアプリの設定を管理する。
-運用ルールの編集元は [共有 AGENTS.md](../agents/AGENTS.md) だ。
-この README は自動読み込みされる指示ではない。
+この構成は GPT-6 Astra の判断力を前提にする。
+常時読む指示と利用可能な拡張を減らし、必要な文脈だけを作業中に取得する。
 
-## モデルの固定を必要最小限にする
+## 既定値は能力と消費の均衡を取る
 
-通常の作業には `gpt-6-astra` と推論量 `medium` を使う。
-`review_model` は指定せず、レビューも選択中のモデルを使う。
-重い作業だけ推論量を引き上げる。
-モデルと推論量の用途は [OpenAI 公式ドキュメント](https://learn.chatgpt.com/docs/models) に従う。
-
-Claude Code から Codex を呼ぶ `codex@openai-codex` は、Codex 内では無効にする。
-この用途のスキルやフックを Codex 自身へ追加する必要がないためだ。
-画像表示やシェル実行など、有効な標準機能は重複して設定しない。
-
-Web 検索は `cached` を使う。
-最新のページを直接取得したい CLI セッションでは `codex --search` を使う。
-モードの違いは [設定リファレンス](https://learn.chatgpt.com/docs/config-file/config-reference) を参照する。
-
-## 共有ファイルから各ツールの配置を生成する
-
-| ファイル | 役割 |
+| 項目 | 設定 |
 |---|---|
-| `config.toml` | モデル、承認、サンドボックス、フック、プラグイン |
-| `AGENTS.md` | 共有ルールから生成するコピー |
-| `skills/` | 共有スキルへのリンクと Codex 専用スキル |
-| `agents/design-reviewer.toml` | 明示依頼時に使う UI レビュー役 |
-| `script/` | コマンド検査と編集後の検査 |
+| モデル | `gpt-6-astra` |
+| 推論量 | `medium` |
+| 速度 | Standard |
+| 承認 | `on-request` と `auto_review` |
+| sandbox | `workspace-write` |
+| Web検索 | `cached` |
 
-[setup-agents.sh](../../bootstrap/setup-agents.sh) が共有ルールをコピーする。
-共有スキルの実体は `config/agents/skills/` に置く。
-同じスクリプトが Claude と Codex の両方へリンクを作る。
-[setup-codex.sh](../../bootstrap/setup-codex.sh) は CLI、依存コマンド、MCP 登録を確認する。
+Astra は明示的な制約と自動レビューに従う能力が高い。
+そのため、dotfiles 独自のコマンド名による許可や検査フックを重ねない。
+Fast は急ぎの作業で明示的に有効にする。
+完了と承認要求は、端末が非アクティブなときに通知する。
+状態行にはモデル、文脈使用量、利用枠を表示する。
 
-スキルは `$critique` のように明示して呼び出せる。
-自動選択の条件は各スキルの `description` に書く。
-`paths:` による拡張子ごとの自動適用を前提にしない。
-作成方法は [公式スキルガイド](https://learn.chatgpt.com/docs/build-skills) を参照する。
+## 常設指示は作業の境界だけを示す
 
-## フックは補助的な検査に使う
+`config/agents/AGENTS.md` が共通指示の編集元である。
+Claude は import し、Codex は `bootstrap/setup-agents.sh` が作るコピーを読む。
 
-| フック | 動作 |
+常設指示には、会話、権限、Git操作、完了条件だけを置く。
+調査手順、言語別の一般知識、細かな設計規則は置かない。
+プロジェクト固有の構成と検証コマンドは、各リポジトリの `AGENTS.md` に置く。
+
+## skill は固有の成果物を持つ3個に絞る
+
+| skill | 用途 |
 |---|---|
-| `pre-tool-policy.sh` | 一部の破壊的コマンドを文字列で検出し、拒否する |
-| `permission-request.sh` | コマンド名に基づいて許可や拒否を返す |
-| `post-edit-check.sh` | デバッグ出力を検出し、Go ファイルの編集後に `go vet` を実行する |
+| `japanese-writing` | 日本語の文書を構成して推敲する |
+| `plan-template` | 複雑な作業の実装計画を作る |
+| `critique` | 明示依頼されたUI評価を行う |
 
-コマンド名の照合は、引数まで含めた安全性の判定ではない。
-権限の制限はサンドボックスと承認設定で行う。
-`Bash` は `exec_command` にも一致する。
-`apply_patch` は `Edit` と `Write` にも一致する。
-入力形式は [公式フックガイド](https://learn.chatgpt.com/docs/hooks) を参照する。
+一般的なGo、Python、TypeScript、SQL、設計、テストの知識はAstra自身に任せる。
+同じ失敗が繰り返された場合だけ、狭いskillかプロジェクト指示として追加する。
 
-TUI 通知は `[tui]` の標準機能を使う。
-`script/notify.sh` は現在の設定からは呼び出していない。
-アプリが追加する `notify` は端末固有の設定として扱う。
+## プラグインは実際に使う2個だけ有効にする
 
-## 更新時は実際の CLI で読み込みを確認する
+| プラグイン | 用途 |
+|---|---|
+| `browser` | ローカルWeb画面の操作と確認 |
+| `ponytail` | 不要な実装と依存を抑える |
+
+文書、PDF、表計算、スライド、ログイン済みChromeの操作は常用しない。
+必要になった時点で設定から有効にする。
+
+## 構造探索と実装確認で道具を分ける
+
+`codebase-memory-mcp` は構文木から永続的な知識グラフを作る。
+広い呼び出し経路、依存関係、ハブ、影響範囲の探索に使う。
+Codex標準の検索とファイル読み取りは、候補箇所の実装と現在の差分を確認するために使う。
+
+知識グラフの結果だけで変更を確定しない。
+論文の評価では、ファイル探索より回答品質が低い一方、トークンとツール呼び出しを減らしている。
+そのため、構造探索を先に行い、対象を絞ってから正確なソースを読む。
+
+`setup-codex.sh` は利用可能な `codebase-memory-mcp` を登録する。
+実行ファイルのパスは端末固有なので、コミット時の設定抽出処理が除外する。
+
+## 変更後は実際の読み込みを確認する
 
 ```sh
-codex --version
-codex features list
+bash bootstrap/setup-agents.sh
+bash bootstrap/test-setup-agents.sh
+bash bootstrap/test-sanitize-codex-config.sh
+zsh bootstrap/setup-codex.sh
+codex mcp get codebase-memory-mcp
 codex --strict-config app-server --listen stdio:// </dev/null
-codex doctor --summary
 ```
 
-2026-09-15 に CLI `0.154.0` で厳密な設定読み込みを確認した。
-`tools.view_image` はこの版で未知の項目として拒否されたため削除した。
-`codex features list` では `view_image` が標準で有効だった。
-アプリ同梱 CLI は `0.153.4` であり、CLI とアプリの版は別々に確認する。
-設定読み込みの成功だけでは、モデル応答やフックの発火までは確認できない。
-
-## 端末固有の状態をコミットへ含めない
-
-認証、会話、履歴、SQLite、キャッシュ、生成済みスキルは Git 管理から除く。
-[設定の抽出処理](../git/hooks/sanitize-codex-config.awk) はコミット対象だけを書き換える。
-作業ツリー内の信頼設定やアプリ用 MCP 設定は残す。
-新しい設定セクションを追加する場合は、抽出処理が保持するかも確認する。
+設定方針は [Astra向けskillsとpromptの見直し](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra) と [Codexのベストプラクティス](https://learn.chatgpt.com/guides/best-practices) に基づく。

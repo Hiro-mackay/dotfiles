@@ -1,128 +1,23 @@
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"
 model = "gpt-6-astra"
-model_provider = "openai"
 model_reasoning_effort = "medium"
-model_reasoning_summary = "auto"
-model_verbosity = "medium"
-personality = "pragmatic"
-project_doc_max_bytes = 65536
 sandbox_mode = "workspace-write"
-service_tier = "fast"
 web_search = "cached"
 
-[agents]
-max_depth = 2
-max_threads = 6
-
-[analytics]
-enabled = true
-
-[auto_review]
-policy = "Block on: correctness regressions, security risks, data loss, missing tests\nfor new behavior. Do not block on style. Lead with the highest-severity item.\n"
-
-[feedback]
-enabled = true
-
-[history]
-persistence = "save-all"
-
-[[hooks.PermissionRequest]]
-matcher = "^Bash$"
-
-[[hooks.PermissionRequest.hooks]]
-command = "/Users/mackay/.dotfiles/config/codex/script/permission-request.sh"
-statusMessage = "Checking approval request"
-timeout = 10
-type = "command"
-
-[[hooks.PostToolUse]]
-matcher = "Edit|Write|^apply_patch$"
-
-[[hooks.PostToolUse.hooks]]
-command = "/Users/mackay/.dotfiles/config/codex/script/post-edit-check.sh"
-statusMessage = "Checking edited files"
-timeout = 30
-type = "command"
-
-[[hooks.PreToolUse]]
-matcher = "^Bash$"
-
-[[hooks.PreToolUse.hooks]]
-command = "/Users/mackay/.dotfiles/config/codex/script/pre-tool-policy.sh"
-statusMessage = "Checking command policy"
-timeout = 10
-type = "command"
-
-[marketplaces.openai-primary-runtime]
-source_type = "local"
-source = "/Users/mackay/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
-
-[marketplaces.claude-plugins-official]
-source_type = "git"
-source = "https://github.com/anthropics/claude-plugins-official.git"
-
-[marketplaces.openai-codex]
-source_type = "git"
-source = "https://github.com/openai/codex-plugin-cc.git"
-
-[plugins."documents@openai-primary-runtime"]
-enabled = true
-
-[plugins."presentations@openai-primary-runtime"]
-enabled = true
-
-[plugins."spreadsheets@openai-primary-runtime"]
-enabled = true
-
-[plugins."codex@openai-codex"]
-enabled = false
-
-[plugins."chrome@openai-bundled"]
-enabled = true
-
 [plugins."browser@openai-bundled"]
-enabled = true
-
-[plugins."pdf@openai-primary-runtime"]
 enabled = true
 
 [plugins."ponytail@ponytail"]
 enabled = true
 
-[sandbox_workspace_write]
-network_access = false
-writable_roots = [ "/Users/mackay/.dotfiles/config/codex", "/private/tmp" ]
-
-[shell_environment_policy]
-ignore_default_excludes = false
-inherit = "all"
-
-[shell_environment_policy.set]
-CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
-CLAUDE_CODE_NEW_INIT = "true"
-
-[tui]
-animations = true
-notification_condition = "unfocused"
-notification_method = "auto"
-notifications = [ "agent-turn-complete", "approval-requested" ]
-show_tooltips = true
-status_line = [ "model-with-reasoning", "context-used", "five-hour-limit", "weekly-limit" ]
-terminal_title = [ "spinner", "project", "git-branch" ]
-theme = "dark-daltonized"
-
-[[hooks.SessionStart]]
-matcher = "startup|resume|clear|compact"
-
-[[hooks.SessionStart.hooks]]
-type = "command"
-command = 'echo "Code discovery: prefer codebase-memory-mcp (search_graph, trace_path, get_code_snippet, query_graph, search_code) over grep/file-read; run index_repository first if the project is not indexed."'
-
-[marketplaces.openai-bundled]
-source_type = "local"
-source = "/Users/mackay/.dotfiles/config/codex/.tmp/bundled-marketplaces/openai-bundled"
-
 [marketplaces.ponytail]
 source_type = "git"
 source = "https://github.com/DietrichGebert/ponytail.git"
+
+[tui]
+notification_condition = "unfocused"
+notifications = [ "agent-turn-complete", "approval-requested" ]
+status_line = [ "model-with-reasoning", "context-used", "five-hour-limit", "weekly-limit" ]
+terminal_title = [ "spinner", "project", "git-branch" ]
+theme = "dark-daltonized"

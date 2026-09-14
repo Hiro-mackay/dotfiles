@@ -49,7 +49,7 @@ run_step "setup-lang"   "$BOOTSTRAP_DIR/setup-lang.sh"
 run_step "setup-macos"  "$BOOTSTRAP_DIR/setup-macos.sh"
 run_step "setup-vscode" "$BOOTSTRAP_DIR/setup-vscode.sh"
 run_step "setup-claude" "$BOOTSTRAP_DIR/setup-claude.sh"
-# setup-codex checks the Codex CLI, sets hook script perms, and verifies deps.
+# setup-codex checks the Codex CLI and authentication state, then registers the optional MCP server.
 # (Skill/AGENTS.md projection is handled tool-neutrally by setup-agents above.)
 run_step "setup-codex"  "$BOOTSTRAP_DIR/setup-codex.sh"
 

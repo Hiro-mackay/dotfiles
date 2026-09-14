@@ -4,11 +4,6 @@ set -e
 BOOTSTRAP_DIR="${0:a:h}"
 source "$BOOTSTRAP_DIR/lib/log.sh"
 
-# ----------------------
-# Claude Code installation check
-# ----------------------
-# Ensure ~/.local/bin is on PATH so a just-installed claude binary is visible
-# within this setup session (shell rc files aren't re-sourced after install).
 export PATH="$HOME/.local/bin:$PATH"
 
 if ! command -v claude &> /dev/null; then
@@ -20,39 +15,23 @@ if ! command -v claude &> /dev/null; then
     hash -r
 fi
 
-if ! claude --version &> /dev/null; then
+if ! CLAUDE_VERSION=$(claude --version 2>/dev/null); then
     _log_warn "'claude' command found but not working properly. Skipping."
     exit 0
 fi
 
-_log_ok "Claude Code $(claude --version 2>/dev/null) is installed."
+_log_ok "Claude Code ${CLAUDE_VERSION} is installed."
 
-# ----------------------
-# Set script permissions
-# ----------------------
-CLAUDE_SCRIPT_DIR="${XDG_CONFIG_HOME}/claude/script"
+CLAUDE_STATUSLINE="${XDG_CONFIG_HOME:-$HOME/.config}/claude/script/statusline.sh"
 
-if [[ -d "${CLAUDE_SCRIPT_DIR}" ]]; then
-    _log_run "Setting script permissions..."
-    chmod +x "${CLAUDE_SCRIPT_DIR}"/*.sh 2>/dev/null || true
-    chmod +x "${CLAUDE_SCRIPT_DIR}"/hooks/*.sh 2>/dev/null || true
-    _log_ok "Script permissions set."
+if [[ -f "$CLAUDE_STATUSLINE" ]]; then
+    chmod +x "$CLAUDE_STATUSLINE"
+    _log_ok "Status line script permissions set."
 else
-    _log_skip "Script directory not found at ${CLAUDE_SCRIPT_DIR}."
+    _log_skip "Status line script not found at ${CLAUDE_STATUSLINE}."
 fi
 
-# ----------------------
-# Check terminal-notifier (notification hook dependency)
-# ----------------------
-if ! command -v terminal-notifier &> /dev/null; then
-    _log_warn "terminal-notifier is not installed. Notification hooks will not work."
-    _log_skip "Install via 'brew install terminal-notifier'."
-fi
-
-# ----------------------
-# Register codebase-memory-mcp (MCP user scope lives in ~/.claude.json, which is
-# outside the dotfiles tree and cannot be tracked)
-# ----------------------
+# User-scoped MCP registration lives outside dotfiles in ~/.claude.json.
 if command -v codebase-memory-mcp &> /dev/null; then
     if claude mcp get codebase-memory-mcp &> /dev/null; then
         _log_ok "codebase-memory-mcp is already registered."

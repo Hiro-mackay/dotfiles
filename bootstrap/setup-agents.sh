@@ -13,7 +13,7 @@ set -euo pipefail
 #     config/codex/skills/ (both agents follow directory symlinks).
 # Projected skill symlinks are gitignored and fully reconstructible from here.
 
-dotfiles_dir="${HOME}/.dotfiles"
+dotfiles_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 agents_dir="${dotfiles_dir}/config/agents"
 agents_skills="${agents_dir}/skills"
 claude_skills="${dotfiles_dir}/config/claude/skills"
@@ -27,19 +27,24 @@ fi
 mkdir -p "$claude_skills" "$codex_skills"
 shopt -s nullglob
 
-# 2. Sweep orphan skill symlinks whose source no longer exists.
+# Only remove broken links owned by this projector.
 for dir in "$claude_skills" "$codex_skills"; do
   for entry in "$dir"/*; do
     [[ -L "$entry" ]] || continue
+    target="$(readlink "$entry")"
     name="$(basename "$entry")"
-    [[ "$name" == .* ]] && continue
-    [[ -d "$agents_skills/$name" ]] && continue
+    if [[ "$target" != "../../agents/skills/$name" \
+      && "$target" != "$agents_skills/$name" \
+      && "$target" != */config/agents/skills/"$name" ]]; then
+      continue
+    fi
+    [[ -d "$entry" ]] && continue
     rm "$entry"
-    echo "cleaned orphan skill symlink: $(basename "$dir")/$name" >&2
+    echo "cleaned orphan skill symlink: $entry" >&2
   done
 done
 
-# 3. Project each skill into both agent dirs (dir-symlink).
+# 2. Project each skill into both agent dirs (dir-symlink).
 if [[ -d "$agents_skills" ]]; then
   for skill_path in "$agents_skills"/*/; do
     name="$(basename "$skill_path")"
@@ -50,7 +55,7 @@ if [[ -d "$agents_skills" ]]; then
         echo "skip: $dst is a real dir (name collides with a native skill); not projecting" >&2
         continue
       fi
-      ln -sfn "${skill_path%/}" "$dst"
+      ln -sfn "../../agents/skills/$name" "$dst"
     done
   done
 else

@@ -1,51 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_NEW_INIT": "true",
-    "CLAUDE_CODE_THRIFTY_SONIC": "0",
     "PONYTAIL_SUBAGENT_MATCHER": "^(general-purpose|claude)$"
   },
   "permissions": {
-    "allow": [
-      "Bash(mkdir:*)",
-      "Bash(touch:*)",
-      "Bash(ls:*)",
-      "Bash(tree:*)",
-      "Bash(mv:*)",
-      "Bash(cp:*)",
-      "Bash(npm:*)",
-      "Bash(npx:*)",
-      "Bash(pnpm:*)",
-      "Bash(pkill:*)",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git add:*)",
-      "Bash(git branch:*)",
-      "Bash(git stash:*)",
-      "Bash(git worktree:*)",
-      "Bash(git checkout:*)",
-      "Bash(git switch:*)",
-      "Bash(git show:*)",
-      "Bash(git fetch:*)",
-      "Bash(git commit:*)",
-      "Bash(git rebase:*)",
-      "Bash(brew:*)",
-      "Bash(go:*)",
-      "Bash(docker:*)",
-      "Bash(stow:*)",
-      "Bash(which:*)",
-      "Bash(wc:*)",
-      "Bash(diff:*)",
-      "Bash(chmod:*)",
-      "Bash(gh:*)",
-      "Bash(python:*)",
-      "Bash(python3:*)",
-      "Bash(pip:*)",
-      "Bash(pip3:*)",
-      "Bash(bun:*)"
-    ],
     "deny": [
       "Bash(sudo:*)",
       "Bash(git reset:*)",
@@ -58,171 +16,15 @@
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
       "Edit(**/secrets/**)"
-    ]
-  },
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -n --arg cwd \"$(pwd)\" '{\"cwd\":$cwd,\"notification_type\":\"stop\"}' | ~/.claude/script/notify.sh"
-          }
-        ]
-      }
     ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/notify.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/detect-console-log.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/go-vet.sh"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/filter-test-output.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/block-no-verify.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/filter-verbose-output.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Grep|Glob",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/cbm-code-discovery-gate",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/log-subagent.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/cbm-subagent-reminder"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/script/hooks/log-subagent.sh"
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/cbm-session-reminder"
-          }
-        ]
-      },
-      {
-        "matcher": "resume",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/cbm-session-reminder"
-          }
-        ]
-      },
-      {
-        "matcher": "clear",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/cbm-session-reminder"
-          }
-        ]
-      },
-      {
-        "matcher": "compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/cbm-session-reminder"
-          }
-        ]
-      }
-    ]
+    "defaultMode": "auto"
   },
   "statusLine": {
     "type": "command",
     "command": "~/.claude/script/statusline.sh"
   },
   "enabledPlugins": {
-    "hookify@claude-code-plugins": true,
-    "commit-commands@claude-code-plugins": true,
-    "security-guidance@claude-code-plugins": true,
     "codex@openai-codex": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "understand-anything@understand-anything": true,
     "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
@@ -230,18 +32,6 @@
       "source": {
         "source": "github",
         "repo": "openai/codex-plugin-cc"
-      }
-    },
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
-      }
-    },
-    "understand-anything": {
-      "source": {
-        "source": "github",
-        "repo": "Egonex-AI/Understand-Anything"
       }
     },
     "ponytail": {
@@ -252,13 +42,15 @@
     }
   },
   "language": "ja",
-  "effortLevel": "high",
+  "sandbox": {
+    "enabled": true
+  },
+  "effortLevel": "medium",
   "modelSettings": {
     "claude-opus-5": {}
   },
   "advisorModel": "fable",
   "tui": "fullscreen",
-  "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "dark-daltonized",
   "preferredNotifChannel": "terminal_bell",

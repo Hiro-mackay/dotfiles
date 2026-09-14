@@ -1,106 +1,45 @@
 #!/usr/bin/env awk -f
-#
-# Keep only the shared portions of Codex config.toml when it enters a commit.
-# The working tree copy is left untouched; only the staged blob is rewritten by
-# the pre-commit hook that invokes this script.
-#
-# Whitelist model (default-deny): a section is committed ONLY if it matches the
-# shared list below. Anything else — including future per-machine sections Codex
-# may invent — is dropped automatically, so leaks fail safe.
-#
-# Committed (shared):
-#   - top-level keys (model, approval_policy, ... before the first section)
-#   - [agents] [analytics] [auto_review] [feedback] [history] [tools] [tui]
-#   - [sandbox_workspace_write]
-#   - [shell_environment_policy] and [shell_environment_policy.set]
-#   - [[hooks.PermissionRequest|PostToolUse|PreToolUse|SessionStart]] (+ their .hooks)
-#   - [marketplaces.*]  (source / source_type only)
-#   - [plugins.*]
-#
-# Dropped (per-machine / runtime state — not on the whitelist):
-#   - [projects.*]                  (trusted dirs leak local paths + email)
-#   - [hooks.state.*]               (per-machine hook trust hashes)
-#   - [tui.model_availability_nux]  (per-machine UX nudge counters)
-#   - [mcp_servers.*]               (machine-local MCP server paths)
-#   - last_updated / last_revision keys inside [marketplaces.*]
-#   - top-level notify = ...        (machine-local .app path; the one runtime
-#                                    key the section whitelist can't catch since
-#                                    it sits before the first section)
-#   - any section not explicitly whitelisted
+# Keep portable Codex preferences while dropping machine paths and runtime state.
+# Plugin and marketplace names are intentionally open-ended so enabling a new
+# plugin survives a commit without requiring a sanitizer change.
 
-function is_shared_section(name) {
-    return name == "[agents]" \
-        || name == "[analytics]" \
-        || name == "[auto_review]" \
-        || name == "[feedback]" \
-        || name == "[history]" \
-        || name == "[tools]" \
-        || name == "[tui]" \
-        || name == "[sandbox_workspace_write]" \
-        || name == "[shell_environment_policy]" \
-        || name == "[shell_environment_policy.set]" \
-        || name ~ /^\[\[hooks\.(PermissionRequest|PostToolUse|PreToolUse|SessionStart)(\.hooks)?\]\]$/ \
-        || name ~ /^\[marketplaces\./ \
-        || name ~ /^\[plugins\./
+function shared_top_level(line) {
+    return line ~ /^[[:space:]]*(approval_policy|approvals_reviewer|model|model_reasoning_effort|sandbox_mode|web_search)[[:space:]]*=/
 }
 
-function is_marketplaces_section(name) {
-    return name ~ /^\[marketplaces\./
+function shared_section(header) {
+    return header ~ /^\[plugins\./ \
+        || header ~ /^\[marketplaces\./ \
+        || header == "[tui]"
 }
 
 BEGIN {
-    skip = 0
-    in_marketplaces = 0
-    pending_blank = 0
     seen_section = 0
+    keep_section = 0
+    wrote_output = 0
 }
-
-# The codebase-memory-mcp installer wraps its section in >>> / <<< markers.
-# Codex rewrites reorder sections and split that wrapper, so a lone marker
-# would otherwise survive into the commit. The section itself is maintained
-# here, not by the installer.
-/^#[[:space:]]*(>>>|<<<)[[:space:]]*codebase-memory-mcp/ { next }
 
 /^\[/ {
     seen_section = 1
     header = $0
     sub(/[[:space:]]+$/, "", header)
-
-    if (!is_shared_section(header)) {
-        skip = 1
-        in_marketplaces = 0
-        pending_blank = 1
-        next
+    keep_section = shared_section(header)
+    if (keep_section) {
+        if (wrote_output) print ""
+        print header
+        wrote_output = 1
     }
-
-    skip = 0
-    in_marketplaces = is_marketplaces_section(header)
-
-    if (pending_blank) {
-        pending_blank = 0
-    }
-    print
     next
 }
 
-{
-    if (skip) next
-
-    # Drop a top-level notify key (before the first section): it carries a
-    # machine-local .app path. A notify under [tui] is kept (portable form).
-    if (!seen_section && $0 ~ /^[[:space:]]*notify[[:space:]]*=/) next
-
-    if (in_marketplaces && ($0 ~ /^[[:space:]]*last_updated[[:space:]]*=/ \
-                         || $0 ~ /^[[:space:]]*last_revision[[:space:]]*=/)) {
-        next
+!seen_section {
+    if (shared_top_level($0)) {
+        print
+        wrote_output = 1
     }
+    next
+}
 
-    # Collapse the blank line that originally separated a now-removed section
-    # from the next one — keeps the output tidy without touching real spacing.
-    if (pending_blank && $0 ~ /^[[:space:]]*$/) {
-        pending_blank = 0
-        next
-    }
-    pending_blank = 0
-    print
+keep_section && NF {
+    if ($0 !~ /^[[:space:]]*(last_updated|last_revision)[[:space:]]*=/) print
 }

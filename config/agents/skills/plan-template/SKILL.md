@@ -1,6 +1,6 @@
 ---
 name: plan-template
-description: Implementation-plan structure -- required sections including reversibility notes and test-tier declaration. Apply when drafting an implementation plan in plan mode.
+description: Structure an implementation plan. Use in plan mode for complex, ambiguous, high-risk, or long-running work.
 user-invocable: false
 ---
 

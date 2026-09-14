@@ -219,7 +219,7 @@ SHEET
     sbxc           claude in an sbx sandbox named after this dir
 
   CODEX
-    cx             codex (no approvals, no sandbox)
+    cx             codex
     cxconf         cd to codex config dir
     cx1..cx6       open N codex sessions in Warp
 

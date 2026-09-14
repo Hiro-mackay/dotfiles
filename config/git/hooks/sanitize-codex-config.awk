@@ -2,6 +2,7 @@
 # Keep portable Codex preferences while dropping machine paths and runtime state.
 # Plugin and marketplace names are intentionally open-ended so enabling a new
 # plugin survives a commit without requiring a sanitizer change.
+# TRADEOFF: New portable top-level keys need allowlisting until Codex supports a default shared profile or config include.
 
 function shared_top_level(line) {
     return line ~ /^[[:space:]]*(approval_policy|approvals_reviewer|model|model_reasoning_effort|sandbox_mode|web_search)[[:space:]]*=/

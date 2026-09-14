@@ -65,12 +65,14 @@ fi
 _log_run "Linking .hammerspoon -> .config/hammerspoon"
 ln -sfnv "$HOME/.config/hammerspoon" "$HOME/.hammerspoon"
 
-# Point this repo's git at the tracked hooks directory so the pre-commit
-# sanitizer for Codex's config.toml runs without per-machine setup.
+# Configure repository-local Git behavior.
 DOTFILES_DIR="${HOME}/.dotfiles"
 if [[ -d "${DOTFILES_DIR}/.git" ]]; then
     _log_run "Setting core.hooksPath -> config/git/hooks (repo-local)"
     git -C "${DOTFILES_DIR}" config core.hooksPath config/git/hooks
+    git -C "${DOTFILES_DIR}" config filter.codex-config.clean 'awk -f config/git/hooks/sanitize-codex-config.awk'
+    git -C "${DOTFILES_DIR}" config filter.codex-config.smudge cat
+    git -C "${DOTFILES_DIR}" config filter.codex-config.required true
 fi
 # NOTE: git-secrets pattern registration lives in setup-secrets.sh, which runs
 # after setup-brew installs git-secrets (it is unavailable at this point).

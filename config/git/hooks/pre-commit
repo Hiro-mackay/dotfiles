@@ -1,9 +1,7 @@
 #!/usr/bin/env zsh
 #
-# Sanitize Codex's config.toml in the index before it lands in a commit.
+# Keep Codex's committed config portable if the clean filter is not configured.
 # The working tree copy is left alone so Codex keeps reading its full state.
-#
-# To bypass (e.g. when intentionally landing the full file): git commit --no-verify
 
 set -e
 
@@ -68,4 +66,4 @@ if [[ "${staged_blob}" == "${sanitized_blob}" ]]; then
 fi
 
 git update-index --cacheinfo "100644,${sanitized_blob},${TARGET}"
-echo "pre-commit: sanitized ${TARGET} (runtime state stripped from commit; working tree untouched)"
+echo "pre-commit: sanitized ${TARGET} (clean-filter fallback)"

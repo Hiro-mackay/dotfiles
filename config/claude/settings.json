@@ -19,6 +19,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/script/statusline.sh"
@@ -42,9 +43,6 @@
     }
   },
   "language": "ja",
-  "sandbox": {
-    "enabled": true
-  },
   "effortLevel": "medium",
   "modelSettings": {
     "claude-opus-5": {}

@@ -1,5 +1,6 @@
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"
+sandbox_mode = "workspace-write"
 model = "gpt-5.6-sol"
 model_reasoning_effort = "medium"
 web_search = "cached"
@@ -10,9 +11,35 @@ enabled = true
 [plugins."ponytail@ponytail"]
 enabled = true
 
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."template-creator@openai-primary-runtime"]
+enabled = true
+
+[plugins."warp@codex-warp"]
+enabled = true
+
 [marketplaces.ponytail]
 source_type = "git"
 source = "https://github.com/DietrichGebert/ponytail.git"
+
+[marketplaces.openai-primary-runtime]
+source_type = "local"
+source = "/Users/mackay/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[marketplaces.codex-warp]
+source_type = "git"
+source = "https://github.com/warpdotdev/codex-warp.git"
 
 [tui]
 notification_condition = "unfocused"

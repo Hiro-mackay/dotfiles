@@ -343,16 +343,16 @@ gwa() {
   _gwt_open "$full_branch" "$start_point"
 }
 
-# gwi <issue#> — open a worktree for a GitHub issue and drop into /impl in it.
+# gwi <issue#> [--codex] — open a worktree for a GitHub issue and drop into /impl in it.
 # Sibling of gwa/gwr: resolves <type>/<slug>-<issue#> from the issue (type from a
 # conventional-commit label, slug from the title), creates the worktree (gwa),
-# assigns ports, then launches Claude Code already running /impl. Collapses the
-# issue->next->impl handoff into one command. To resume an existing worktree, just
-# cd there and run: ccode "/impl <n>".
+# assigns ports, then launches Claude Code (default) or Codex (--codex) already
+# running /impl. Collapses the issue->next->impl handoff into one command. To
+# resume an existing worktree, just cd there and run: ccode "/impl <n>".
 gwi() {
   emulate -L zsh
   local n=${1#\#}
-  [[ $n == <-> ]] || { echo "usage: gwi <issue#>"; return 1; }
+  [[ $n == <-> ]] || { echo "usage: gwi <issue#> [--codex]"; return 1; }
 
   local json type slug branch
   json=$(gh issue view "$n" --json title,labels) || return 1
@@ -365,7 +365,12 @@ gwi() {
   echo "→ $branch"
   gwa "$branch" || return 1
   task worktree:init || return 1
-  claude --permission-mode bypassPermissions "/impl $n"
+
+  if [[ "$2" == "--codex" ]]; then
+    codex --dangerously-bypass-approvals-and-sandbox "/impl $n"
+  else
+    claude --permission-mode bypassPermissions "/impl $n"
+  fi
 }
 
 gwr() {

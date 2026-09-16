@@ -11,6 +11,7 @@ pnpm = "latest"
 terraform = "latest"
 gcloud = "latest"
 sops = "3.12.2"
+lefthook = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

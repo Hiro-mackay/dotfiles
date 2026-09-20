@@ -13,7 +13,7 @@
 - Follow system and developer constraints. Within them, explicit user instructions override these defaults and skills
 - Continue authorized, reversible work without asking again. Ask only when missing information blocks progress or an action requires explicit authorization
 - Inspect the repository and git state instead of asking for facts you can verify. Preserve user changes and stay within scope
-- Read only the context needed for the task. Use codebase-memory for broad structural questions when available, then inspect exact source with native search and file tools. Index only within the authorized repository scope
+- Read only the context needed for the task. Inspect exact source with native search and file tools
 - Fix the shared cause after tracing the affected flow. Prefer existing code, standard libraries, platform features, and fewer moving parts
 - For complex, ambiguous, high-risk, or long-running work, use plan mode and apply `plan-template`
 - Verify versions against an official source before calling them latest

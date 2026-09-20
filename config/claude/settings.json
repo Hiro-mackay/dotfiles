@@ -27,7 +27,10 @@
   },
   "enabledPlugins": {
     "codex@openai-codex": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "figma@synced": false,
+    "design@synced": false,
+    "cowork-plugin-management@synced": false
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -54,5 +57,18 @@
   "theme": "dark-daltonized",
   "preferredNotifChannel": "terminal_bell",
   "remoteControlAtStartup": false,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "skipDangerousModePermissionPrompt": true,
+  "skillOverrides": {
+    "anthropic-skills:docx": "off",
+    "anthropic-skills:pptx": "off",
+    "anthropic-skills:xlsx": "off",
+    "anthropic-skills:pdf": "off",
+    "anthropic-skills:morning": "off",
+    "anthropic-skills:import-memory": "off",
+    "anthropic-skills:skill-creator": "off",
+    "codebase-memory": "off",
+    "graphify": "off",
+    "critique": "off"
+  }
 }

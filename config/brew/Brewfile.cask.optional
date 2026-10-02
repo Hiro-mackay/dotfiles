@@ -3,12 +3,7 @@
 # Essential casks live in Brewfile.cask; CLI tools in Brewfile.
 cask "appcleaner"
 cask "codex"
-cask "deepl"
-cask "discord"
 cask "docker-desktop"
 cask "google-chrome"
-cask "notion"
-cask "slack"
 cask "spotify"
 cask "visual-studio-code"
-cask "zoom"

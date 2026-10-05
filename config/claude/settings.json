@@ -7,7 +7,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "opus",
+  "model": "opus[1m]",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/script/statusline.sh"

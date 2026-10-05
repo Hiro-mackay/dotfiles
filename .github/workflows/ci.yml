@@ -72,9 +72,11 @@ jobs:
           grep -q codebase-memory-mcp "$HOME/.codex/config.toml"
           # bash as the login shell gets the same PATH and variables.
           bash -lc 'command -v claude codex mise && test -n "$DOTFILES_DIR"'
-          # This repo uses the noreply identity and its pre-commit hook, matched by remote URL.
+          # This repo runs its pre-commit hook (matched by remote URL), which takes only
+          # GitHub noreply addresses.
           test "$(git -C "$HOME/.dotfiles" config core.hooksPath)" = programs/git/hooks
-          git -C "$HOME/.dotfiles" config user.email | grep -q 'users.noreply.github.com$'
+          if git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m t; then exit 1; fi
+          git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@users.noreply.github.com commit -q --allow-empty -m t
           jq -e '.permissions.deny | index("Bash(sudo:*)")' "$HOME/.claude/settings.json"
           # The status line must render reset times with GNU date, without errors.
           sl="$(jq -r .statusLine.command "$HOME/.claude/settings.json")"

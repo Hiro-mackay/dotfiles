@@ -12,6 +12,9 @@ curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.s
 
 Then:
 
+- Git accounts live only in the untracked `~/.gitconfig.local`. On a personal
+  machine, copy the sample as is; it lists optional settings in comments:
+  `cp ~/.dotfiles/programs/git/gitconfig.local.sample ~/.gitconfig.local`
 - Sign in: `gh auth login`, `claude`, `codex`.
 - macOS: run `sbx login`, allow Hammerspoon and Warp under Accessibility, open
   Docker Desktop once, and import `programs/bettertouchtool/Default.bttpreset`.
@@ -26,6 +29,3 @@ nix run ~/.dotfiles#switch  # apply local edits without pulling
 ```
 
 CI updates `flake.lock` every Monday and pushes it to `main` once the checks pass.
-
-Repos under `~/Repository/` use the git identity in `~/.gitconfig.local`
-(untracked) if it exists.

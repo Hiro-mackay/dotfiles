@@ -1,6 +1,15 @@
 #!/bin/sh
-# pre-commit for this repo (core.hooksPath is set in programs/git/default.nix).
-# git-secrets blocks the machine-local identity from ~/.gitconfig.local.
-if git secrets --list >/dev/null 2>&1; then
-    exec git secrets --pre_commit_hook -- "$@"
-fi
+# pre-commit for this public repo (core.hooksPath is set in programs/git/default.nix).
+
+# Only a GitHub noreply address may author commits here, so no other identity
+# (a work account, a private address) reaches the public history.
+case "$(git config user.email)" in
+*@users.noreply.github.com) ;;
+*)
+    echo "pre-commit: this repo takes commits only from a GitHub noreply address (see ~/.gitconfig.local)" >&2
+    exit 1
+    ;;
+esac
+
+# Reject the strings listed as secrets.patterns in ~/.gitconfig.local.
+exec git secrets --pre_commit_hook -- "$@"

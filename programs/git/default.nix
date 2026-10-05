@@ -1,24 +1,11 @@
+# Git settings that hold on every machine. Accounts (identity, which directory uses
+# which account) live only in the untracked ~/.gitconfig.local, copied from
+# ./gitconfig.local.sample and included last so it can override anything here.
 { pkgs, ... }:
-let
-  # git-secrets provider for this repo: the machine-local identity (never tracked)
-  # becomes a prohibited pattern at scan time, so it can never be committed here.
-  localIdentityPatterns = pkgs.writeShellScript "gitconfig-local-patterns" ''
-    file="$HOME/.gitconfig.local"
-    [ -f "$file" ] || exit 0
-    for key in user.name user.email; do
-      ${pkgs.git}/bin/git config -f "$file" "$key" || true
-    done | ${pkgs.gnused}/bin/sed 's/[][\\.*^$+?(){}|]/\\&/g'
-  '';
-  identity = {
-    name = "mackay";
-    email = "43330841+Hiro-mackay@users.noreply.github.com";
-  };
-in
 {
   programs.git = {
     enable = true;
     settings = {
-      user = identity;
       core = {
         editor = "vim";
         quotepath = false;
@@ -41,24 +28,14 @@ in
     ];
 
     includes = [
-      # Per-directory identity for repos under the ghq root; the file stays on the machine.
-      {
-        condition = "gitdir:~/Repository/";
-        path = "~/.gitconfig.local";
-      }
+      { path = "~/.gitconfig.local"; }
     ]
-    # This public repo wherever it is cloned (matched by remote URL, listed after the
-    # include above so it wins): the noreply identity, and the pre-commit hook
-    # (git-secrets) with the identity patterns above.
+    # This public repo, wherever it is cloned: run its pre-commit hook.
     ++
       map
         (url: {
           condition = "hasconfig:remote.*.url:${url}";
-          contents = {
-            user = identity;
-            core.hooksPath = "programs/git/hooks";
-            secrets.providers = "${localIdentityPatterns}";
-          };
+          contents.core.hooksPath = "programs/git/hooks";
         })
         [
           "https://github.com/Hiro-mackay/dotfiles*"

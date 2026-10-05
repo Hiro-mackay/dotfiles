@@ -21,10 +21,11 @@ Then:
 ## Update
 
 ```sh
-nix run ~/.dotfiles#switch            # apply changes in this repo
-nix flake update --flake ~/.dotfiles  # update Nix inputs
-mise upgrade                          # update languages and tools
+dotup                       # pull this repo, apply it, upgrade mise tools
+nix run ~/.dotfiles#switch  # apply local edits without pulling
 ```
+
+CI updates `flake.lock` every Monday and pushes it to `main` once the checks pass.
 
 Repos under `~/Repository/` use the git identity in `~/.gitconfig.local`
 (untracked) if it exists.

@@ -30,3 +30,11 @@ export CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000
 # -----------------
 # Snapshot installed extensions into dotfiles (run after adding/removing one).
 (( $+commands[code] )) && alias codeexport="code --list-extensions | sort > $DOTFILES_DIR/programs/vscode/extensions"
+
+# -----------------
+#  Dotfiles
+# -----------------
+# Pull this repo and apply it (Nix packages pinned in flake.lock, Homebrew), then upgrade mise tools.
+dotup() {
+  git -C "$DOTFILES_DIR" pull --ff-only && nix run "$DOTFILES_DIR#switch" && mise upgrade --yes
+}

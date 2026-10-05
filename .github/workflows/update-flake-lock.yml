@@ -1,5 +1,7 @@
 name: update-flake-lock
 
+# Weekly: update flake.lock on a branch, run the full CI on it, and fast-forward main
+# when it passes. A failed run leaves the branch for inspection and main untouched.
 on:
   workflow_dispatch:
   schedule:
@@ -7,15 +9,43 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
+
+env:
+  BRANCH: flake-update/${{ github.run_id }}
 
 jobs:
-  lock:
+  update:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.update.outputs.changed }}
     steps:
       - uses: actions/checkout@v7
       - uses: DeterminateSystems/determinate-nix-action@v3
-      - uses: DeterminateSystems/update-flake-lock@v29
+      - id: update
+        run: |
+          nix flake update
+          if git diff --quiet flake.lock; then echo changed=false >>"$GITHUB_OUTPUT"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(flake): update flake.lock"
+          git push origin "HEAD:refs/heads/$BRANCH"
+          echo changed=true >>"$GITHUB_OUTPUT"
+
+  ci:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: flake-update/${{ github.run_id }}
+
+  merge:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
         with:
-          pr-title: "chore(flake): update flake.lock"
-          commit-msg: "chore(flake): update flake.lock"
+          ref: ${{ env.BRANCH }}
+      # Fast-forward only: if main moved meanwhile, the push is rejected and nothing changes.
+      - run: |
+          git push origin HEAD:main
+          git push origin --delete "$BRANCH"

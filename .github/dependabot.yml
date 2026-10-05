@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # Nix inputs are not supported by Dependabot; update-flake-lock.yml covers them.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -205,6 +205,9 @@ SHEET
   KUBERNETES
     k              kubectl
 
+  DOTFILES
+    dotup          pull dotfiles, apply them, upgrade mise tools
+
   EDITORS
     co             open VS Code here
     em             emacs

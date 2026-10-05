@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  # Called by update-flake-lock.yml to check its branch before it reaches main.
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -15,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
       - uses: DeterminateSystems/determinate-nix-action@v3
       - run: nix flake check --all-systems --no-build --impure
       - run: nix fmt -- --ci
@@ -23,6 +31,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
       - uses: DeterminateSystems/determinate-nix-action@v3
         with:
           extra-conf: |
@@ -37,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
       - name: install.sh
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -83,7 +83,6 @@ SHEET
     dprune   prune stopped containers + images
     dprunea  prune everything (including volumes)
 
-  PODMAN: same commands with 'p' prefix (pc, pcu, pcd, pp, pexec, plz, ...)
 SHEET
       ;;
     fzf)
@@ -129,7 +128,6 @@ SHEET
     ac         ~/Repository/github.com/acompany-develop
     dl / dt / doc   Downloads / Desktop / Documents
     dotfiles   ~/.dotfiles       dotconf  ~/.config
-    drive      Google Drive
 
   SMART NAVIGATION
     g          fzf select from ghq repos
@@ -182,7 +180,7 @@ SHEET
     rndl -s 16             16-char with symbols
 
   DISPOSABLE ENV
-    ubuntu           docker/podman: run ubuntu bash shell
+    ubuntu           docker: run ubuntu bash shell
 
   OTHER
     howlong          timestamp of last command
@@ -203,7 +201,6 @@ SHEET
     pyfreeze       export requirements.txt
 
   RUST
-    compete        cargo compete (competitive programming)
 
   KUBERNETES
     k              kubectl
@@ -225,7 +222,6 @@ SHEET
 
   TUI TOOLS
     lg             lazygit   (visual git)
-    lzd            lazydocker (visual docker)
 
   DIRENV
     echo 'export KEY=val' > .envrc

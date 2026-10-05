@@ -13,16 +13,12 @@ alias lt3="ls --tree --level=3 -a"
 alias cat="bat"
 alias c="clear"
 alias e="exit"
-alias op="open ."
-alias pwdcp='printf %s "$PWD" | pbcopy'
-alias cpb="tee >(ghead -c -1 | pbcopy)"
 alias howlong='fc -lDt "%Y-%m-%d %H:%M:%S" -1'
 
 # -----------------
 #  editor
 # -----------------
-alias co="code ."
-alias em="emacs"
+(( $+commands[code] )) && alias co="code ."
 
 # -----------------
 #  Claude
@@ -39,7 +35,7 @@ alias cxconf="cd $XDG_CONFIG_HOME/codex"
 # -----------------
 #  zsh config
 # -----------------
-alias edzsh="code $ZDOTDIR"
+(( $+commands[code] )) && alias edzsh="code $ZDOTDIR"
 alias sozsh="source $ZDOTDIR/.zshrc"
 
 # -----------------
@@ -59,4 +55,3 @@ g() {
 }
 alias dotconf="cd $XDG_CONFIG_HOME"
 alias dotfiles="cd $DOTFILES_DIR"
-alias drive='cd "$HOME/Google Drive/My Drive"'

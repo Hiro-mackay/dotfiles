@@ -30,9 +30,16 @@ export HISTSIZE=100000
 export SAVEHIST=100000
 
 # -----------------
-#  Homebrew
+#  home-manager session variables (NH_FLAKE, plugin paths, mise shims)
 # -----------------
-export BREW_HOME=/opt/homebrew
+for _hm_vars in /etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh \
+                $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh; do
+  if [[ -r $_hm_vars ]]; then
+    . $_hm_vars
+    break
+  fi
+done
+unset _hm_vars
 
 # -----------------
 #  Rust
@@ -63,13 +70,6 @@ export FZF_DEFAULT_OPTS='
 export FZF_CTRL_R_OPTS='--preview "echo {}" --preview-window=up:3:wrap'
 export FZF_CTRL_T_OPTS='--preview "bat --color=always --style=numbers --line-range=:300 {}"'
 export FZF_ALT_C_OPTS='--preview "eza --tree --level=2 --icons {}"'
-
-# -----------------
-#  Google Cloud SDK
-# -----------------
-if [[ -f "$HOME/.google-cloud-sdk/path.zsh.inc" ]]; then
-  . "$HOME/.google-cloud-sdk/path.zsh.inc"
-fi
 
 # -----------------
 #  Cargo

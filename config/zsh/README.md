@@ -4,7 +4,7 @@ A modular zsh environment for macOS. Provides shorthand aliases for Git, Docker,
 
 ## Prerequisites
 
-The following tools are installed via [Brewfile](../brew/Brewfile) during `install.sh`:
+The following tools are installed by Nix (`modules/home/default.nix`), except uv which comes from mise:
 
 | Tool | Role |
 |------|------|
@@ -19,7 +19,6 @@ The following tools are installed via [Brewfile](../brew/Brewfile) during `insta
 | [starship](https://starship.rs) | Prompt showing git/language/duration info (non-Warp) |
 | [direnv](https://github.com/direnv/direnv) | Per-directory environment variables |
 | [lazygit](https://github.com/jesseduffield/lazygit) | Terminal UI for git |
-| [lazydocker](https://github.com/jesseduffield/lazydocker) | Terminal UI for docker |
 | [mise](https://github.com/jdx/mise) | Runtime version manager (node, python, go, etc.) |
 | [uv](https://github.com/astral-sh/uv) | Fast Python package manager |
 
@@ -30,16 +29,19 @@ zsh/
 ├── .zshenv              # Env vars, history, fzf config (loaded first)
 ├── .zshrc               # PATH, shell options, completion, sources rc.d/
 └── rc.d/                # Modular configs (sourced in alphabetical order)
+    ├── _container.zsh   # Shared docker alias template and fzf helpers
     ├── aliases.zsh      # ls, cat, editor, directory shortcuts
     ├── cheat.zsh        # In-terminal quick reference (cheat command)
+    ├── darwin.zsh       # macOS only: clipboard, open, sbxc, ccgo (skipped on Linux)
     ├── dev.zsh          # Python, Rust, k8s, package manager
     ├── docker.zsh       # Docker Compose, container management
     ├── functions.zsh    # Utility functions (HTTP, network, filesystem)
     ├── git.zsh          # Git aliases, worktree, rebase
-    └── plugins.zsh      # Plugin init (fzf, zoxide, starship, etc.)
+    ├── plugins.zsh      # Plugin init (fzf, zoxide, starship, etc.)
+    └── warp-code.zsh    # macOS only: c1-c6 / cx1-cx6 Warp split sessions
 ```
 
-To edit: `edzsh` opens this directory in Cursor.
+To edit: `edzsh` opens this directory in VS Code (defined only when `code` exists).
 To reload after editing: `sozsh`.
 
 ---
@@ -156,7 +158,6 @@ Fixed shortcuts to common locations:
 | `dl` / `dt` / `doc` | `~/Downloads` / `~/Desktop` / `~/Documents` |
 | `dotfiles` | `~/.dotfiles` |
 | `dotconf` | `~/.config` |
-| `drive` | `~/Google Drive/My Drive` |
 
 ### Repository jump (`g`)
 
@@ -384,10 +385,8 @@ All Docker aliases are prefixed with `d`. Compose commands start with `dc`.
 
 | Command | Description |
 |---------|-------------|
-| `compete` | `cargo compete` (Rust competitive programming) |
 | `k` | `kubectl` |
 | `lg` | Open lazygit (interactive git TUI) |
-| `lzd` | Open lazydocker (interactive docker TUI) |
 | `ccode` | Start Claude Code |
 | `cx` | Start Codex |
 

@@ -1,3 +1,5 @@
+[[ $OSTYPE == darwin* ]] || return 0
+
 # Spawn N parallel coding-agent sessions in a new Warp tab (current window) with split layout.
 # Uses AppleScript / System Events keystrokes — requires Accessibility permission
 # (granted on first run via macOS dialog).

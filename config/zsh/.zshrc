@@ -17,6 +17,15 @@ setopt hist_verify             # confirm before executing history expansion
 setopt +o nomatch
 
 # -----------------
+#  history
+# -----------------
+# /etc/zshrc (macOS, nix-darwin) resets these after .zshenv, so set them here.
+HISTFILE="$XDG_STATE_HOME/zsh/history"
+HISTSIZE=100000
+SAVEHIST=100000
+HISTORY_IGNORE="(*DATABASE_URL=*|*PASSWORD=*|*SECRET=*|*TOKEN=*|*API_KEY=*)"
+
+# -----------------
 #  completion
 # -----------------
 if [[ -d "$HOME/.docker/completions" ]]; then
@@ -29,21 +38,21 @@ else
   compinit -C
 fi
 
-if [[ -f "$HOME/.google-cloud-sdk/completion.zsh.inc" ]]; then
-  source "$HOME/.google-cloud-sdk/completion.zsh.inc"
-fi
-
 # -----------------
 #  PATH
 # -----------------
+# Nix profiles come from /etc/zshenv (nix-darwin) or the Nix installer and stay ahead
+# of the system dirs. Homebrew (macOS casks such as code, zed, and sbx) goes last so
+# a cask-installed binary never shadows the Nix one.
 typeset -U path
+path=(${path:#/opt/homebrew/*})
 path=(
     $HOME/.local/bin(N-/)
-    ${BREW_HOME}/bin(N-/)
-    ${BREW_HOME}/sbin(N-/)
     ${CARGO_HOME}/bin(N-/)
     ${PNPM_HOME}(N-/)
     $path
+    /opt/homebrew/bin(N-/)
+    /opt/homebrew/sbin(N-/)
 )
 
 # -----------------

@@ -31,10 +31,9 @@ if command -v direnv &>/dev/null; then
 fi
 
 # -----------------
-#  lazygit / lazydocker
+#  lazygit
 # -----------------
 alias lg="lazygit"
-alias lzd="lazydocker"
 
 # -----------------
 #  starship (prompt)
@@ -48,15 +47,22 @@ if [[ "$TERM_PROGRAM" != "WarpTerminal" ]]; then
 fi
 
 # -----------------
+#  command-not-found (nix-index: suggests the package that provides a command)
+# -----------------
+if [[ -r "$DOTFILES_COMMAND_NOT_FOUND" ]]; then
+  source "$DOTFILES_COMMAND_NOT_FOUND"
+fi
+
+# -----------------
 #  zsh-autosuggestions
 # -----------------
-if [[ -f "$BREW_HOME/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-  source "$BREW_HOME/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+if [[ -r "$DOTFILES_ZSH_AUTOSUGGESTIONS" ]]; then
+  source "$DOTFILES_ZSH_AUTOSUGGESTIONS"
 fi
 
 # -----------------
 #  zsh-syntax-highlighting (must be last)
 # -----------------
-if [[ -f "$BREW_HOME/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
-  source "$BREW_HOME/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+if [[ -r "$DOTFILES_ZSH_SYNTAX_HIGHLIGHTING" ]]; then
+  source "$DOTFILES_ZSH_SYNTAX_HIGHLIGHTING"
 fi

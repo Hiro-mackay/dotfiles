@@ -1,7 +1,7 @@
 # =================
-#  Container aliases (shared template for docker / podman)
+#  Container aliases (docker)
 # =================
-# This file defines _container_aliases and is sourced before docker.zsh / podman.zsh
+# This file defines _container_aliases and is sourced before docker.zsh
 # because "_" sorts before "a-z" in the rc.d/*.zsh glob.
 
 _container_aliases() {
@@ -43,7 +43,7 @@ _container_aliases() {
 
 }
 
-# fzf interactive helpers (shared between docker / podman)
+# fzf interactive helpers
 _container_exec() {
   local rt=$1 cid
   cid=$("$rt" ps --format '{{.Names}}' | fzf --height=40% --reverse) || return
@@ -66,8 +66,5 @@ _container_lz() {
 }
 
 dexec() { _container_exec docker }
-pexec() { _container_exec podman }
 dclz()  { _container_clz docker }
-pclz()  { _container_clz podman }
 dlz()   { _container_lz docker }
-plz()   { _container_lz podman }

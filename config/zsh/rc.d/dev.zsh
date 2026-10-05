@@ -10,11 +10,6 @@ alias pyrm="rm -rf .venv"
 alias pyfreeze="uv pip freeze > requirements.txt"
 
 # -----------------
-#  Rust
-# -----------------
-alias compete="cargo compete"
-
-# -----------------
 #  Kubernetes
 # -----------------
 alias k="kubectl"
@@ -34,4 +29,4 @@ export CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000
 #  VS Code
 # -----------------
 # Snapshot installed extensions into dotfiles (run after adding/removing one).
-alias codeexport="code --list-extensions | sort > ${XDG_CONFIG_HOME:-$HOME/.config}/vscode/extensions"
+(( $+commands[code] )) && alias codeexport="code --list-extensions | sort > ${XDG_CONFIG_HOME:-$HOME/.config}/vscode/extensions"

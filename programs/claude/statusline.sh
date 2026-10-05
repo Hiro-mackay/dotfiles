@@ -29,7 +29,7 @@ battery() {
   left=$((100 - used)); [ "$left" -lt 0 ] && left=0
   cells=$(((left + 10) / 20))
   resets=$(echo "$input" | jq -r ".rate_limits.$key.resets_at // empty")
-  [ -n "$resets" ] && resets=" ${DIM}$(date -r "$resets" +%m/%d\ %H:%M)${RESET}"
+  [ -n "$resets" ] && resets=" ${DIM}$(date -r "$resets" +%m/%d\ %H:%M 2>/dev/null || date -d "@$resets" +%m/%d\ %H:%M)${RESET}"
   printf " ${DIM}|${RESET} %s %b[%s%s] %d%%${RESET}%b" "$label" "$(color_used "$used")" \
     "$(printf "%${cells}s" | tr ' ' '▮')" "$(printf "%$((5 - cells))s" | tr ' ' '▯')" "$left" "$resets"
 }

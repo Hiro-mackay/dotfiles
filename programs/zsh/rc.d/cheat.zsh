@@ -125,7 +125,6 @@ SHEET
   FIXED ALIASES
     repo       ~/Repository/github.com
     mackay     ~/Repository/github.com/Hiro-mackay
-    ac         ~/Repository/github.com/acompany-develop
     dl / dt / doc   Downloads / Desktop / Documents
     dotfiles   ~/.dotfiles       dotconf  ~/.config
 

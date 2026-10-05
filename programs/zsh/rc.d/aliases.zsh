@@ -45,7 +45,6 @@ alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias doc="cd ~/Documents"
 alias repo="cd ~/Repository/github.com"
-alias ac="cd ~/Repository/github.com/acompany-develop"
 alias mackay="cd ~/Repository/github.com/Hiro-mackay"
 g() {
   local root repo

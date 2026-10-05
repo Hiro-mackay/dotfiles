@@ -53,6 +53,11 @@ pkgs.writeShellApplication {
         export MISE_GITHUB_TOKEN="$token"
       fi
     fi
-    mise install --yes || warn "mise install failed; rerun 'mise install'"
+    # Last step, so a failure leaves the applied configuration in place but still fails
+    # the run (install.sh then stops before "Done").
+    if ! mise install --yes; then
+      echo "error: mise install failed (GitHub API rate limit without a token?). Run 'gh auth login', then 'mise install'." >&2
+      exit 1
+    fi
   '';
 }

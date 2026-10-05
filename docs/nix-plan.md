@@ -103,7 +103,7 @@ flake.nix
    - Linux: `nh home switch --no-nom <flake> -c <system> -b backup -- --impure`
    - nh は build をユーザーの権限で行い、`activate` だけを sudo で実行する。そのため、Mac の初回（`darwin-rebuild` がまだない状態）でもそのまま動く
 2. 適用したばかりの home-manager の環境変数（`CARGO_HOME` など）を読み込んでから、`mise install` を実行する。読み込まないと、初回に rust などが別の場所へ入る。`gh auth token` で値が取れれば、`MISE_GITHUB_TOKEN` に渡す
-3. `mise install` は、失敗しても警告を出して先に進む
+3. `mise install` が失敗すると、終了コード1で終える。最後の処理なので、構成の適用は済んでいる。install.sh は「Done」を出さずに止まる
 
 ### 4.3 Mac（`darwin.nix`）
 

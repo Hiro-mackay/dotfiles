@@ -152,7 +152,7 @@ flake.nix
 | 対象 | 扱い |
 |---|---|
 | 本体 | llm-agents.nix。版は flake.lock で固定。自動更新は止まっている |
-| `~/.claude/settings.json` | `settings.json` を読み取り専用で配る。禁止ルールもここに書く。読み取り専用なので、Claude 自身が禁止ルールを緩めることもできない |
+| `~/.claude/settings.json` | `settings.json` を読み取り専用で配る。禁止ルールもここに書く。禁止ルールは事故を防ぐためのもので、権限の境界ではない（ファイルは利用者のホームにある symlink なので、普通の `rm` で置き換えられる） |
 | `~/.claude/CLAUDE.md` | `programs/agents/AGENTS.md` と `programs/claude/CLAUDE.md`（Claude だけの補足）をつなげて配る |
 | skills | `programs/agents/skills/` の skill ごとにリンクする。`synced` など、Claude が自分で置くものとは共存する |
 | プラグイン | ponytail と codex。flake の入力で版を固定し、個人プラグインとして読み込む |

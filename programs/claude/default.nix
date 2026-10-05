@@ -1,7 +1,8 @@
 # Claude Code: package, settings, CLAUDE.md, skills, plugins and MCP all come from Nix.
 # settings.json is read-only, so /model, /config and /plugin changes last only for the
-# session; edit settings.json here and switch to keep them. This also means Claude
-# cannot loosen its own deny rules.
+# session; edit settings.json here and switch to keep them. The deny rules guard
+# against accidents, not against a determined agent: the file is a symlink in the
+# user's home that a plain rm can replace.
 {
   lib,
   pkgs,

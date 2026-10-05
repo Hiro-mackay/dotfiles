@@ -49,6 +49,8 @@ jobs:
       - name: Verify links, tools and shell
         run: |
           set -eux
+          # Steps run in a non-login shell: load the Nix profile into PATH.
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
           test "$(readlink "$HOME/.config")" = "$HOME/.dotfiles/config"
           test "$(readlink "$HOME/.zshenv")" = "$HOME/.dotfiles/config/zsh/.zshenv"
           test "$(readlink "$HOME/.claude")" = "$HOME/.config/claude"

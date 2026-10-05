@@ -54,3 +54,26 @@ end)
 
 EisuKana.use:start()
 EisuKana.flags:start()
+
+-- An external display goes above the built-in one, horizontally centered. Runs on
+-- every display change, so it also applies to a display connected for the first time.
+-- With several external displays, only the first is moved.
+local function placeExternalDisplay()
+  local builtin, external
+  for _, screen in ipairs(hs.screen.allScreens()) do
+    local name = screen:name() or ""
+    if name:match("Built%-in") or name:match("内蔵") then
+      builtin = screen
+    elseif not external then
+      external = screen
+    end
+  end
+  if not (builtin and external) then return end
+  local b, e = builtin:fullFrame(), external:fullFrame()
+  local x, y = math.floor(b.x + (b.w - e.w) / 2), b.y - e.h
+  if e.x ~= x or e.y ~= y then external:setOrigin(x, y) end
+end
+
+-- Global for the same GC reason as the eventtaps above.
+DisplayWatcher = hs.screen.watcher.new(placeExternalDisplay):start()
+placeExternalDisplay()

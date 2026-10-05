@@ -36,12 +36,19 @@ in
       share = true;
       ignoreSpace = true;
       ignoreAllDups = true;
+      # Best effort: commands that look like they carry a credential are not written to
+      # the history file. Case-insensitive via brackets (no extended_glob needed).
       ignorePatterns = [
+        "*[Tt][Oo][Kk][Ee][Nn]*=*"
+        "*[Ss][Ee][Cc][Rr][Ee][Tt]*"
+        "*[Pp][Aa][Ss][Ss][Ww]*"
+        "*[Aa][Pp][Ii]_[Kk][Ee][Yy]*"
+        "*[Pp][Rr][Ii][Vv][Aa][Tt][Ee]_[Kk][Ee][Yy]*"
+        "*[Aa][Cc][Cc][Ee][Ss][Ss]_[Kk][Ee][Yy]*"
         "*DATABASE_URL=*"
-        "*PASSWORD=*"
-        "*SECRET=*"
-        "*TOKEN=*"
-        "*API_KEY=*"
+        "*[Aa]uthorization:*"
+        "*[Bb]earer *"
+        "*://*:*@*"
       ];
     };
 
@@ -57,14 +64,18 @@ in
       "NO_NOMATCH"
     ];
 
-    # Rebuild the completion cache at most once a day.
+    # Rebuild the completion cache at most once a day. The (#q...) glob qualifier
+    # needs extended_glob, enabled only inside this function.
     completionInit = ''
       autoload -Uz compinit
-      if [[ -n ''${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
-        compinit
-      else
-        compinit -C
-      fi
+      () {
+        setopt local_options extended_glob
+        if [[ -n ''${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
+          compinit
+        else
+          compinit -C
+        fi
+      }
     '';
 
     autosuggestion.enable = true;
@@ -77,12 +88,14 @@ in
           fpath=($HOME/.docker/completions $fpath)
         fi
       '')
+      # Homebrew (casks such as code and zed, and sbx) is appended so a cask binary never
+      # shadows the Nix one, and before rc.d so its `code` checks see it.
+      (lib.mkIf isDarwin (
+        lib.mkOrder 900 ''
+          path+=(/opt/homebrew/bin(N-/) /opt/homebrew/sbin(N-/))
+        ''
+      ))
       (lib.concatMapStringsSep "\n" (name: "source ${./rc.d}/${name}.zsh") rcFiles)
-      # Homebrew (casks such as code and zed, and sbx) goes last so a cask binary
-      # never shadows the Nix one.
-      (lib.mkIf isDarwin ''
-        path+=(/opt/homebrew/bin(N-/) /opt/homebrew/sbin(N-/))
-      '')
       ''
         if [[ -f "$ZDOTDIR/.zshrc.local" ]]; then
           source "$ZDOTDIR/.zshrc.local"

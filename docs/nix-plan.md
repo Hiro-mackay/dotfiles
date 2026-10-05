@@ -92,14 +92,14 @@ flake.nix
 | determinate、nix-index-database | 最新 |
 | ponytail、codex-plugin-cc | Claude Code のプラグイン。flake.lock で固定 |
 
-- **ユーザー名とホームディレクトリ**: flake に書かず、`USER` と `HOME` から読む（`--impure`）。設定の名前は `darwinConfigurations.default` / `minimal` と `homeConfigurations.<system>` で、ユーザー名を含まない。`--impure` なしで評価したとき（`nix flake check`）は仮のユーザー（`nixuser`）を使う。ユーザー名が `root` なら評価を失敗させる
+- **ユーザー名とホームディレクトリ**: flake に書かず、`USER` と `HOME` から読む（`--impure`）。設定の名前は `darwinConfigurations.default` と `homeConfigurations.<system>` で、ユーザー名を含まない。`--impure` なしで評価したとき（`nix flake check`）は仮のユーザー（`nixuser`）を使う。ユーザー名が `root` なら評価を失敗させる
 - **numtide のキャッシュ**: flake の `nixConfig` には書かない（信頼されたユーザー以外では無視される）。install.sh が Nix のインストール時に渡す。Mac では、その後 `determinateNix.customSettings` が引き継ぐ。インストーラが書いた `/etc/nix/nix.custom.conf` は nix-darwin の管理とぶつかるので、install.sh が最初の switch の前に `.before-nix-darwin` へ退避する
 - **その他**: GC は Determinate Nixd に任せる。フォーマッタは `nixfmt-tree`。stateVersion は `home.stateVersion = "26.05"`、`system.stateVersion = 7`
 
 ### 4.2 入口のコマンド（`nix run .#switch`）
 
 1. OS を判定して、nh で適用する。適用するのは、このコマンドを実行した flake 自身だ。worktree で実行すればその内容が、`nix run github:...` なら GitHub の内容が適用される
-   - Mac: `nh darwin switch --no-nom <flake> -H <構成> -- --impure`。構成（`default` か `minimal`）は `DOTFILES_HOST` で指定する。指定した値は `~/.local/state/dotfiles/host` に記録し、次からはそれを使う
+   - Mac: `nh darwin switch --no-nom <flake> -H default -- --impure`
    - Linux: `nh home switch --no-nom <flake> -c <system> -b backup -- --impure`
    - nh は build をユーザーの権限で行い、`activate` だけを sudo で実行する。そのため、Mac の初回（`darwin-rebuild` がまだない状態）でもそのまま動く
 2. 適用したばかりの home-manager の環境変数（`CARGO_HOME` など）を読み込んでから、`mise install` を実行する。読み込まないと、初回に rust などが別の場所へ入る。`gh auth token` で値が取れれば、`MISE_GITHUB_TOKEN` に渡す
@@ -108,8 +108,7 @@ flake.nix
 ### 4.3 Mac（`darwin.nix`）
 
 - **macOS の設定**（旧 `setup-macos.sh`）: `darwin/defaults.nix` に書く。型付きのオプションがないものは `CustomUserPreferences`、root で書くものは `CustomSystemPreferences` を使う。LSQuarantine の無効化は `DOTFILES_DISABLE_QUARANTINE=1` を付けて switch したときだけ行う
-- **Homebrew**: `darwin/homebrew.nix` に書く。nix-homebrew で Homebrew 本体の版を固定する。cask、Kindle（masApps）、VS Code の拡張機能（`homebrew.vscode`。一覧は `programs/vscode/extensions`）を宣言する。`cleanup` は、最初の switch を確かめてから `"zap"` にする。brew bundle は activation の中で home-manager より先に走るので、失敗しても警告だけにして先へ進める
-- **制限付きの Mac**: `darwinConfigurations.minimal` を使う（`DOTFILES_HOST=minimal`。一度指定すれば記録される）。cask は必須の Hammerspoon と Warp だけになる
+- **Homebrew**: `darwin/homebrew.nix` に書く。nix-homebrew で Homebrew 本体の版を固定する。cask と、VS Code の拡張機能（`homebrew.vscode`。一覧は `programs/vscode/extensions`。VS Code を Homebrew で入れているときだけ）を宣言する。Homebrew の外ですでに入っているアプリ（会社の MDM、手で入れたもの）の cask は、評価のときに飛ばす（`--impure` で `/Applications` と Homebrew の Caskroom を見る）。そのアプリは、入れた側が管理と更新を続ける。`cleanup` は、最初の switch を確かめてから `"zap"` にする。brew bundle は activation の中で home-manager より先に走るので、失敗しても警告だけにして先へ進める
 - **その他**: Touch ID で sudo を通す。Mac だけの CLI（emacs、shellcheck、watch、terminal-notifier、coreutils-prefixed）は `environment.systemPackages` で入れる。nix-darwin の zsh の既定の動きのうち `promptInit` と全員分の `compinit` は止める
 
 ### 4.4 Linux（`linux.nix` と `install.sh`）
@@ -127,7 +126,7 @@ flake.nix
 - 履歴は `~/.local/state/zsh/history` に10万件保存する。`*DATABASE_URL=*`、`*TOKEN=*` などは履歴に残さない
 - エイリアスと関数は `rc.d/*.zsh` のまま、store から読み込む。Mac だけのファイル（`darwin.zsh`、`warp-code.zsh`）は、Mac の構成にだけ入れる
 - 入力補完の候補表示、構文のハイライト、zoxide、direnv、mise、command-not-found は、home-manager のモジュールでつなぐ。fzf のキーバインドと starship だけは、Warp の中では読み込まないように `rc.d/plugins.zsh` に残す
-- Mac では、PATH の末尾に Homebrew を足す。cask が置く `code`、`zed` と、`sbx` のためだ
+- Mac では、PATH の末尾に Homebrew を足す。cask が置く `code` と `sbx` のためだ
 - その環境だけの設定は `~/.config/zsh/.zshrc.local` に書けば読み込まれる（追跡しない）
 
 ### 4.6 開発ツールと言語
@@ -164,7 +163,7 @@ flake.nix
 
 | 対象 | 扱い |
 |---|---|
-| 本体 | llm-agents.nix |
+| 本体 | CLI は llm-agents.nix。Codex.app（Mac）は cask で、自分専用の codex を内蔵するので CLI とは版が別になる。どちらも `~/.codex` の設定を読む |
 | `~/.codex/AGENTS.md`、skills | `programs/agents` から配る。Codex は symlink の AGENTS.md も、skill のディレクトリの symlink も読む（ソースで確認） |
 | 共通の設定 | `programs/codex/config.toml` に宣言する。home-manager の `mutableSettings` が、switch のたびに `~/.codex/config.toml` へ合成する |
 | `~/.codex/config.toml` | 書き込めるファイルのまま残し、追跡しない。Codex が書く trust や端末固有のパスは残る。宣言したキーは宣言の値に戻る |
@@ -190,7 +189,7 @@ GitHub Actions で次の4つを行う。
 
 `docs/additional-setup.md` にまとめてある。
 
-- **Mac（最初の switch の前）**: Command Line Tools、App Store へのサインイン、Homebrew の外で入れたアプリ（ChatGPT、Claude、BetterTouchTool、Codex.app）の削除
+- **Mac（最初の switch の前）**: Command Line Tools
 - **両方の OS（switch の後）**: `~/.gitconfig.local`（任意）、`gh auth login`、`claude` と `codex` へのログイン
 - **Mac（switch の後）**: `sbx login`、Hammerspoon と Warp のアクセシビリティの許可、Docker Desktop の初回起動、BTT のプリセットの読み込み、`cleanup = "zap"` への切り替え
 - **Linux（switch の後）**: SSH エージェントの転送、`docker` グループの反映のための再ログイン、必要なら zsh をログインシェルにする
@@ -202,7 +201,7 @@ GitHub Actions で次の4つを行う。
 Claude Code と Codex を終了させてから、素のターミナルで行う。
 
 1. **退避**: `cp -a ~/.dotfiles ~/dotfiles.backup`
-2. **準備**: App Store にサインインし、ChatGPT、Claude、BetterTouchTool、Codex.app を削除する（BTT は先にプリセットを書き出す）。podman を使っていれば `podman machine stop` と `podman machine rm` を実行する
+2. **準備**: podman を使っていれば `podman machine stop` と `podman machine rm` を実行する
 3. **まだコミットしていない変更を退避する**: `git -C ~/.dotfiles stash -u`。次の手順で `config/` を動かす前に行う。後で行うと、`config/` の削除まで stash に入ってしまう
 4. **設定をリポジトリから切り離す**
    ```sh
@@ -218,7 +217,7 @@ Claude Code と Codex を終了させてから、素のターミナルで行う�
    git -C ~/.dotfiles config --unset core.hooksPath
    git -C ~/.dotfiles config --remove-section filter.codex-config
    ```
-6. **古いものを片づける**: `codebase-memory-mcp uninstall` を実行する。ネイティブインストーラで入れた Claude Code（`~/.local/bin/claude` と `~/.local/share/claude`）を消す。消さないと、PATH の先頭にあるこちらが Nix の版より優先されてしまう
+6. **古いものを片づける**: `codebase-memory-mcp uninstall` を実行する。Homebrew の `codex` cask（旧構成の Codex CLI）を `brew uninstall --cask codex` で消す。CLI は Nix で入れ、Codex.app は自分専用の codex を内蔵している。ネイティブインストーラで入れた Claude Code（`~/.local/bin/claude` と `~/.local/share/claude`）を消す。消さないと、PATH の先頭にあるこちらが Nix の版より優先されてしまう
 7. **入れて適用する**: `sh ~/.dotfiles/install.sh` を実行する。Determinate Nix を numtide のキャッシュ付きで入れ、インストーラが作った `/etc/nix/nix.custom.conf` を nix-darwin のために退避してから、`nix run .#switch` を実行する（`~/.dotfiles` はあるので clone はしない）。すでにあるファイル（`~/.config/zsh/.zshrc` など）は、home-manager が `.backup` を付けて退避してからリンクを張る
 8. **履歴を移す**: 同じターミナルで、秘密情報らしい行を除いて新しい履歴ファイルに足す。終わったらこのターミナルを閉じる（開いたままだと古いファイルに書き続ける）
    ```sh
@@ -247,7 +246,7 @@ nix-darwin が、`nix.custom.conf` 以外のファイル（`/etc/zshrc` など�
 | Codex の `config.toml` を sanitizer と clean filter で整えて追跡 | 共通の設定は `programs/codex/config.toml` に宣言し、switch で手元のファイルへ合成する。手元のファイルは追跡しない |
 | mise と brew の両方に同じ言語 | 言語は mise だけ。宣言は Nix に書く |
 | podman | Docker Desktop（Mac）と Docker Engine（Linux） |
-| `DOTFILES_SKIP_CASKS` | `DOTFILES_HOST=minimal` |
+| `DOTFILES_SKIP_CASKS`（制限付きの Mac 向け） | 構成は1つ。Homebrew の外ですでに入っているアプリの cask は自動で飛ばす |
 | `compete`、`drive`、`lzd`、graphify | 削除する |
 
 **変わらないこと**: エイリアスと関数、mise での言語管理と `mise use -g`、会社のプロジェクトの `mise.toml`、`sbxc`、Codex の trust、英数/かなの切り替え、Warp での表示、BetterTouchTool、`brew tap`
@@ -281,6 +280,8 @@ CI では、Linux で install.sh から switch まで通し、配置されたも
 - `docker` グループのユーザーは、実質的に root と同じことができる
 - Homebrew の `autoUpdate` と `upgrade` を有効にしているので、switch のたびに Homebrew の更新と cask の入れ替えが走る。設定を1行直すだけでも数分かかることがあり、起動中のアプリが入れ替わることもある
 - `cleanup` を `"zap"` にすると、`programs/vscode/extensions` にない VS Code の拡張機能も消される可能性がある（未確認）。画面から入れたものは、switch の前に `codeexport` で一覧に書き出す
+- Homebrew の外で入れたアプリは cask で管理しない。そのアプリを消すと、次の switch で cask として入る
+- `cleanup` を `"zap"` にすると、宣言していない cask は消される。今の Mac では Zed、Spotify、Podman Desktop が対象になる
 - nix-homebrew は Homebrew 本体の版を固定している。最初の switch で、今の Homebrew がその版に置き換わる
 - 週1回の更新 PR には、リポジトリの設定「Allow GitHub Actions to create and approve pull requests」の有効化が必要。GitHub Actions が作った PR では、CI は自動では動かない
 
@@ -304,6 +305,7 @@ CI では、Linux で install.sh から switch まで通し、配置されたも
 | 禁止ルールは読み取り専用の `settings.json` に書く | 両方の OS で同じ仕組みになる | 管理設定（`/Library`、`/etc`） |
 | Codex の共通設定は `programs.codex.settings` と `mutableSettings` で手元の `config.toml` に合成する | Codex が書く trust を残したまま、宣言した値をそろえられる。sudo も `/etc` も要らない | `/etc/codex/config.toml`（Linux では sudo のリンクが要り、root が利用者の書けるファイルを読む） |
 | VS Code の拡張機能は一覧ファイルから入れる | nixpkgs にない拡張機能が多く、Nix で管理するには入力と VS Code 本体の入れ替えが要る | `programs.vscode` |
+| Mac の構成は1つ | Homebrew の外ですでに入っているアプリを評価のときに飛ばすので、会社の Mac（MDM が入れるアプリがある）でも同じ構成で済む | `default` と `minimal` の2つ |
 | Warp の設定は管理しない | Warp のアカウントの同期でそろっている。公開したくない識別子も含まれていた | リポジトリで管理する |
 | system-manager は使わない | Determinate との組み合わせが保証されていない。`/etc` に置くのは1ファイルだけ | system-manager |
 | systemd のない Linux は対象外 | 一般ユーザーが Nix を使えず、root を拒否する検査と両立しない | `--init none` で root で使う |

@@ -28,4 +28,7 @@ dotup                       # pull this repo, apply it, upgrade mise tools
 nix run ~/.dotfiles#switch  # apply local edits without pulling
 ```
 
-CI updates `flake.lock` every Monday and pushes it to `main` once the checks pass.
+CI updates `flake.lock` every Monday. Each update waits a week on the
+`flake-update/pending` branch, then reaches `main` if the checks pass; delete the
+branch to drop it. Known CVSS 9+ vulnerabilities in the macOS closure are reported
+in an issue.

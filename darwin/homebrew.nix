@@ -22,7 +22,6 @@
       cleanup = "none";
     };
     taps = lib.optionals full [ "docker/tap" ];
-    brews = lib.optionals full [ "docker/tap/sbx" ];
     casks = [
       "hammerspoon"
       "warp"
@@ -39,6 +38,7 @@
       "chatgpt"
       "claude"
       "codex-app"
+      "docker/tap/sbx"
     ];
     masApps = lib.optionalAttrs full { Kindle = 302584613; };
     # The list is written by the codeexport alias.
@@ -46,4 +46,16 @@
       lib.filter (ext: ext != "") (lib.splitString "\n" (builtins.readFile ../programs/vscode/extensions))
     );
   };
+
+  # TRADEOFF: brew bundle runs before home-manager in activation, so one failed cask
+  # (restricted Mac, App Store signed out, network) would skip the whole home
+  # configuration. It only warns, as the old setup-brew.sh did; read the switch output.
+  system.activationScripts.homebrew.text = lib.mkMerge [
+    # Before nix-homebrew's own mkBefore setup, so installing Homebrew itself is covered too.
+    (lib.mkOrder 400 "set +e")
+    (lib.mkAfter ''
+      [ $? -eq 0 ] || echo >&2 "warning: Homebrew bundle failed; continuing so the home configuration still applies"
+      set -e
+    '')
+  ];
 }

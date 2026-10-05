@@ -13,8 +13,9 @@ pkgs.writeShellApplication {
   ];
   text = ''
     # The flake this command was built from (a worktree, a clone, or GitHub), so the
-    # edits being applied are the ones the user is looking at.
-    flake="${flake}"
+    # edits being applied are the ones the user is looking at. nh treats a bare store
+    # path as a built configuration, hence the path: prefix.
+    src="${flake}"
     state="''${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
     warn() { printf 'warning: %s\n' "$*" >&2; }
 
@@ -30,11 +31,11 @@ pkgs.writeShellApplication {
           printf '%s\n' "$DOTFILES_HOST" >"$state/host"
         fi
         host="$(cat "$state/host" 2>/dev/null || echo default)"
-        nh darwin switch --no-nom "$flake" -H "$host" -- --impure
+        nh darwin switch --no-nom "path:$src" -H "$host" -- --impure
         hm_vars="/etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh"
         ;;
       Linux)
-        nh home switch --no-nom "$flake" -c "$(uname -m)-linux" -b backup -- --impure
+        nh home switch --no-nom "path:$src" -c "$(uname -m)-linux" -b backup -- --impure
         hm_vars="$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
         ;;
       *)
@@ -48,7 +49,7 @@ pkgs.writeShellApplication {
     if [ -r "$hm_vars" ]; then
       set +u
       # shellcheck disable=SC1090
-      . "$hm_vars"
+      . "$hm_vars" || warn "could not load $hm_vars"
       set -u
     fi
 
@@ -63,7 +64,7 @@ pkgs.writeShellApplication {
     # VS Code extensions (macOS): install what the tracked list has and the machine lacks.
     if [ "$(uname -s)" = Darwin ]; then
       PATH="$PATH:/opt/homebrew/bin"
-      extensions="$flake/programs/vscode/extensions"
+      extensions="$src/programs/vscode/extensions"
       if command -v code >/dev/null 2>&1 && [ -f "$extensions" ]; then
         installed="$(code --list-extensions 2>/dev/null || true)"
         while IFS= read -r ext; do

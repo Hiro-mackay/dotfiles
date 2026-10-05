@@ -52,4 +52,4 @@ if [ "$OS" = Linux ] && [ "$(basename "${SHELL:-}")" != zsh ]; then
     # shellcheck disable=SC2016 # printed literally for the user to run
     printf '  command -v zsh | sudo tee -a /etc/shells && chsh -s "$(command -v zsh)"\n'
 fi
-log "Done. Open a new terminal. Manual steps: docs/additional-setup.md"
+log "Done. Open a new terminal. Remaining steps are in the README."

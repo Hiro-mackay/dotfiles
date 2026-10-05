@@ -1,9 +1,8 @@
 # dotfiles
 
-Development environment for macOS (nix-darwin + home-manager) and Linux dev
-servers (home-manager), built from one flake. Each tool has a directory under
-`programs/` holding its Nix module and plain config files; home-manager places
-them read-only in `~`, so every machine gets the same result.
+My development environment for macOS and Linux dev servers, built with Nix:
+nix-darwin and home-manager on macOS, home-manager on Linux. Each tool's config
+is in `programs/<tool>/`.
 
 ## Install
 
@@ -11,17 +10,21 @@ them read-only in `~`, so every machine gets the same result.
 curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.sh | sh
 ```
 
-`install.sh` installs Determinate Nix, clones this repo to `~/.dotfiles`, and
-runs `nix run .#switch`. macOS needs the Xcode Command Line Tools; Linux needs
-systemd and sudo.
+Then:
+
+- Sign in: `gh auth login`, `claude`, `codex`.
+- macOS: run `sbx login`, allow Hammerspoon and Warp under Accessibility, open
+  Docker Desktop once, and import `programs/bettertouchtool/Default.bttpreset`.
+- Linux: log in again so the `docker` group applies. Push from a server with
+  `ssh -A`.
 
 ## Update
 
 ```sh
-nix run ~/.dotfiles#switch                        # apply after editing anything here
-nix flake update --flake ~/.dotfiles              # bump inputs (also a weekly PR)
-mise upgrade                                      # languages and dev tools
+nix run ~/.dotfiles#switch            # apply changes in this repo
+nix flake update --flake ~/.dotfiles  # update Nix inputs
+mise upgrade                          # update languages and tools
 ```
 
-Manual steps after the first install: [docs/additional-setup.md](docs/additional-setup.md).
-Design and decisions: [docs/nix-plan.md](docs/nix-plan.md).
+Repos under `~/Repository/` use the git identity in `~/.gitconfig.local`
+(untracked) if it exists.

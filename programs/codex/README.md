@@ -33,7 +33,7 @@ home-manager が `~/.codex/AGENTS.md` として配り、Claude には `CLAUDE.md
 
 | skill | 用途 |
 |---|---|
-| `japanese-writing` | 日本語の文書を構成して推敲する |
+| `yomiyasu` | AIらしい日本語を、読みやすい自然な文章に書き直す |
 | `plan-template` | 複雑な作業の実装計画を作る |
 | `critique` | 明示依頼されたUI評価を行う |
 

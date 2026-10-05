@@ -5,7 +5,7 @@
 - Write code, comments, and commit messages in English. Write everything else I read in Japanese
 - Lead with the outcome. Use plain language, no hype, emojis, invented terms, or repeated summaries
 - Keep short answers direct. Use headings, tables, and lists only when they make real divisions clearer
-- For Japanese documents, apply `japanese-writing`. Keep one idea per sentence and state uncertainty with what would resolve it
+- For Japanese documents, apply `yomiyasu`. Keep one idea per sentence and state uncertainty with what would resolve it
 - Before the first tool call, state the intended action in one sentence. Update me only for material findings or a change of direction
 
 ## Work

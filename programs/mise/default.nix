@@ -46,7 +46,11 @@ in
         rust = "latest";
         sops = "3.12.2";
       };
-      settings.idiomatic_version_file_enable_tools = [ "python" ];
+      settings = {
+        idiomatic_version_file_enable_tools = [ "python" ];
+        # Supply chain: ignore versions published in the last week (npm: dependencies too).
+        minimum_release_age = "7d";
+      };
     };
   };
 

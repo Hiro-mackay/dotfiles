@@ -38,6 +38,7 @@
     bat
     eza
     jq
+    htmlq
     lazygit
     vim
   ];

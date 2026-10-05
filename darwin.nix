@@ -38,7 +38,6 @@
   # macOS-only CLI tools.
   environment.systemPackages = with pkgs; [
     emacs-nox
-    htmlq
     shellcheck
     watch
     terminal-notifier

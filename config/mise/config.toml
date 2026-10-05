@@ -18,9 +18,8 @@ task = "latest"
 lefthook = "latest"
 "aqua:golang-migrate/migrate" = "latest"
 "go:golang.org/x/tools/gopls" = "latest"
-"npm:codebase-memory-mcp" = "latest"
+# allow_builds runs only this package's postinstall, which fetches its binary.
+"npm:codebase-memory-mcp" = { version = "latest", allow_builds = ["codebase-memory-mcp"] }
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]
-# Run npm lifecycle scripts (codebase-memory-mcp downloads its binary in postinstall).
-npm.package_manager = "npm"

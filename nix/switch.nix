@@ -19,10 +19,11 @@ pkgs.writeShellApplication {
 
     # nh builds as the invoking user and elevates only the activation step, so
     # this works before darwin-rebuild exists and never evaluates as root.
-    # --impure lets the flake read USER and HOME.
+    # --impure lets the flake read USER and HOME. --no-nom: nix-output-monitor cannot
+    # parse Determinate Nix's JSON log format and floods the output with errors.
     case "$(uname -s)" in
-      Darwin) nh darwin switch "$flake" -H "''${DOTFILES_HOST:-default}" -- --impure ;;
-      Linux) nh home switch "$flake" -c "$(uname -m)-linux" -b backup -- --impure ;;
+      Darwin) nh darwin switch --no-nom "$flake" -H "''${DOTFILES_HOST:-default}" -- --impure ;;
+      Linux) nh home switch --no-nom "$flake" -c "$(uname -m)-linux" -b backup -- --impure ;;
       *)
         echo "unsupported OS: $(uname -s)" >&2
         exit 1

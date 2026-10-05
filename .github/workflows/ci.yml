@@ -64,7 +64,9 @@ jobs:
             for c in op jc sbxc ccgo c2; do ! whence $c >/dev/null; done
             command -v codex mise nh comma git-secrets
             mise ls --global --current
+            codebase-memory-mcp --version
           '
           "$HOME/.local/bin/claude" --version
           # Activation must not leave tracked changes in the repo.
+          git -C "$HOME/.dotfiles" diff
           test -z "$(git -C "$HOME/.dotfiles" status --porcelain --untracked-files=no)"

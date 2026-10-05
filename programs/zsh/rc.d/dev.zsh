@@ -1,0 +1,32 @@
+# -----------------
+#  Python (uv)
+# -----------------
+alias pyrun="uv run"
+alias pyadd="uv add"
+alias pyinit="uv init"
+alias pyin="uv sync"
+alias pyshell="uv shell"
+alias pyrm="rm -rf .venv"
+alias pyfreeze="uv pip freeze > requirements.txt"
+
+# -----------------
+#  Kubernetes
+# -----------------
+alias k="kubectl"
+
+# -----------------
+#  ni
+# -----------------
+export NI_DEFAULT_AGENT="pnpm"
+export NI_GLOBAL_AGENT="pnpm"
+
+# -----------------
+#  Claude Code
+# -----------------
+export CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000
+
+# -----------------
+#  VS Code
+# -----------------
+# Snapshot installed extensions into dotfiles (run after adding/removing one).
+(( $+commands[code] )) && alias codeexport="code --list-extensions | sort > $DOTFILES_DIR/programs/vscode/extensions"

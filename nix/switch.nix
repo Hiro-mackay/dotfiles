@@ -1,6 +1,6 @@
 # `nix run .#switch`: the single entry point on both macOS and Linux.
-# Applies the configuration with nh, then runs the steps that need the network
-# (kept out of activation so activation also works offline).
+# Applies the configuration with nh, then installs what Nix does not manage:
+# mise tools and VS Code extensions (network steps, kept out of activation).
 { pkgs }:
 pkgs.writeShellApplication {
   name = "dotfiles-switch";
@@ -8,8 +8,6 @@ pkgs.writeShellApplication {
     nh
     mise
     gh
-    curl
-    bash
     coreutils
     gnugrep
   ];
@@ -30,15 +28,6 @@ pkgs.writeShellApplication {
         ;;
     esac
 
-    claude="$HOME/.local/bin/claude"
-    if [ ! -x "$claude" ]; then
-      curl -fsSL https://claude.ai/install.sh | bash || warn "Claude Code install failed; rerun switch later"
-    fi
-    if [ -x "$claude" ] && ! "$claude" mcp get codebase-memory-mcp >/dev/null 2>&1; then
-      "$claude" mcp add -s user codebase-memory-mcp -- codebase-memory-mcp >/dev/null \
-        || warn "could not register codebase-memory-mcp with Claude Code"
-    fi
-
     # Unauthenticated GitHub API allows 60 requests/hour; mise needs more on a fresh machine.
     if [ -z "''${MISE_GITHUB_TOKEN:-}" ] && [ -z "''${GITHUB_TOKEN:-}" ]; then
       if token="$(gh auth token 2>/dev/null)"; then
@@ -49,7 +38,7 @@ pkgs.writeShellApplication {
 
     # VS Code extensions: install what the tracked list has and the machine lacks.
     PATH="$PATH:/opt/homebrew/bin"
-    extensions="$flake/config/vscode/extensions"
+    extensions="$flake/programs/vscode/extensions"
     if command -v code >/dev/null 2>&1 && [ -f "$extensions" ]; then
       installed="$(code --list-extensions 2>/dev/null || true)"
       while IFS= read -r ext; do

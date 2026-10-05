@@ -1,3 +1,0 @@
-# Early-init settings: read before config discovery, so they cannot live in config.toml.
-# auto_env loads config.<os>.toml (config.macos.toml) only on that OS.
-auto_env = true

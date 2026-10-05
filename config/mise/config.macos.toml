@@ -1,8 +1,0 @@
-# macOS-only global tools, loaded through auto_env (see miserc.toml).
-[tools]
-gcloud = "latest"
-bun = "latest"
-deno = "latest"
-ni = "latest"
-rust = "latest"
-sops = "3.12.2"

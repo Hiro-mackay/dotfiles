@@ -1,0 +1,6 @@
+#!/bin/sh
+# pre-commit for this repo (core.hooksPath is set in programs/git/default.nix).
+# git-secrets blocks the machine-local identity from ~/.gitconfig.local.
+if git secrets --list >/dev/null 2>&1; then
+    exec git secrets --pre_commit_hook -- "$@"
+fi

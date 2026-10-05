@@ -19,6 +19,16 @@
     };
     # Not following nixpkgs: the numtide binary cache only hits on its own pin.
     llm-agents.url = "github:numtide/llm-agents.nix";
+
+    # Claude Code plugins, pinned here instead of installed from their marketplaces.
+    ponytail = {
+      url = "github:DietrichGebert/ponytail";
+      flake = false;
+    };
+    codex-plugin-cc = {
+      url = "github:openai/codex-plugin-cc";
+      flake = false;
+    };
   };
 
   outputs =
@@ -63,14 +73,14 @@
             inputs.determinate.darwinModules.default
             inputs.nix-homebrew.darwinModules.nix-homebrew
             home-manager.darwinModules.home-manager
-            ./modules/darwin
+            ./darwin.nix
             {
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 backupFileExtension = "backup";
                 extraSpecialArgs = { inherit inputs; };
-                users.${username}.imports = [ ./modules/home ];
+                users.${username}.imports = [ ./home.nix ];
               };
             }
           ];
@@ -82,8 +92,8 @@
           pkgs = nixpkgs.legacyPackages.${system};
           extraSpecialArgs = { inherit inputs; };
           modules = [
-            ./modules/home
-            ./modules/home/linux.nix
+            ./home.nix
+            ./linux.nix
             {
               home.username = username;
               home.homeDirectory = homeDirectory system;
@@ -110,7 +120,7 @@
           switch = {
             type = "app";
             program = lib.getExe self.packages.${system}.switch;
-            meta.description = "Apply this configuration (nh), then install Claude Code, MCP and mise tools";
+            meta.description = "Apply this configuration with nh, then install mise tools and VS Code extensions";
           };
         in
         {
@@ -119,7 +129,7 @@
         }
       );
 
-      # Evaluating these runs the module assertions (no root, nothing under ~/.config).
+      # Evaluating these runs the module assertions (e.g. never evaluated as root).
       checks = forAllSystems (
         system:
         if isDarwin system then

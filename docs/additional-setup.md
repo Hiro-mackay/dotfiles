@@ -24,8 +24,8 @@ Both OSes:
       email = <email>
   ```
 
-  The next `nix run ~/.dotfiles#switch` registers these values as git-secrets
-  prohibited patterns for this repo.
+  git-secrets then rejects commits to this repo that contain these values
+  (the pattern provider is set in `programs/git/default.nix`).
 - Sign in: `gh auth login`, `claude`, `codex`.
 
 macOS:
@@ -35,9 +35,9 @@ macOS:
   `open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"`,
   then Hammerspoon's menu-bar icon → Reload Config.
 - Start Docker Desktop once.
-- Import the BetterTouchTool preset from `config/bttpreset/`.
+- Import the BetterTouchTool preset from `programs/bettertouchtool/`.
 - After the first switch is verified, set `homebrew.onActivation.cleanup = "zap"`
-  in `modules/darwin/homebrew.nix` so undeclared apps get removed.
+  in `darwin/homebrew.nix` so undeclared apps get removed.
 
 Linux:
 

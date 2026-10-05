@@ -1,7 +1,7 @@
 # Nix 構成プラン
 
 - 版: v16（2026-10-05）
-- 状態: `feat/nix` ブランチで実装済み。CI で検証中。Mac への適用（6.2）はまだ
+- 状態: `feat/nix` ブランチで実装済み。CI（評価、Mac の build、Ubuntu での通しの確認）はすべて成功。Mac への適用（6.2）はまだ
 - 対象: この dotfiles リポジトリ（`~/.dotfiles`）
 
 ## 1. 概要
@@ -452,17 +452,22 @@ nix-darwin が「Unexpected files in /etc」と表示して止まった場合は
 
 ### 8.2 まだ確かめていないこと
 
-Ubuntu のランナーでの検証（CI の `linux-e2e`）と、Mac での最初の switch で確かめる。次のものは実装中に確かめたので、一覧から外した。
+残っているのは、Mac での最初の switch で確かめるものと、実機でしか確かめられないものだ。次のものは、実装中と CI の `linux-e2e` で確かめたので、一覧から外した。
 
 - `auto_env` で、Mac のときだけ `config.macos.toml` が読まれること（`miserc.toml` に置く必要があった）
 - `docker/tap` の信頼の手作業は要らないこと（nix-darwin が Brewfile に `trusted: true` を付ける）
 - home-manager が `~/.config` の下に何も生成しないこと（原則6の検査で確認。Linux の systemd を止めた）
+- Linux で、install.sh から `nix run .#switch` まで通ること。4つの入口のリンク、skills のリンク、`/etc` の2ファイル、zsh の関数、Mac 専用のものが Linux で定義されないこと、codex・nh・comma・git-secrets、mise の17個のツール、Claude Code の初回インストール
+- `hm-session-vars.sh` が、home-manager を単体で使う場合に `~/.nix-profile/etc/profile.d/` にあること
+- codebase-memory-mcp が mise の npm バックエンドで入り、起動すること（`allow_builds` が必要だった）
 
 | 確かめること | 確かめられなかった場合 |
 |---|---|
-| `hm-session-vars.sh` が、4.7 に書いた2か所のどちらかにあるか | `.zshenv` で読む場所を直す |
-| `settings.json` に書いたプラグインが、新しいマシンで自動で入るか | 後処理で `claude plugin install` を実行する |
-| mise の npm バックエンドで、codebase-memory-mcp のインストール後スクリプトが動くか。Mac で署名の問題なく起動し、MCP としてつながるか | 公式の `install.sh --skip-config` に切り替える |
+| Mac で、`hm-session-vars.sh` が `/etc/profiles/per-user/$USER/etc/profile.d/` にあるか | `.zshenv` で読む場所を直す |
+| `settings.json` に書いたプラグインが、新しいマシンで自動で入るか（CI では確かめていない） | 後処理で `claude plugin install` を実行する |
+| Mac で、codebase-memory-mcp が署名の問題なく起動し、MCP として Claude と Codex につながるか | 公式の `install.sh --skip-config` に切り替える |
+| Claude Code の禁止ルールが、`~/.dotfiles/config/...` の実体のパスで読んだときにも効くか（symlink を解決してから照合するか） | 今は両方のパスを書いているので、効かない場合でも穴にはならない。効くと分かれば片方を消す |
+| Mac で、nixpkgs の `watch` が今の brew 版と同じように動くか | brew の `watch` に戻す |
 | Codex.app から起動したときも、MCP の起動コマンドを名前だけ（`codebase-memory-mcp`）で見つけられるか | このコマンドのパスだけ、Nix でホームディレクトリから組み立てる |
 | sbx の sandbox の中で kind が動くか | sandbox の中では kind を使わない |
 
@@ -486,6 +491,7 @@ Ubuntu のランナーでの検証（CI の `linux-e2e`）と、Mac での最初
 
 **Claude Code と Codex**
 - 管理設定に書いた値は、`/config` で変えても効かない。普段変えない値だけを置く
+- Claude Code は、新しいマシンで初めて起動したときに `settings.json` を書き直す。キーの並びを変え、`"model": "opus"` を `"opus[1m]"` に移行する（CI で確認）。そのため、新しいマシンでは `settings.json` に差分が出る
 - Codex の画面でプラグインの有効・無効を切り替えると、その設定は `~/.codex/config.toml` に書き込まれる。それ以降は、`/etc` の設定よりこちらが優先される。Nix で変えた設定が効かないときは、まずユーザー側のファイルを確かめる
 - 管理設定や `/etc` に置いたファイルは、宣言から消しても自動では消えない。要らなくなったら手で消す
 - Linux では、`/etc` からのリンクが、ユーザーが書き込める場所を経由する。そのため、Claude が自分で禁止ルールを緩められないという保護は、Mac より弱い

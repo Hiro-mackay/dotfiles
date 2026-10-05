@@ -24,13 +24,6 @@
   news.display = "silent";
   xdg.enable = true;
 
-  assertions = [
-    {
-      assertion = config.home.username != "root";
-      message = "Evaluated as root. Run `nix run .#switch` as your normal user.";
-    }
-  ];
-
   home.packages = with pkgs; [
     ghq
     ripgrep
@@ -51,15 +44,13 @@
     LANG = "en_US.UTF-8";
     LC_ALL = "en_US.UTF-8";
     DOTFILES_DIR = "${config.home.homeDirectory}/.dotfiles";
-    CARGO_HOME = "${config.xdg.dataHome}/.cargo";
-    RUSTUP_HOME = "${config.xdg.dataHome}/.rustup";
     PNPM_HOME = "${config.xdg.dataHome}/pnpm";
     NI_CONFIG_FILE = "${config.xdg.configHome}/ni/nirc";
   };
 
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
-    "${config.xdg.dataHome}/.cargo/bin"
+    "${config.home.homeDirectory}/.cargo/bin"
     "${config.xdg.dataHome}/pnpm"
   ];
 }

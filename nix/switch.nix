@@ -8,56 +8,29 @@ pkgs.writeShellApplication {
     nh
     mise
     gh
-    coreutils
   ];
   text = ''
     # The flake this command was built from (a worktree, a clone, or GitHub), so the
     # edits being applied are the ones the user is looking at. nh treats a bare store
     # path as a built configuration, hence the path: prefix.
     src="${flake}"
-    warn() { printf 'warning: %s\n' "$*" >&2; }
 
     # nh builds as the invoking user and elevates only the activation step, so this
-    # works before darwin-rebuild exists and never evaluates as root. --impure lets the
-    # flake read USER and HOME. --no-nom: nix-output-monitor cannot parse Determinate
-    # Nix's JSON log format and floods the output with errors.
-    case "$(uname -s)" in
-      Darwin)
-        nh darwin switch --no-nom "path:$src" -H default -- --impure
-        hm_vars="/etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh"
-        ;;
-      Linux)
-        nh home switch --no-nom "path:$src" -c "$(uname -m)-linux" -b backup -- --impure
-        hm_vars="$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
-        ;;
-      *)
-        echo "unsupported OS: $(uname -s)" >&2
-        exit 1
-        ;;
-    esac
-
-    # Load the variables just applied (CARGO_HOME, RUSTUP_HOME, ...) so the first run
-    # from install.sh puts tools where later shells look for them.
-    if [ -r "$hm_vars" ]; then
-      set +u
-      # The file skips itself when this variable is inherited from a managed shell.
-      unset __HM_SESS_VARS_SOURCED
-      # shellcheck disable=SC1090
-      . "$hm_vars" || warn "could not load $hm_vars"
-      set -u
+    # works before darwin-rebuild exists. --impure lets the flake read USER and HOME.
+    # --no-nom: nix-output-monitor cannot parse Determinate Nix's JSON log format.
+    if [ "$(uname -s)" = Darwin ]; then
+      nh darwin switch --no-nom "path:$src" -H default -- --impure
+    else
+      nh home switch --no-nom "path:$src" -c "$(uname -m)-linux" -b backup -- --impure
     fi
 
-    # Unauthenticated GitHub API allows 60 requests/hour; mise needs more on a fresh machine.
+    # Unauthenticated GitHub API allows 60 requests/hour; mise cannot read gh's keychain token.
     if [ -z "''${MISE_GITHUB_TOKEN:-}" ] && [ -z "''${GITHUB_TOKEN:-}" ]; then
       if token="$(gh auth token 2>/dev/null)"; then
         export MISE_GITHUB_TOKEN="$token"
       fi
     fi
-    # Last step, so a failure leaves the applied configuration in place but still fails
-    # the run (install.sh then stops before "Done").
-    if ! mise install --yes; then
-      echo "error: mise install failed (GitHub API rate limit without a token?). Run 'gh auth login', then 'mise install'." >&2
-      exit 1
-    fi
+    # Last step: a failure leaves the applied configuration in place but fails the run.
+    mise install --yes || { echo "error: mise install failed. Run 'gh auth login', then 'mise install'." >&2; exit 1; }
   '';
 }

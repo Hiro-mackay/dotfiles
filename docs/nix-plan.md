@@ -92,7 +92,7 @@ flake.nix
 | determinate、nix-index-database | 最新 |
 | ponytail、codex-plugin-cc | Claude Code のプラグイン。flake.lock で固定 |
 
-- **ユーザー名とホームディレクトリ**: flake に書かず、`USER` と `HOME` から読む（`--impure`）。設定の名前は `darwinConfigurations.default` と `homeConfigurations.<system>` で、ユーザー名を含まない。`--impure` なしで評価したとき（`nix flake check`）は仮のユーザー（`nixuser`）を使う。ユーザー名が `root` なら評価を失敗させる
+- **ユーザー名とホームディレクトリ**: flake に書かず、`USER` と `HOME` から読む。そのため評価には常に `--impure` が要る（`nix run .#switch` と CI は付けている）。設定の名前は `darwinConfigurations.default` と `homeConfigurations.<system>` で、ユーザー名を含まない
 - **numtide のキャッシュ**: flake の `nixConfig` には書かない（信頼されたユーザー以外では無視される）。install.sh が Nix のインストール時に渡す。Mac では、その後 `determinateNix.customSettings` が引き継ぐ。インストーラが書いた `/etc/nix/nix.custom.conf` は nix-darwin の管理とぶつかるので、install.sh が最初の switch の前に `.before-nix-darwin` へ退避する
 - **その他**: GC は Determinate Nixd に任せる。フォーマッタは `nixfmt-tree`。stateVersion は `home.stateVersion = "26.05"`、`system.stateVersion = 7`
 
@@ -102,7 +102,7 @@ flake.nix
    - Mac: `nh darwin switch --no-nom <flake> -H default -- --impure`
    - Linux: `nh home switch --no-nom <flake> -c <system> -b backup -- --impure`
    - nh は build をユーザーの権限で行い、`activate` だけを sudo で実行する。そのため、Mac の初回（`darwin-rebuild` がまだない状態）でもそのまま動く
-2. 適用したばかりの home-manager の環境変数（`CARGO_HOME` など）を読み込んでから、`mise install` を実行する。読み込まないと、初回に rust などが別の場所へ入る。`gh auth token` で値が取れれば、`MISE_GITHUB_TOKEN` に渡す
+2. `mise install` を実行する。`gh auth token` で値が取れれば、`MISE_GITHUB_TOKEN` に渡す
 3. `mise install` が失敗すると、終了コード1で終える。最後の処理なので、構成の適用は済んでいる。install.sh は「Done」を出さずに止まる
 
 ### 4.3 Mac（`darwin.nix`）
@@ -117,7 +117,7 @@ flake.nix
 - Linux だけのパッケージは lsof。`programs.bash` も有効にして、chsh する前（ログインシェルが bash）でも PATH と環境変数をそろえる
 - install.sh が、初回だけ sudo で次の作業を行う
   - `docker` がなく systemd が動いていれば、Docker Engine を入れる
-- systemd のない環境（コンテナなど）は対象外にする。install.sh はそこで止まる
+- systemd のない環境（コンテナなど）は対象外にする（Determinate のインストーラが止まる）
 - SSH の鍵は管理しない。サーバーから push するときは、Mac から SSH エージェントを転送する
 
 ### 4.5 シェル（`programs/zsh`）
@@ -227,7 +227,7 @@ Claude Code と Codex を終了させてから、素のターミナルで行う�
    ```
 9. **確かめる**: 新しいターミナルで、7章の「変わらないこと」を確かめる。そのあと、podman と graphify を消し、Homebrew の `cleanup` を `"zap"` にして、もう一度 switch する
 
-**元に戻すとき**: 世代は `sudo darwin-rebuild --rollback` で戻せる（flake を評価しないので、root のチェックの対象外）。Nix ごと消すときは、先に nix-darwin のアンインストーラ、次に Determinate のアンインストーラの順で実行し、退避した `~/dotfiles.backup` とリンクを戻す。Homebrew で入れたものと、手で移したデータは、世代を戻しても元に戻らない。
+**元に戻すとき**: 世代は `sudo darwin-rebuild --rollback` で戻せる。Nix ごと消すときは、先に nix-darwin のアンインストーラ、次に Determinate のアンインストーラの順で実行し、退避した `~/dotfiles.backup` とリンクを戻す。Homebrew で入れたものと、手で移したデータは、世代を戻しても元に戻らない。
 
 nix-darwin が、`nix.custom.conf` 以外のファイル（`/etc/zshrc` など）で「Unexpected files in /etc」と表示して止まった場合は、表示されたファイル名の末尾に `.before-nix-darwin` を付けてからやり直す。
 
@@ -308,7 +308,7 @@ CI では、Linux で install.sh から switch まで通し、配置されたも
 | Mac の構成は1つ | Homebrew の外ですでに入っているアプリを評価のときに飛ばすので、会社の Mac（MDM が入れるアプリがある）でも同じ構成で済む | `default` と `minimal` の2つ |
 | Warp の設定は管理しない | Warp のアカウントの同期でそろっている。公開したくない識別子も含まれていた | リポジトリで管理する |
 | system-manager は使わない | Determinate との組み合わせが保証されていない。`/etc` に置くのは1ファイルだけ | system-manager |
-| systemd のない Linux は対象外 | 一般ユーザーが Nix を使えず、root を拒否する検査と両立しない | `--init none` で root で使う |
+| systemd のない Linux は対象外 | 一般ユーザーが Nix を使えない | `--init none` で root で使う |
 | Docker に統一する | 互換性を気にしなくて済む | podman、Colima |
 
 ## 10. 参考

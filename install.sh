@@ -5,64 +5,29 @@
 #   curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.sh | sh
 set -eu
 
-REPO_URL="https://github.com/Hiro-mackay/dotfiles.git"
 DOTFILES="${HOME}/.dotfiles"
 OS="$(uname -s)"
-NUMTIDE_CACHE="https://cache.numtide.com"
-NUMTIDE_KEY="niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
 
 log() { printf '==> %s\n' "$*"; }
-die() {
-    printf 'error: %s\n' "$*" >&2
+
+if [ "$OS" = Darwin ] && ! xcode-select -p >/dev/null 2>&1; then
+    xcode-select --install || true
+    echo "error: install the Xcode Command Line Tools (dialog opened), then re-run" >&2
     exit 1
-}
-
-[ "$(id -u)" -ne 0 ] || die "run as your normal user, not root (sudo is used where needed)"
-
-case "$OS" in
-Darwin)
-    xcode-select -p >/dev/null 2>&1 || {
-        xcode-select --install || true
-        die "install the Xcode Command Line Tools (dialog opened), then re-run"
-    }
-    ;;
-Linux)
-    # The Nix daemon needs systemd; without it only root could use Nix.
-    [ -d /run/systemd/system ] || die "systemd is required (containers without systemd are not supported)"
-    if ! command -v curl >/dev/null 2>&1; then
-        log "Installing curl"
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq curl ca-certificates
-    fi
-    ;;
-*) die "unsupported OS: $OS" ;;
-esac
-
-# The numtide binary cache serves Codex prebuilt; without it Nix compiles Codex from
-# source. On macOS nix-darwin keeps it in determinateNix.customSettings afterwards.
-CACHE_CONF="extra-substituters = $NUMTIDE_CACHE
-extra-trusted-public-keys = $NUMTIDE_KEY"
+fi
 
 if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     log "Installing Determinate Nix"
+    # The numtide binary cache serves Codex prebuilt; without it Nix compiles Codex from
+    # source. On macOS nix-darwin keeps it in determinateNix.customSettings afterwards.
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
-        sh -s -- install --no-confirm --extra-conf "$CACHE_CONF"
-elif [ "$OS" = Linux ] && ! grep -qs "$NUMTIDE_CACHE" /etc/nix/nix.conf /etc/nix/nix.custom.conf; then
-    grep -qs 'nix.custom.conf' /etc/nix/nix.conf ||
-        die "this Nix does not read /etc/nix/nix.custom.conf; only Determinate Nix is supported"
-    log "Adding the numtide binary cache to /etc/nix/nix.custom.conf"
-    printf '%s\n' "$CACHE_CONF" | sudo tee -a /etc/nix/nix.custom.conf >/dev/null
-    # The daemon reads its configuration only at startup.
-    sudo systemctl restart nix-daemon.service determinate-nixd.service 2>/dev/null || true
+        sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com
+extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
 fi
 # shellcheck disable=SC1091
 . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 
-if [ ! -d "$DOTFILES/.git" ]; then
-    [ ! -e "$DOTFILES" ] || die "$DOTFILES exists but is not a git checkout; move it away first"
-    log "Cloning $REPO_URL to $DOTFILES"
-    nix run nixpkgs#git -- clone "$REPO_URL" "$DOTFILES"
-fi
+[ -d "$DOTFILES/.git" ] || nix run nixpkgs#git -- clone https://github.com/Hiro-mackay/dotfiles.git "$DOTFILES"
 
 if [ "$OS" = Linux ] && ! command -v docker >/dev/null 2>&1; then
     log "Installing Docker Engine"

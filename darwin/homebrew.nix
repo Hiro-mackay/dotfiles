@@ -19,11 +19,10 @@ let
 
   # An app already installed outside Homebrew (company MDM, a manual install) keeps its
   # installer as the single owner, so its cask is skipped instead of colliding. Read at
-  # evaluation, which `nix run .#switch` does with --impure; pure evaluation skips nothing.
+  # (impure) evaluation.
   installedElsewhere =
     cask: app:
     app != null
-    && builtins ? currentSystem
     && builtins.pathExists "/Applications/${app}"
     && !builtins.pathExists "/opt/homebrew/Caskroom/${baseNameOf cask}";
   managed = lib.attrNames (lib.filterAttrs (cask: app: !installedElsewhere cask app) casks);

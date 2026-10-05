@@ -49,24 +49,13 @@
       forAllSystems = lib.genAttrs systems;
       isDarwin = lib.hasSuffix "darwin";
 
-      # The user is read from the environment so no name is hardcoded. This needs
-      # --impure (passed by `nix run .#switch`); pure evaluation such as
-      # `nix flake check` falls back to a placeholder user.
-      envOr =
-        name: fallback:
-        let
-          value = builtins.getEnv name;
-        in
-        if value == "" then fallback else value;
-      username = envOr "USER" "nixuser";
-      homeDirectory =
-        system: envOr "HOME" (if isDarwin system then "/Users/${username}" else "/home/${username}");
+      # The user comes from the environment (no name is hardcoded), so every evaluation
+      # needs --impure; `nix run .#switch` and CI pass it.
+      username = builtins.getEnv "USER";
+      homeDirectory = builtins.getEnv "HOME";
 
       darwin = nix-darwin.lib.darwinSystem {
-        specialArgs = {
-          inherit inputs username;
-          homeDirectory = homeDirectory "aarch64-darwin";
-        };
+        specialArgs = { inherit inputs username homeDirectory; };
         modules = [
           inputs.determinate.darwinModules.default
           inputs.nix-homebrew.darwinModules.nix-homebrew
@@ -94,7 +83,7 @@
             ./linux.nix
             {
               home.username = username;
-              home.homeDirectory = homeDirectory system;
+              home.homeDirectory = homeDirectory;
             }
           ];
         };
@@ -111,7 +100,7 @@
         };
       });
 
-      # Evaluating these runs the module assertions (e.g. never evaluated as root).
+      # Evaluating these catches module errors in every configuration.
       checks = forAllSystems (
         system:
         if isDarwin system then

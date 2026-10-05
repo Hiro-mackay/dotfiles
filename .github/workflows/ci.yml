@@ -11,12 +11,12 @@ permissions:
 
 jobs:
   check:
-    # Evaluates every configuration (module assertions included) and checks formatting.
+    # Evaluates every configuration and checks formatting.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: DeterminateSystems/determinate-nix-action@v3
-      - run: nix flake check --all-systems --no-build
+      - run: nix flake check --all-systems --no-build --impure
       - run: nix fmt -- --ci
 
   darwin:
@@ -30,12 +30,6 @@ jobs:
             extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
       - name: Build the darwin configuration as the runner user
         run: nix build --impure --no-link --print-out-paths .#darwinConfigurations.default.system
-      - name: Show the casks for this machine (apps installed outside Homebrew are skipped)
-        run: |
-          brewfile="$(nix eval --impure --raw .#darwinConfigurations.default.config.homebrew.brewfile)"
-          printf '%s\n' "$brewfile" | grep '^cask '
-          echo "vscode extensions: $(printf '%s\n' "$brewfile" | grep -c '^vscode ' || true)"
-          ls /Applications /opt/homebrew/Caskroom 2>/dev/null || true
 
   linux-e2e:
     # Fresh Ubuntu, normal user, real install.sh: proves the environment can be
@@ -79,13 +73,9 @@ jobs:
             for c in gwi gws z g mkcd cheat lg ubuntu dexec; do whence -w $c; done
             for c in op jc sbxc ccgo c2; do if whence $c >/dev/null; then exit 1; fi; done
             command -v claude codex mise comma git-secrets
-            mise ls --current
             codebase-memory-mcp --version
-            print -r -- "HISTFILE=$HISTFILE"
             [[ "export AWS_SECRET_ACCESS_KEY=x" == ${~HISTORY_IGNORE} ]]
             [[ "ls -la" != ${~HISTORY_IGNORE} ]]
           '
-          claude --version
-          codex --version
           # The repo stays untouched: nothing is generated or linked into it.
           test -z "$(git -C "$HOME/.dotfiles" status --porcelain)"

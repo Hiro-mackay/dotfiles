@@ -93,24 +93,24 @@ flake.nix
 | ponytail、codex-plugin-cc | Claude Code のプラグイン。flake.lock で固定 |
 
 - **ユーザー名とホームディレクトリ**: flake に書かず、`USER` と `HOME` から読む（`--impure`）。設定の名前は `darwinConfigurations.default` / `minimal` と `homeConfigurations.<system>` で、ユーザー名を含まない。`--impure` なしで評価したとき（`nix flake check`）は仮のユーザー（`nixuser`）を使う。ユーザー名が `root` なら評価を失敗させる
-- **numtide のキャッシュ**: flake の `nixConfig` には書かない（信頼されたユーザー以外では無視される）。Mac は `determinateNix.customSettings`、Linux は install.sh が Nix のインストール時に渡す
+- **numtide のキャッシュ**: flake の `nixConfig` には書かない（信頼されたユーザー以外では無視される）。install.sh が Nix のインストール時に渡す。Mac では、その後 `determinateNix.customSettings` が引き継ぐ。インストーラが書いた `/etc/nix/nix.custom.conf` は nix-darwin の管理とぶつかるので、install.sh が最初の switch の前に `.before-nix-darwin` へ退避する
 - **その他**: GC は Determinate Nixd に任せる。フォーマッタは `nixfmt-tree`。stateVersion は `home.stateVersion = "26.05"`、`system.stateVersion = 7`
 
 ### 4.2 入口のコマンド（`nix run .#switch`）
 
-1. OS を判定して、nh で適用する
-   - Mac: `nh darwin switch --no-nom ~/.dotfiles -H ${DOTFILES_HOST:-default} -- --impure`
-   - Linux: `nh home switch --no-nom ~/.dotfiles -c <system> -b backup -- --impure`
+1. OS を判定して、nh で適用する。適用するのは、このコマンドを実行した flake 自身だ。worktree で実行すればその内容が、`nix run github:...` なら GitHub の内容が適用される
+   - Mac: `nh darwin switch --no-nom <flake> -H <構成> -- --impure`。構成（`default` か `minimal`）は `DOTFILES_HOST` で指定する。指定した値は `~/.local/state/dotfiles/host` に記録し、次からはそれを使う
+   - Linux: `nh home switch --no-nom <flake> -c <system> -b backup -- --impure`
    - nh は build をユーザーの権限で行い、`activate` だけを sudo で実行する。そのため、Mac の初回（`darwin-rebuild` がまだない状態）でもそのまま動く
-2. `mise install` を実行する。`gh auth token` で値が取れれば、`MISE_GITHUB_TOKEN` に渡す
-3. Mac で `code` があれば、`programs/vscode/extensions` の一覧のうち、入っていない拡張機能を入れる
+2. 適用したばかりの home-manager の環境変数（`CARGO_HOME` など）を読み込んでから、`mise install` を実行する。読み込まないと、初回に rust などが別の場所へ入る。`gh auth token` で値が取れれば、`MISE_GITHUB_TOKEN` に渡す
+3. Mac で `code` があれば、`programs/vscode/extensions` の一覧のうち、入っていない拡張機能を入れる。Linux では行わない
 4. 2と3は、失敗しても警告を出して先に進む
 
 ### 4.3 Mac（`darwin.nix`）
 
 - **macOS の設定**（旧 `setup-macos.sh`）: `darwin/defaults.nix` に書く。型付きのオプションがないものは `CustomUserPreferences`、root で書くものは `CustomSystemPreferences` を使う。LSQuarantine の無効化は `DOTFILES_DISABLE_QUARANTINE=1` を付けて switch したときだけ行う
 - **Homebrew**: `darwin/homebrew.nix` に書く。nix-homebrew で Homebrew 本体の版を固定する。cask と Kindle（masApps）を宣言する。`cleanup` は、最初の switch を確かめてから `"zap"` にする
-- **制限付きの Mac**: `darwinConfigurations.minimal` を使う（`DOTFILES_HOST=minimal`）。cask は必須の Hammerspoon と Warp だけになる
+- **制限付きの Mac**: `darwinConfigurations.minimal` を使う（`DOTFILES_HOST=minimal`。一度指定すれば記録される）。cask は必須の Hammerspoon と Warp だけになる
 - **その他**: Touch ID で sudo を通す。`/etc/codex/config.toml` は `environment.etc` で置く。Mac だけの CLI（emacs、htmlq、shellcheck、watch、terminal-notifier、coreutils-prefixed）は `environment.systemPackages` で入れる。nix-darwin の zsh の既定の動きのうち `promptInit` と全員分の `compinit` は止める
 
 ### 4.4 Linux（`linux.nix` と `install.sh`）
@@ -205,22 +205,33 @@ Claude Code と Codex を終了させてから、素のターミナルで行う�
 
 1. **退避**: `cp -a ~/.dotfiles ~/dotfiles.backup`
 2. **準備**: App Store にサインインし、ChatGPT、Claude、BetterTouchTool、Codex.app を削除する（BTT は先にプリセットを書き出す）。podman を使っていれば `podman machine stop` と `podman machine rm` を実行する
-3. **Nix を入れる**: Determinate Nix をインストールする
+3. **まだコミットしていない変更を退避する**: `git -C ~/.dotfiles stash -u`。次の手順で `config/` を動かす前に行う。後で行うと、`config/` の削除まで stash に入ってしまう
 4. **設定をリポジトリから切り離す**
    ```sh
    rm ~/.config && mv ~/.dotfiles/config ~/.config      # ~/.config を普通のディレクトリに
    rm ~/.claude && mv ~/.config/claude ~/.claude        # Claude の状態を ~/.claude へ
    rm ~/.codex  && mv ~/.config/codex  ~/.codex         # Codex の状態を ~/.codex へ
    rm ~/.zshenv ~/.hammerspoon                          # home-manager が作り直す
+   find ~/.claude/skills ~/.codex/skills -maxdepth 1 -type l -delete   # 旧構成の skill のリンク（移すと壊れ、switch が止まる）
    ```
-5. **ブランチを取り込む**: `~/.dotfiles` のまだコミットしていない変更を退避（`git stash`）してから、`feat/nix` を取り込む
+5. **ブランチを取り込む**: PR #4 をマージし、`git -C ~/.dotfiles pull --ff-only` で取り込む。そのあと、古い構成が `.git/config` に書いた設定を消す。残すと、新しい pre-commit（git-secrets）が動かない
+   ```sh
+   git -C ~/.dotfiles config --unset core.hooksPath
+   git -C ~/.dotfiles config --remove-section filter.codex-config
+   ```
 6. **古いものを片づける**: `codebase-memory-mcp uninstall` を実行する。ネイティブインストーラで入れた Claude Code（`~/.local/bin/claude` と `~/.local/share/claude`）を消す。消さないと、PATH の先頭にあるこちらが Nix の版より優先されてしまう。`~/.codex/config.toml` からは、`system-config.toml` に移した設定を消す
-7. **適用する**: `nix run ~/.dotfiles#switch` を実行する。すでにあるファイル（`~/.config/zsh/.zshrc` など）は、home-manager が `.backup` を付けて退避してからリンクを張る
-8. **確かめる**: 7章の「変わらないこと」を確かめる。そのあと、podman と graphify を消し、Homebrew の `cleanup` を `"zap"` にして、もう一度 switch する
+7. **入れて適用する**: `sh ~/.dotfiles/install.sh` を実行する。Determinate Nix を numtide のキャッシュ付きで入れ、インストーラが作った `/etc/nix/nix.custom.conf` を nix-darwin のために退避してから、`nix run .#switch` を実行する（`~/.dotfiles` はあるので clone はしない）。すでにあるファイル（`~/.config/zsh/.zshrc` など）は、home-manager が `.backup` を付けて退避してからリンクを張る
+8. **履歴を移す**: 同じターミナルで、秘密情報らしい行を除いて新しい履歴ファイルに足す。終わったらこのターミナルを閉じる（開いたままだと古いファイルに書き続ける）
+   ```sh
+   mkdir -p ~/.local/state/zsh
+   LC_ALL=C grep -a -v -i -E 'token[^ ]*=|secret|passw|api_key|private_key|access_key|database_url=|authorization:|bearer |://[^ /]*:[^ /]*@' \
+     ~/.config/zsh/.zsh_history >> ~/.local/state/zsh/history && rm ~/.config/zsh/.zsh_history
+   ```
+9. **確かめる**: 新しいターミナルで、7章の「変わらないこと」を確かめる。そのあと、podman と graphify を消し、Homebrew の `cleanup` を `"zap"` にして、もう一度 switch する
 
 **元に戻すとき**: 世代は `sudo darwin-rebuild --rollback` で戻せる（flake を評価しないので、root のチェックの対象外）。Nix ごと消すときは、先に nix-darwin のアンインストーラ、次に Determinate のアンインストーラの順で実行し、退避した `~/dotfiles.backup` とリンクを戻す。Homebrew で入れたものと、手で移したデータは、世代を戻しても元に戻らない。
 
-nix-darwin が「Unexpected files in /etc」と表示して止まった場合は、表示されたファイル名の末尾に `.before-nix-darwin` を付けてからやり直す。
+nix-darwin が、`nix.custom.conf` 以外のファイル（`/etc/zshrc` など）で「Unexpected files in /etc」と表示して止まった場合は、表示されたファイル名の末尾に `.before-nix-darwin` を付けてからやり直す。
 
 ## 7. 現在の構成から変わること
 
@@ -253,7 +264,8 @@ CI では、Linux で install.sh から switch まで通し、配置されたも
 | Mac での最初の switch が通るか（Homebrew の引き継ぎ、defaults、`/etc`） | 表示に従って直す。6章の「元に戻すとき」で戻せる |
 | flake で固定したプラグイン（ponytail のフックを含む）が動くか | marketplace から入れる方式に戻す |
 | codebase-memory-mcp が Mac で署名の問題なく起動し、Claude と Codex につながるか | 公式の `install.sh --skip-config` に切り替える |
-| Codex.app から起動したときも、`codebase-memory-mcp` を名前だけで見つけられるか | このコマンドのパスだけ、Nix で組み立てる |
+| Codex.app から起動したときも、`codebase-memory-mcp` を名前だけで見つけられるか（Dock から起動したアプリには、mise の shims が PATH に入らない） | このコマンドのパスだけ、Nix で組み立てる |
+| `nix.custom.conf` を退避した後も、最初の build で numtide のキャッシュが効くか | 遅いだけで、失敗はしない |
 | VS Code が読み取り専用の `settings.json` で問題なく動くか | 設定ファイルの管理を外す |
 | nixpkgs の `watch` が Mac で brew 版と同じように動くか | brew の `watch` に戻す |
 | sbx の sandbox の中で kind が動くか | sandbox の中では kind を使わない |
@@ -267,6 +279,7 @@ CI では、Linux で install.sh から switch まで通し、配置されたも
 - `~/.codex/config.toml` に同じキーがあると、`/etc` の共通設定より優先される。Nix で変えた設定が効かないときは、まずこちらを確かめる
 - Linux の `/etc/codex/config.toml` は、最初に install.sh を実行したユーザーのファイルを指す
 - `docker` グループのユーザーは、実質的に root と同じことができる
+- Homebrew の `autoUpdate` と `upgrade` を有効にしているので、switch のたびに Homebrew の更新と cask の入れ替えが走る。設定を1行直すだけでも数分かかることがあり、起動中のアプリが入れ替わることもある
 - nix-homebrew は Homebrew 本体の版を固定している。最初の switch で、今の Homebrew がその版に置き換わる
 - 週1回の更新 PR には、リポジトリの設定「Allow GitHub Actions to create and approve pull requests」の有効化が必要。GitHub Actions が作った PR では、CI は自動では動かない
 

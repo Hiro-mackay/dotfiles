@@ -50,6 +50,7 @@ in
     };
   };
 
-  # Shims make mise tools visible to non-interactive shells and GUI-launched apps.
+  # Shims make mise tools visible to non-interactive shells (agents, scripts). They do not
+  # reach apps started by launchd (Dock); those need absolute paths.
   home.sessionPath = [ "${config.xdg.dataHome}/mise/shims" ];
 }

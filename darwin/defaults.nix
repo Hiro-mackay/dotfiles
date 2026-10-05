@@ -7,6 +7,9 @@ in
 {
   system.defaults = {
     NSGlobalDomain = {
+      AppleInterfaceStyle = "Dark";
+      KeyRepeat = 2;
+      InitialKeyRepeat = 25;
       NSWindowResizeTime = 0.1;
       NSAutomaticDashSubstitutionEnabled = false;
       NSAutomaticPeriodSubstitutionEnabled = false;
@@ -18,7 +21,7 @@ in
     };
 
     dock = {
-      tilesize = 39;
+      tilesize = 38;
       largesize = 58;
       autohide = true;
       orientation = "left";

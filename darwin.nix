@@ -44,9 +44,6 @@
     coreutils-prefixed # ghead for the cpb alias
   ];
 
-  # Codex reads /etc/codex/config.toml as its lowest-precedence layer and never writes it.
-  environment.etc."codex/config.toml".source = ./programs/codex/system-config.toml;
-
   system.activationScripts.postActivation.text = ''
     nvram SystemAudioVolume=" " 2>/dev/null || true
   '';

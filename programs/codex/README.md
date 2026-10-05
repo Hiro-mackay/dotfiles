@@ -60,10 +60,10 @@ Codex標準の検索とファイル読み取りは、候補箇所の実装と現
 論文の評価では、ファイル探索より回答品質が低い一方、トークンとツール呼び出しを減らしている。
 そのため、構造探索を先に行い、対象を絞ってから正確なソースを読む。
 
-`codebase-memory-mcp` の登録を含む共有設定は `system-config.toml` に置く。
-Nix がこれを `/etc/codex/config.toml` に配り、Codex は最も優先度の低い層として読む。
-`~/.codex/config.toml` は Codex が trust や端末固有のパスを書き込むので、追跡しない。
-同じキーが両方にあるときは `~/.codex/config.toml` が優先される。
+`codebase-memory-mcp` の登録を含む共有設定は `config.toml` に宣言する。
+home-manager が switch のたびに、これを `~/.codex/config.toml` へ合成する。
+Codex が書き込む trust や端末固有のパスは残り、宣言したキーは宣言の値に戻る。
+`~/.codex/config.toml` そのものは追跡しない。
 
 ## 変更後は実際の読み込みを確認する
 

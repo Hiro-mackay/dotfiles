@@ -62,18 +62,10 @@ if [ ! -d "$DOTFILES/.git" ]; then
     nix run nixpkgs#git -- clone "$REPO_URL" "$DOTFILES"
 fi
 
-if [ "$OS" = Linux ]; then
-    # Codex's system layer points into the user's home-manager files, so later
-    # changes need no sudo. Assumes one user per server.
-    log "Linking /etc/codex/config.toml"
-    sudo mkdir -p /etc/codex
-    sudo ln -sfn "$HOME/.local/share/dotfiles/etc/codex/config.toml" /etc/codex/config.toml
-
-    if ! command -v docker >/dev/null 2>&1; then
-        log "Installing Docker Engine"
-        curl -fsSL https://get.docker.com | sudo sh
-        sudo usermod -aG docker "$(id -un)"
-    fi
+if [ "$OS" = Linux ] && ! command -v docker >/dev/null 2>&1; then
+    log "Installing Docker Engine"
+    curl -fsSL https://get.docker.com | sudo sh
+    sudo usermod -aG docker "$(id -un)"
 fi
 
 if [ "$OS" = Darwin ] && [ -f /etc/nix/nix.custom.conf ] && [ ! -L /etc/nix/nix.custom.conf ]; then

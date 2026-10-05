@@ -14,8 +14,4 @@
     zsh
     lsof
   ];
-
-  # install.sh links /etc/codex/config.toml here once with sudo; later changes need no root.
-  home.file.".local/share/dotfiles/etc/codex/config.toml".source =
-    ./programs/codex/system-config.toml;
 }

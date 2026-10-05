@@ -54,6 +54,8 @@
     # Before nix-homebrew's own mkBefore setup, so installing Homebrew itself is covered too.
     (lib.mkOrder 400 "set +e")
     (lib.mkAfter ''
+      # The brew bundle block above is nix-darwin's, so its status is only available here.
+      # shellcheck disable=SC2181
       [ $? -eq 0 ] || echo >&2 "warning: Homebrew bundle failed; continuing so the home configuration still applies"
       set -e
     '')

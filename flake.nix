@@ -29,6 +29,11 @@
       url = "github:openai/codex-plugin-cc";
       flake = false;
     };
+    # Codex plugin marketplace, pinned here instead of fetched by Codex from git.
+    codex-warp = {
+      url = "github:warpdotdev/codex-warp";
+      flake = false;
+    };
   };
 
   outputs =

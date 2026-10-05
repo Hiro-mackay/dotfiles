@@ -16,14 +16,6 @@ enabled = true
 [plugins."warp@codex-warp"]
 enabled = true
 
-[marketplaces.ponytail]
-source_type = "git"
-source = "https://github.com/DietrichGebert/ponytail.git"
-
-[marketplaces.codex-warp]
-source_type = "git"
-source = "https://github.com/warpdotdev/codex-warp.git"
-
 # Resolved through PATH (mise shims).
 [mcp_servers.codebase-memory-mcp]
 command = "codebase-memory-mcp"

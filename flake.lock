@@ -84,6 +84,22 @@
         "type": "github"
       }
     },
+    "codex-warp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790795835,
+        "narHash": "sha256-zdXQTVu8aZuDTc0VGt53tQfEAF63ZrWUy6vACVJCnCo=",
+        "owner": "warpdotdev",
+        "repo": "codex-warp",
+        "rev": "c181c8fe9614c68b31e8f054b41724260b3cf7bf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "warpdotdev",
+        "repo": "codex-warp",
+        "type": "github"
+      }
+    },
     "determinate": {
       "inputs": {
         "determinate-nixd-aarch64-darwin": "determinate-nixd-aarch64-darwin",
@@ -455,6 +471,7 @@
     "root": {
       "inputs": {
         "codex-plugin-cc": "codex-plugin-cc",
+        "codex-warp": "codex-warp",
         "determinate": "determinate",
         "home-manager": "home-manager",
         "llm-agents": "llm-agents",

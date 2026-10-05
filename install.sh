@@ -48,6 +48,8 @@ if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
         sh -s -- install --no-confirm --extra-conf "$CACHE_CONF"
 elif [ "$OS" = Linux ] && ! grep -qs "$NUMTIDE_CACHE" /etc/nix/nix.conf /etc/nix/nix.custom.conf; then
+    grep -qs 'nix.custom.conf' /etc/nix/nix.conf ||
+        die "this Nix does not read /etc/nix/nix.custom.conf; only Determinate Nix is supported"
     log "Adding the numtide binary cache to /etc/nix/nix.custom.conf"
     printf '%s\n' "$CACHE_CONF" | sudo tee -a /etc/nix/nix.custom.conf >/dev/null
     # The daemon reads its configuration only at startup.

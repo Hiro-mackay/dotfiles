@@ -10,8 +10,8 @@
   # No systemd user services are used here.
   systemd.user.enable = false;
 
-  home.packages = with pkgs; [
-    zsh
-    lsof
-  ];
+  # bash stays the login shell until chsh; this gives it the same PATH and variables.
+  programs.bash.enable = true;
+
+  home.packages = [ pkgs.lsof ];
 }

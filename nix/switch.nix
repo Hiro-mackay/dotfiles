@@ -24,13 +24,11 @@ pkgs.writeShellApplication {
     # Nix's JSON log format and floods the output with errors.
     case "$(uname -s)" in
       Darwin)
-        # DOTFILES_HOST (default or minimal) is remembered for later runs.
-        mkdir -p "$state"
-        if [ -n "''${DOTFILES_HOST:-}" ]; then
-          printf '%s\n' "$DOTFILES_HOST" >"$state/host"
-        fi
-        host="$(cat "$state/host" 2>/dev/null || echo default)"
+        # DOTFILES_HOST (default or minimal) is remembered once it has applied, so a
+        # mistyped name is not kept.
+        host="''${DOTFILES_HOST:-$(cat "$state/host" 2>/dev/null || echo default)}"
         nh darwin switch --no-nom "path:$src" -H "$host" -- --impure
+        mkdir -p "$state" && printf '%s\n' "$host" >"$state/host"
         hm_vars="/etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh"
         ;;
       Linux)
@@ -47,6 +45,8 @@ pkgs.writeShellApplication {
     # from install.sh puts tools where later shells look for them.
     if [ -r "$hm_vars" ]; then
       set +u
+      # The file skips itself when this variable is inherited from a managed shell.
+      unset __HM_SESS_VARS_SOURCED
       # shellcheck disable=SC1090
       . "$hm_vars" || warn "could not load $hm_vars"
       set -u

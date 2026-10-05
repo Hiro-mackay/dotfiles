@@ -59,16 +59,22 @@ jobs:
           test -f "$HOME/.codex/AGENTS.md"
           test -f "$HOME/.codex/skills/plan-template/SKILL.md"
           test -f /etc/codex/config.toml
-          ! test -e /etc/claude-code
+          test ! -e /etc/claude-code
           jq -e '.permissions.deny | index("Bash(sudo:*)")' "$HOME/.claude/settings.json"
+          # The status line must render reset times with GNU date, without errors.
+          sl="$(jq -r .statusLine.command "$HOME/.claude/settings.json")"
+          echo '{"rate_limits":{"five_hour":{"used_percentage":10,"resets_at":1800000000}}}' | "$sl" 2>"$RUNNER_TEMP/sl.err" | grep -q '[0-9][0-9]/[0-9][0-9] '
+          test ! -s "$RUNNER_TEMP/sl.err"
           zsh -ic '
             set -e
             for c in gwi gws z g mkcd cheat lg ubuntu dexec; do whence -w $c; done
-            for c in op jc sbxc ccgo c2; do ! whence $c >/dev/null; done
+            for c in op jc sbxc ccgo c2; do if whence $c >/dev/null; then exit 1; fi; done
             command -v claude codex mise nh comma git-secrets
             mise ls --current
             codebase-memory-mcp --version
             print -r -- "HISTFILE=$HISTFILE"
+            [[ "export AWS_SECRET_ACCESS_KEY=x" == ${~HISTORY_IGNORE} ]]
+            [[ "ls -la" != ${~HISTORY_IGNORE} ]]
           '
           claude --version
           codex --version

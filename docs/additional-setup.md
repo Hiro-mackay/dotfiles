@@ -5,10 +5,9 @@ Manual steps around `install.sh` (see the README).
 ## Before the first switch (macOS)
 
 - Install the Xcode Command Line Tools: `xcode-select --install`. Homebrew needs them.
-- Sign in to the App Store. Without it, installing Kindle (`masApps`) fails the switch.
-- Remove apps that were installed outside Homebrew and are now casks, or the
-  cask install collides: ChatGPT, Claude, BetterTouchTool, Codex.app. Export the
-  BetterTouchTool preset first; its license stays in `~/Library`.
+
+Apps already installed outside Homebrew (company MDM, a manual install) are left
+alone: their casks are skipped and they keep their own updater.
 
 ## After the first switch
 
@@ -49,9 +48,4 @@ Linux:
 
 | Flag | Effect |
 |------|--------|
-| `DOTFILES_HOST=minimal` | macOS: essential casks only (Hammerspoon, Warp). Remembered in `~/.local/state/dotfiles/host` |
 | `DOTFILES_DISABLE_QUARANTINE=1` | macOS: disable the Gatekeeper "downloaded from the internet" check |
-
-```sh
-DOTFILES_HOST=minimal nix run ~/.dotfiles#switch
-```

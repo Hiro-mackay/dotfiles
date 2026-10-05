@@ -62,29 +62,27 @@
       homeDirectory =
         system: envOr "HOME" (if isDarwin system then "/Users/${username}" else "/home/${username}");
 
-      mkDarwin =
-        full:
-        nix-darwin.lib.darwinSystem {
-          specialArgs = {
-            inherit inputs username full;
-            homeDirectory = homeDirectory "aarch64-darwin";
-          };
-          modules = [
-            inputs.determinate.darwinModules.default
-            inputs.nix-homebrew.darwinModules.nix-homebrew
-            home-manager.darwinModules.home-manager
-            ./darwin.nix
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                backupFileExtension = "backup";
-                extraSpecialArgs = { inherit inputs; };
-                users.${username}.imports = [ ./home.nix ];
-              };
-            }
-          ];
+      darwin = nix-darwin.lib.darwinSystem {
+        specialArgs = {
+          inherit inputs username;
+          homeDirectory = homeDirectory "aarch64-darwin";
         };
+        modules = [
+          inputs.determinate.darwinModules.default
+          inputs.nix-homebrew.darwinModules.nix-homebrew
+          home-manager.darwinModules.home-manager
+          ./darwin.nix
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              backupFileExtension = "backup";
+              extraSpecialArgs = { inherit inputs; };
+              users.${username}.imports = [ ./home.nix ];
+            };
+          }
+        ];
+      };
 
       mkHome =
         system:
@@ -102,11 +100,7 @@
         };
     in
     {
-      darwinConfigurations = {
-        default = mkDarwin true;
-        # Restricted Macs: essential casks only (replaces DOTFILES_SKIP_CASKS=1).
-        minimal = mkDarwin false;
-      };
+      darwinConfigurations.default = darwin;
 
       homeConfigurations = lib.genAttrs linuxSystems mkHome;
 
@@ -121,10 +115,7 @@
       checks = forAllSystems (
         system:
         if isDarwin system then
-          {
-            default = self.darwinConfigurations.default.system;
-            minimal = self.darwinConfigurations.minimal.system;
-          }
+          { default = self.darwinConfigurations.default.system; }
         else
           { home = self.homeConfigurations.${system}.activationPackage; }
       );

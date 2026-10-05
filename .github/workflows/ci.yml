@@ -28,11 +28,8 @@ jobs:
           extra-conf: |
             extra-substituters = https://cache.numtide.com
             extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
-      - name: Build both darwin configurations as the runner user
-        run: |
-          nix build --impure --no-link --print-out-paths \
-            .#darwinConfigurations.default.system \
-            .#darwinConfigurations.minimal.system
+      - name: Build the darwin configuration as the runner user
+        run: nix build --impure --no-link --print-out-paths .#darwinConfigurations.default.system
       - name: Show the casks for this machine (apps installed outside Homebrew are skipped)
         run: |
           brewfile="$(nix eval --impure --raw .#darwinConfigurations.default.config.homebrew.brewfile)"

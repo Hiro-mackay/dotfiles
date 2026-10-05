@@ -15,7 +15,6 @@ pkgs.writeShellApplication {
     # edits being applied are the ones the user is looking at. nh treats a bare store
     # path as a built configuration, hence the path: prefix.
     src="${flake}"
-    state="''${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
     warn() { printf 'warning: %s\n' "$*" >&2; }
 
     # nh builds as the invoking user and elevates only the activation step, so this
@@ -24,11 +23,7 @@ pkgs.writeShellApplication {
     # Nix's JSON log format and floods the output with errors.
     case "$(uname -s)" in
       Darwin)
-        # DOTFILES_HOST (default or minimal) is remembered once it has applied, so a
-        # mistyped name is not kept.
-        host="''${DOTFILES_HOST:-$(cat "$state/host" 2>/dev/null || echo default)}"
-        nh darwin switch --no-nom "path:$src" -H "$host" -- --impure
-        mkdir -p "$state" && printf '%s\n' "$host" >"$state/host"
+        nh darwin switch --no-nom "path:$src" -H default -- --impure
         hm_vars="/etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh"
         ;;
       Linux)

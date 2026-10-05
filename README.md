@@ -19,7 +19,6 @@ systemd and sudo.
 
 ```sh
 nix run ~/.dotfiles#switch                        # apply after editing anything here
-DOTFILES_HOST=minimal nix run ~/.dotfiles#switch  # restricted Mac: essential casks only (remembered)
 nix flake update --flake ~/.dotfiles              # bump inputs (also a weekly PR)
 mise upgrade                                      # languages and dev tools
 ```

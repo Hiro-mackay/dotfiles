@@ -67,7 +67,7 @@ flake.nix
 │   ├── gh/  mise/
 │   ├── agents/           # AGENTS.md と skills/（Claude と Codex で共有する原本）
 │   ├── claude/           # default.nix、settings.json、CLAUDE.md、statusline.sh
-│   ├── codex/            # default.nix、system-config.toml
+│   ├── codex/            # default.nix、config.toml（宣言する設定）
 │   ├── vscode/           # default.nix、settings.json、extensions（一覧）
 │   ├── hammerspoon/      # default.nix と init.lua
 │   └── bettertouchtool/  # プリセット（手で読み込む）
@@ -108,16 +108,15 @@ flake.nix
 ### 4.3 Mac（`darwin.nix`）
 
 - **macOS の設定**（旧 `setup-macos.sh`）: `darwin/defaults.nix` に書く。型付きのオプションがないものは `CustomUserPreferences`、root で書くものは `CustomSystemPreferences` を使う。LSQuarantine の無効化は `DOTFILES_DISABLE_QUARANTINE=1` を付けて switch したときだけ行う
-- **Homebrew**: `darwin/homebrew.nix` に書く。nix-homebrew で Homebrew 本体の版を固定する。cask、Kindle（masApps）、VS Code の拡張機能（`homebrew.vscode`。一覧は `programs/vscode/extensions`）を宣言する。`cleanup` は、最初の switch を確かめてから `"zap"` にする
+- **Homebrew**: `darwin/homebrew.nix` に書く。nix-homebrew で Homebrew 本体の版を固定する。cask、Kindle（masApps）、VS Code の拡張機能（`homebrew.vscode`。一覧は `programs/vscode/extensions`）を宣言する。`cleanup` は、最初の switch を確かめてから `"zap"` にする。brew bundle は activation の中で home-manager より先に走るので、失敗しても警告だけにして先へ進める
 - **制限付きの Mac**: `darwinConfigurations.minimal` を使う（`DOTFILES_HOST=minimal`。一度指定すれば記録される）。cask は必須の Hammerspoon と Warp だけになる
-- **その他**: Touch ID で sudo を通す。`/etc/codex/config.toml` は `environment.etc` で置く。Mac だけの CLI（emacs、htmlq、shellcheck、watch、terminal-notifier、coreutils-prefixed）は `environment.systemPackages` で入れる。nix-darwin の zsh の既定の動きのうち `promptInit` と全員分の `compinit` は止める
+- **その他**: Touch ID で sudo を通す。Mac だけの CLI（emacs、shellcheck、watch、terminal-notifier、coreutils-prefixed）は `environment.systemPackages` で入れる。nix-darwin の zsh の既定の動きのうち `promptInit` と全員分の `compinit` は止める
 
 ### 4.4 Linux（`linux.nix` と `install.sh`）
 
 - `targets.genericLinux.enable = true`。GPU の設定（`gpu.enable`）と systemd のユーザーサービス（`systemd.user.enable`）は止める
-- Linux だけのパッケージは zsh と lsof
+- Linux だけのパッケージは lsof。`programs.bash` も有効にして、chsh する前（ログインシェルが bash）でも PATH と環境変数をそろえる
 - install.sh が、初回だけ sudo で次の作業を行う
-  - `/etc/codex/config.toml` を、home-manager が置く `~/.local/share/dotfiles/etc/codex/config.toml` へリンクする。このため、Linux のサーバーは1人で使う前提になる
   - `docker` がなく systemd が動いていれば、Docker Engine を入れる
 - systemd のない環境（コンテナなど）は対象外にする。install.sh はそこで止まる
 - SSH の鍵は管理しない。サーバーから push するときは、Mac から SSH エージェントを転送する
@@ -137,7 +136,7 @@ flake.nix
 
 | 管理するもの | 中身 |
 |---|---|
-| Nix（両方の OS） | git、gh、ghq、fzf、ripgrep、fd、bat、eza、jq、zoxide、direnv、lazygit、starship、vim、git-secrets、comma、mise |
+| Nix（両方の OS） | git、gh、ghq、fzf、ripgrep、fd、bat、eza、jq、zoxide、direnv、lazygit、starship、vim、git-secrets、htmlq、comma、mise |
 | Nix（Mac だけ） | emacs、htmlq、shellcheck、watch、terminal-notifier、coreutils-prefixed |
 | mise（両方の OS） | node、python、uv、go、pnpm、terraform、kubectl、kind、skaffold、golangci-lint、sqlc、buf、task、lefthook、golang-migrate、gopls、codebase-memory-mcp |
 | mise（Mac だけ） | gcloud、bun、deno、ni、rust、sops |
@@ -167,12 +166,12 @@ flake.nix
 |---|---|
 | 本体 | llm-agents.nix |
 | `~/.codex/AGENTS.md`、skills | `programs/agents` から配る。Codex は symlink の AGENTS.md も、skill のディレクトリの symlink も読む（ソースで確認） |
-| 共通の設定 | `system-config.toml` を `/etc/codex/config.toml` に置く。Codex はこれを一番優先度の低い層として読み、書き込まない |
-| `~/.codex/config.toml` | Codex に任せる。trust や、Codex.app が書く端末固有のパスが入る。同じキーは `/etc` より優先される |
+| 共通の設定 | `programs/codex/config.toml` に宣言する。home-manager の `mutableSettings` が、switch のたびに `~/.codex/config.toml` へ合成する |
+| `~/.codex/config.toml` | 書き込めるファイルのまま残し、追跡しない。Codex が書く trust や端末固有のパスは残る。宣言したキーは宣言の値に戻る |
 
 ### 4.8 git、gh、VS Code、Hammerspoon
 
-- **git**: `programs.git` で設定する。`~/Repository/` の下では `~/.gitconfig.local` を読む。このリポジトリでは pre-commit（git-secrets）を有効にし、`~/.gitconfig.local` の名前とメールアドレスを禁止パターンにする（provider で毎回読む）
+- **git**: `programs.git` で設定する。`~/Repository/` の下では `~/.gitconfig.local` を読む。このリポジトリでは（clone の場所によらず remote の URL で判定する）noreply のアドレスを使い、pre-commit（git-secrets）を有効にし、`~/.gitconfig.local` の名前とメールアドレスを禁止パターンにする（provider で毎回読む）
 - **gh**: `programs.gh` で設定する。認証情報（`hosts.yml`）は gh が自分で書く
 - **VS Code**: 本体は cask。`settings.json` は読み取り専用で配る（設定画面からは保存できない）。拡張機能は一覧ファイルを Homebrew（brew bundle）が入れる。取得に失敗すると switch が止まる。画面から入れたら `codeexport` で一覧に書き出す。nixpkgs にない拡張機能が多いので、Nix のパッケージとしては管理しない
 - **Hammerspoon**: `~/.hammerspoon/init.lua` を配る（Mac だけ）
@@ -211,6 +210,7 @@ Claude Code と Codex を終了させてから、素のターミナルで行う�
    rm ~/.claude && mv ~/.config/claude ~/.claude        # Claude の状態を ~/.claude へ
    rm ~/.codex  && mv ~/.config/codex  ~/.codex         # Codex の状態を ~/.codex へ
    rm ~/.zshenv ~/.hammerspoon                          # home-manager が作り直す
+   rm ~/.config/mise/config.toml                        # 旧構成の宣言。home-manager の conf.d と重なる
    find ~/.claude/skills ~/.codex/skills -maxdepth 1 -type l -delete   # 旧構成の skill のリンク（移すと壊れ、switch が止まる）
    ```
 5. **ブランチを取り込む**: PR #4 をマージし、`git -C ~/.dotfiles pull --ff-only` で取り込む。そのあと、古い構成が `.git/config` に書いた設定を消す。残すと、新しい pre-commit（git-secrets）が動かない
@@ -218,7 +218,7 @@ Claude Code と Codex を終了させてから、素のターミナルで行う�
    git -C ~/.dotfiles config --unset core.hooksPath
    git -C ~/.dotfiles config --remove-section filter.codex-config
    ```
-6. **古いものを片づける**: `codebase-memory-mcp uninstall` を実行する。ネイティブインストーラで入れた Claude Code（`~/.local/bin/claude` と `~/.local/share/claude`）を消す。消さないと、PATH の先頭にあるこちらが Nix の版より優先されてしまう。`~/.codex/config.toml` からは、`system-config.toml` に移した設定を消す
+6. **古いものを片づける**: `codebase-memory-mcp uninstall` を実行する。ネイティブインストーラで入れた Claude Code（`~/.local/bin/claude` と `~/.local/share/claude`）を消す。消さないと、PATH の先頭にあるこちらが Nix の版より優先されてしまう
 7. **入れて適用する**: `sh ~/.dotfiles/install.sh` を実行する。Determinate Nix を numtide のキャッシュ付きで入れ、インストーラが作った `/etc/nix/nix.custom.conf` を nix-darwin のために退避してから、`nix run .#switch` を実行する（`~/.dotfiles` はあるので clone はしない）。すでにあるファイル（`~/.config/zsh/.zshrc` など）は、home-manager が `.backup` を付けて退避してからリンクを張る
 8. **履歴を移す**: 同じターミナルで、秘密情報らしい行を除いて新しい履歴ファイルに足す。終わったらこのターミナルを閉じる（開いたままだと古いファイルに書き続ける）
    ```sh
@@ -244,7 +244,7 @@ nix-darwin が、`nix.custom.conf` 以外のファイル（`/etc/zshrc` など�
 | Claude Code はネイティブインストーラで自動更新 | Nix で版を固定。更新は flake の更新で行う |
 | Claude のプラグインは marketplace から入れる | flake の入力で版を固定する |
 | VS Code の設定画面で変えた値が保存される | 保存されない。`programs/vscode/settings.json` を編集する |
-| Codex の `config.toml` を sanitizer と clean filter で整えて追跡 | 共通の設定は `/etc/codex/config.toml`。手元のファイルは追跡しない |
+| Codex の `config.toml` を sanitizer と clean filter で整えて追跡 | 共通の設定は `programs/codex/config.toml` に宣言し、switch で手元のファイルへ合成する。手元のファイルは追跡しない |
 | mise と brew の両方に同じ言語 | 言語は mise だけ。宣言は Nix に書く |
 | podman | Docker Desktop（Mac）と Docker Engine（Linux） |
 | `DOTFILES_SKIP_CASKS` | `DOTFILES_HOST=minimal` |
@@ -275,8 +275,9 @@ CI では、Linux で install.sh から switch まで通し、配置されたも
 - Claude Code と Codex の版は flake.lock で決まる。急いで上げたいときは `nix flake update llm-agents` を実行する
 - mise のツールは `latest` なので、作るたびに同じ版になるとは限らない
 - 禁止ルールを書いた `settings.json` は読み取り専用だが、Claude が symlink ごと消して置き換えることまでは防げない（`rm -rf` は禁止しているが、`rm` は禁止していない）
-- `~/.codex/config.toml` に同じキーがあると、`/etc` の共通設定より優先される。Nix で変えた設定が効かないときは、まずこちらを確かめる
-- Linux の `/etc/codex/config.toml` は、最初に install.sh を実行したユーザーのファイルを指す
+- `programs/codex/config.toml` に宣言したキーは、switch のたびに宣言の値に戻る。Codex の画面で変えた model なども戻る
+- brew bundle が失敗しても、switch は警告を出して先に進む（home-manager の設定は入る）。cask が入ったかは switch の出力で確かめる
+- Dock の設定（`persistent-apps = []` を含む）は switch のたびに適用され、Dock が再起動される。手で固定したアプリは外れる
 - `docker` グループのユーザーは、実質的に root と同じことができる
 - Homebrew の `autoUpdate` と `upgrade` を有効にしているので、switch のたびに Homebrew の更新と cask の入れ替えが走る。設定を1行直すだけでも数分かかることがあり、起動中のアプリが入れ替わることもある
 - `cleanup` を `"zap"` にすると、`programs/vscode/extensions` にない VS Code の拡張機能も消される可能性がある（未確認）。画面から入れたものは、switch の前に `codeexport` で一覧に書き出す
@@ -301,7 +302,7 @@ CI では、Linux で install.sh から switch まで通し、配置されたも
 | Claude Code と Codex は llm-agents.nix で入れる | どの環境でも同じ版になる | ネイティブインストーラ、cask |
 | Claude のプラグインは flake で版を固定する | どの環境でも同じものが入る | marketplace から入れる |
 | 禁止ルールは読み取り専用の `settings.json` に書く | 両方の OS で同じ仕組みになる | 管理設定（`/Library`、`/etc`） |
-| Codex の共通設定は `/etc/codex/config.toml` | Codex が trust を書き込むユーザーの設定と分けられる | `programs.codex.settings`（読み取り専用になり、trust を保存できない） |
+| Codex の共通設定は `programs.codex.settings` と `mutableSettings` で手元の `config.toml` に合成する | Codex が書く trust を残したまま、宣言した値をそろえられる。sudo も `/etc` も要らない | `/etc/codex/config.toml`（Linux では sudo のリンクが要り、root が利用者の書けるファイルを読む） |
 | VS Code の拡張機能は一覧ファイルから入れる | nixpkgs にない拡張機能が多く、Nix で管理するには入力と VS Code 本体の入れ替えが要る | `programs.vscode` |
 | Warp の設定は管理しない | Warp のアカウントの同期でそろっている。公開したくない識別子も含まれていた | リポジトリで管理する |
 | system-manager は使わない | Determinate との組み合わせが保証されていない。`/etc` に置くのは1ファイルだけ | system-manager |

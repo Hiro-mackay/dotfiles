@@ -41,5 +41,9 @@
       "codex-app"
     ];
     masApps = lib.optionalAttrs full { Kindle = 302584613; };
+    # The list is written by the codeexport alias.
+    vscode = lib.optionals full (
+      lib.filter (ext: ext != "") (lib.splitString "\n" (builtins.readFile ../programs/vscode/extensions))
+    );
   };
 }

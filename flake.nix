@@ -117,21 +117,6 @@
         };
       });
 
-      apps = forAllSystems (
-        system:
-        let
-          switch = {
-            type = "app";
-            program = lib.getExe self.packages.${system}.switch;
-            meta.description = "Apply this configuration with nh, then install mise tools and VS Code extensions";
-          };
-        in
-        {
-          inherit switch;
-          default = switch;
-        }
-      );
-
       # Evaluating these runs the module assertions (e.g. never evaluated as root).
       checks = forAllSystems (
         system:

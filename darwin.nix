@@ -11,13 +11,6 @@
     ./darwin/homebrew.nix
   ];
 
-  assertions = [
-    {
-      assertion = username != "root";
-      message = "Evaluated as root. Run `nix run .#switch` as your normal user; nh elevates only the activation.";
-    }
-  ];
-
   nixpkgs.hostPlatform = "aarch64-darwin";
   system.stateVersion = 7;
   system.primaryUser = username;

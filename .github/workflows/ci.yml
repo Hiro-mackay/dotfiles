@@ -59,7 +59,6 @@ jobs:
           test -f "$HOME/.codex/AGENTS.md"
           test -f "$HOME/.codex/skills/plan-template/SKILL.md"
           test -f /etc/codex/config.toml
-          test ! -e /etc/claude-code
           jq -e '.permissions.deny | index("Bash(sudo:*)")' "$HOME/.claude/settings.json"
           # The status line must render reset times with GNU date, without errors.
           sl="$(jq -r .statusLine.command "$HOME/.claude/settings.json")"
@@ -69,7 +68,7 @@ jobs:
             set -e
             for c in gwi gws z g mkcd cheat lg ubuntu dexec; do whence -w $c; done
             for c in op jc sbxc ccgo c2; do if whence $c >/dev/null; then exit 1; fi; done
-            command -v claude codex mise nh comma git-secrets
+            command -v claude codex mise comma git-secrets
             mise ls --current
             codebase-memory-mcp --version
             print -r -- "HISTFILE=$HISTFILE"

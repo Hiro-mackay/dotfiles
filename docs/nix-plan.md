@@ -26,7 +26,7 @@
 flake.nix
 ├── Mac:   nix-darwin（darwin.nix） ＋ home-manager（home.nix）
 ├── Linux: home-manager（home.nix ＋ linux.nix）
-├── apps.switch（nix run .#switch）  nh で適用 → mise install → VS Code の拡張機能
+├── packages.switch（nix run .#switch）  nh で適用 → mise install
 └── GitHub Actions                   評価、Mac の build、Ubuntu での通しの確認、週1回の更新 PR
 ```
 
@@ -103,13 +103,12 @@ flake.nix
    - Linux: `nh home switch --no-nom <flake> -c <system> -b backup -- --impure`
    - nh は build をユーザーの権限で行い、`activate` だけを sudo で実行する。そのため、Mac の初回（`darwin-rebuild` がまだない状態）でもそのまま動く
 2. 適用したばかりの home-manager の環境変数（`CARGO_HOME` など）を読み込んでから、`mise install` を実行する。読み込まないと、初回に rust などが別の場所へ入る。`gh auth token` で値が取れれば、`MISE_GITHUB_TOKEN` に渡す
-3. Mac で `code` があれば、`programs/vscode/extensions` の一覧のうち、入っていない拡張機能を入れる。Linux では行わない
-4. 2と3は、失敗しても警告を出して先に進む
+3. `mise install` は、失敗しても警告を出して先に進む
 
 ### 4.3 Mac（`darwin.nix`）
 
 - **macOS の設定**（旧 `setup-macos.sh`）: `darwin/defaults.nix` に書く。型付きのオプションがないものは `CustomUserPreferences`、root で書くものは `CustomSystemPreferences` を使う。LSQuarantine の無効化は `DOTFILES_DISABLE_QUARANTINE=1` を付けて switch したときだけ行う
-- **Homebrew**: `darwin/homebrew.nix` に書く。nix-homebrew で Homebrew 本体の版を固定する。cask と Kindle（masApps）を宣言する。`cleanup` は、最初の switch を確かめてから `"zap"` にする
+- **Homebrew**: `darwin/homebrew.nix` に書く。nix-homebrew で Homebrew 本体の版を固定する。cask、Kindle（masApps）、VS Code の拡張機能（`homebrew.vscode`。一覧は `programs/vscode/extensions`）を宣言する。`cleanup` は、最初の switch を確かめてから `"zap"` にする
 - **制限付きの Mac**: `darwinConfigurations.minimal` を使う（`DOTFILES_HOST=minimal`。一度指定すれば記録される）。cask は必須の Hammerspoon と Warp だけになる
 - **その他**: Touch ID で sudo を通す。`/etc/codex/config.toml` は `environment.etc` で置く。Mac だけの CLI（emacs、htmlq、shellcheck、watch、terminal-notifier、coreutils-prefixed）は `environment.systemPackages` で入れる。nix-darwin の zsh の既定の動きのうち `promptInit` と全員分の `compinit` は止める
 
@@ -138,7 +137,7 @@ flake.nix
 
 | 管理するもの | 中身 |
 |---|---|
-| Nix（両方の OS） | git、gh、ghq、fzf、ripgrep、fd、bat、eza、jq、zoxide、direnv、lazygit、starship、vim、git-secrets、nh、comma、mise |
+| Nix（両方の OS） | git、gh、ghq、fzf、ripgrep、fd、bat、eza、jq、zoxide、direnv、lazygit、starship、vim、git-secrets、comma、mise |
 | Nix（Mac だけ） | emacs、htmlq、shellcheck、watch、terminal-notifier、coreutils-prefixed |
 | mise（両方の OS） | node、python、uv、go、pnpm、terraform、kubectl、kind、skaffold、golangci-lint、sqlc、buf、task、lefthook、golang-migrate、gopls、codebase-memory-mcp |
 | mise（Mac だけ） | gcloud、bun、deno、ni、rust、sops |
@@ -175,7 +174,7 @@ flake.nix
 
 - **git**: `programs.git` で設定する。`~/Repository/` の下では `~/.gitconfig.local` を読む。このリポジトリでは pre-commit（git-secrets）を有効にし、`~/.gitconfig.local` の名前とメールアドレスを禁止パターンにする（provider で毎回読む）
 - **gh**: `programs.gh` で設定する。認証情報（`hosts.yml`）は gh が自分で書く
-- **VS Code**: 本体は cask。`settings.json` は読み取り専用で配る（設定画面からは保存できない）。拡張機能は一覧ファイルから `nix run .#switch` で入れる。nixpkgs にない拡張機能が多いので、Nix での管理はしない
+- **VS Code**: 本体は cask。`settings.json` は読み取り専用で配る（設定画面からは保存できない）。拡張機能は一覧ファイルを Homebrew（brew bundle）が入れる。取得に失敗すると switch が止まる。画面から入れたら `codeexport` で一覧に書き出す。nixpkgs にない拡張機能が多いので、Nix のパッケージとしては管理しない
 - **Hammerspoon**: `~/.hammerspoon/init.lua` を配る（Mac だけ）
 - **BetterTouchTool**: プリセットはリポジトリに置き、読み込みは手作業で行う
 
@@ -280,6 +279,7 @@ CI では、Linux で install.sh から switch まで通し、配置されたも
 - Linux の `/etc/codex/config.toml` は、最初に install.sh を実行したユーザーのファイルを指す
 - `docker` グループのユーザーは、実質的に root と同じことができる
 - Homebrew の `autoUpdate` と `upgrade` を有効にしているので、switch のたびに Homebrew の更新と cask の入れ替えが走る。設定を1行直すだけでも数分かかることがあり、起動中のアプリが入れ替わることもある
+- `cleanup` を `"zap"` にすると、`programs/vscode/extensions` にない VS Code の拡張機能も消される可能性がある（未確認）。画面から入れたものは、switch の前に `codeexport` で一覧に書き出す
 - nix-homebrew は Homebrew 本体の版を固定している。最初の switch で、今の Homebrew がその版に置き換わる
 - 週1回の更新 PR には、リポジトリの設定「Allow GitHub Actions to create and approve pull requests」の有効化が必要。GitHub Actions が作った PR では、CI は自動では動かない
 

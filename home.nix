@@ -40,7 +40,6 @@
     jq
     lazygit
     vim
-    nh
   ];
 
   # comma (`, cmd`) and command-not-found with a prebuilt nix-index database.
@@ -50,9 +49,7 @@
   home.sessionVariables = {
     LANG = "en_US.UTF-8";
     LC_ALL = "en_US.UTF-8";
-    LC_CTYPE = "en_US.UTF-8";
     DOTFILES_DIR = "${config.home.homeDirectory}/.dotfiles";
-    NH_FLAKE = "${config.home.homeDirectory}/.dotfiles";
     CARGO_HOME = "${config.xdg.dataHome}/.cargo";
     RUSTUP_HOME = "${config.xdg.dataHome}/.rustup";
     PNPM_HOME = "${config.xdg.dataHome}/pnpm";

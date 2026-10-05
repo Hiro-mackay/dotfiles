@@ -1,6 +1,6 @@
 # `nix run .#switch`: the single entry point on both macOS and Linux.
-# Applies the configuration with nh, then installs what Nix does not manage:
-# mise tools, and VS Code extensions on macOS (network steps, kept out of activation).
+# Applies the configuration with nh, then installs mise tools (a network step, kept
+# out of activation).
 { pkgs, flake }:
 pkgs.writeShellApplication {
   name = "dotfiles-switch";
@@ -9,7 +9,6 @@ pkgs.writeShellApplication {
     mise
     gh
     coreutils
-    gnugrep
   ];
   text = ''
     # The flake this command was built from (a worktree, a clone, or GitHub), so the
@@ -60,19 +59,5 @@ pkgs.writeShellApplication {
       fi
     fi
     mise install --yes || warn "mise install failed; rerun 'mise install'"
-
-    # VS Code extensions (macOS): install what the tracked list has and the machine lacks.
-    if [ "$(uname -s)" = Darwin ]; then
-      PATH="$PATH:/opt/homebrew/bin"
-      extensions="$src/programs/vscode/extensions"
-      if command -v code >/dev/null 2>&1 && [ -f "$extensions" ]; then
-        installed="$(code --list-extensions 2>/dev/null || true)"
-        while IFS= read -r ext; do
-          [ -n "$ext" ] || continue
-          printf '%s\n' "$installed" | grep -qixF -- "$ext" && continue
-          code --install-extension "$ext" >/dev/null || warn "could not install VS Code extension $ext"
-        done <"$extensions"
-      fi
-    fi
   '';
 }

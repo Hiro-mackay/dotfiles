@@ -1,69 +1,57 @@
 # Additional setup
 
-Manual steps around `install.sh` (see the README for running it), in order.
+Manual steps around `install.sh` (see the README).
 
-## 1. Before install — machine-local Git identity (optional)
+## Before the first switch (macOS)
 
-To use a different Git identity for repos under `~/Repository/` without
-committing it to this public repo, create `~/.gitconfig.local` (untracked,
-outside the repo tree):
+- Install the Xcode Command Line Tools: `xcode-select --install`. Homebrew needs them.
+- Sign in to the App Store. Without it, installing Kindle (`masApps`) fails the switch.
+- Remove apps that were installed outside Homebrew and are now casks, or the
+  cask install collides: ChatGPT, Claude, BetterTouchTool, Codex.app. Export the
+  BetterTouchTool preset first; its license stays in `~/Library`.
 
-```gitconfig
-[user]
-    name  = <name>
-    email = <email>
-```
+## After the first switch
 
-`install.sh` registers these values as git-secrets prohibited patterns during
-the `setup-secrets` step (which runs after Homebrew installs git-secrets). If
-you add the file *after* installing, register them with:
+Both OSes:
 
-```sh
-~/.dotfiles/bootstrap/setup-secrets.sh
-```
+- Machine-local Git identity (optional). To use a different identity for repos
+  under `~/Repository/` without committing it to this public repo, create
+  `~/.gitconfig.local` (untracked, outside the repo):
 
-Verify: `git -C ~/Repository/<repo> config user.email`
+  ```gitconfig
+  [user]
+      name  = <name>
+      email = <email>
+  ```
 
-## 2. Install flags (optional)
+  The next `nix run ~/.dotfiles#switch` registers these values as git-secrets
+  prohibited patterns for this repo.
+- Sign in: `gh auth login`, `claude`, `codex`.
+
+macOS:
+
+- `sbx login`.
+- Grant Accessibility to Hammerspoon (英数/かな on left/right ⌘) and Warp:
+  `open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"`,
+  then Hammerspoon's menu-bar icon → Reload Config.
+- Start Docker Desktop once.
+- Import the BetterTouchTool preset from `config/bttpreset/`.
+- After the first switch is verified, set `homebrew.onActivation.cleanup = "zap"`
+  in `modules/darwin/homebrew.nix` so undeclared apps get removed.
+
+Linux:
+
+- Forward your SSH agent from the Mac (`ssh -A`) to push from the server.
+- Log out and back in once so the `docker` group applies.
+- Optional: make zsh the login shell (install.sh prints the command).
+
+## Install flags
 
 | Flag | Effect |
 |------|--------|
-| `DOTFILES_SKIP_CASKS=1` | Skip optional GUI casks; essential casks (Hammerspoon, Warp) still install |
-| `DOTFILES_DISABLE_QUARANTINE=1` | Disable the Gatekeeper "downloaded from the internet" check |
-
-Prefix the install command with the flags (they propagate to every setup step):
+| `DOTFILES_HOST=minimal` | macOS: essential casks only (Hammerspoon, Warp) |
+| `DOTFILES_DISABLE_QUARANTINE=1` | macOS: disable the Gatekeeper "downloaded from the internet" check |
 
 ```sh
-# Remote (one-shot) — set the var on the zsh that runs the script
-curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.sh | DOTFILES_SKIP_CASKS=1 zsh
-
-# Local clone / re-apply
-DOTFILES_SKIP_CASKS=1 ~/.dotfiles/install.sh
-
-# Combine multiple flags
-DOTFILES_SKIP_CASKS=1 DOTFILES_DISABLE_QUARANTINE=1 ~/.dotfiles/install.sh
+DOTFILES_HOST=minimal nix run ~/.dotfiles#switch
 ```
-
-On a restricted machine, skip the optional GUI apps — the essential casks
-(Hammerspoon, Warp) are not gated by the flag and still install automatically:
-
-```sh
-DOTFILES_SKIP_CASKS=1 ~/.dotfiles/install.sh
-```
-
-(If a locked-down machine blocks cask installs entirely, the essential step just
-warns; install Hammerspoon/Warp through your approved channel afterward.)
-
-## 3. After install — Hammerspoon accessibility (required for 英数/かな)
-
-`install.sh` installs Hammerspoon and links its config. Grant it Accessibility
-so it can send key events:
-
-```sh
-open -a Hammerspoon
-open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-```
-
-Enable Hammerspoon in the list, then use its menu-bar icon → Reload Config.
-
-Verify: left ⌘ → 英数, right ⌘ → かな.

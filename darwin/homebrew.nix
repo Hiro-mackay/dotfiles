@@ -1,10 +1,33 @@
 # GUI apps stay on Homebrew casks: most are stale, unsigned or missing in nixpkgs.
-{
-  lib,
-  username,
-  full,
-  ...
-}:
+{ lib, username, ... }:
+let
+  # Cask -> the app it installs in /Applications (null: no app, e.g. a CLI).
+  casks = {
+    hammerspoon = "Hammerspoon.app";
+    warp = "Warp.app";
+    docker-desktop = "Docker.app";
+    bettertouchtool = "BetterTouchTool.app";
+    visual-studio-code = "Visual Studio Code.app";
+    google-chrome = "Google Chrome.app";
+    obsidian = "Obsidian.app";
+    appcleaner = "AppCleaner.app";
+    chatgpt = "ChatGPT.app";
+    claude = "Claude.app";
+    codex-app = "Codex.app";
+    "docker/tap/sbx" = null;
+  };
+
+  # An app already installed outside Homebrew (company MDM, a manual install) keeps its
+  # installer as the single owner, so its cask is skipped instead of colliding. Read at
+  # evaluation, which `nix run .#switch` does with --impure; pure evaluation skips nothing.
+  installedElsewhere =
+    cask: app:
+    app != null
+    && builtins ? currentSystem
+    && builtins.pathExists "/Applications/${app}"
+    && !builtins.pathExists "/opt/homebrew/Caskroom/${baseNameOf cask}";
+  managed = lib.attrNames (lib.filterAttrs (cask: app: !installedElsewhere cask app) casks);
+in
 {
   # Installs and pins Homebrew itself; nix-darwin's homebrew module does not.
   nix-homebrew = {
@@ -21,35 +44,18 @@
       # TRADEOFF: "none" until the first switch is verified; then "zap" removes undeclared apps.
       cleanup = "none";
     };
-    taps = lib.optionals full [ "docker/tap" ];
-    casks = [
-      "hammerspoon"
-      "warp"
-    ]
-    ++ lib.optionals full [
-      "docker-desktop"
-      "bettertouchtool"
-      "visual-studio-code"
-      "zed"
-      "google-chrome"
-      "obsidian"
-      "spotify"
-      "appcleaner"
-      "chatgpt"
-      "claude"
-      "codex-app"
-      "docker/tap/sbx"
-    ];
-    masApps = lib.optionalAttrs full { Kindle = 302584613; };
+    taps = [ "docker/tap" ];
+    casks = managed;
+    # Only when Homebrew owns VS Code, so its `code` is on PATH for brew bundle.
     # The list is written by the codeexport alias.
-    vscode = lib.optionals full (
+    vscode = lib.optionals (lib.elem "visual-studio-code" managed) (
       lib.filter (ext: ext != "") (lib.splitString "\n" (builtins.readFile ../programs/vscode/extensions))
     );
   };
 
   # TRADEOFF: brew bundle runs before home-manager in activation, so one failed cask
-  # (restricted Mac, App Store signed out, network) would skip the whole home
-  # configuration. It only warns, as the old setup-brew.sh did; read the switch output.
+  # (network, a restricted Mac) would skip the whole home configuration. It only warns,
+  # as the old setup-brew.sh did; read the switch output.
   system.activationScripts.homebrew.text = lib.mkMerge [
     # Before nix-homebrew's own mkBefore setup, so installing Homebrew itself is covered too.
     (lib.mkOrder 400 "set +e")

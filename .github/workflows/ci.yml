@@ -33,6 +33,12 @@ jobs:
           nix build --impure --no-link --print-out-paths \
             .#darwinConfigurations.default.system \
             .#darwinConfigurations.minimal.system
+      - name: Show the casks for this machine (apps installed outside Homebrew are skipped)
+        run: |
+          brewfile="$(nix eval --impure --raw .#darwinConfigurations.default.config.homebrew.brewfile)"
+          printf '%s\n' "$brewfile" | grep '^cask '
+          echo "vscode extensions: $(printf '%s\n' "$brewfile" | grep -c '^vscode ' || true)"
+          ls /Applications /opt/homebrew/Caskroom 2>/dev/null || true
 
   linux-e2e:
     # Fresh Ubuntu, normal user, real install.sh: proves the environment can be

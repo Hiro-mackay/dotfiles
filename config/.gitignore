@@ -4,12 +4,11 @@
 !*/
 
 # Allowlist
-# NOTE: brew/*, git/*, mise/*, vscode/* below are broadly allowlisted, so ANY
+# NOTE: git/*, mise/*, vscode/* below are broadly allowlisted, so ANY
 # file dropped into those dirs gets tracked. Never put machine-local overrides
 # (private identity, secrets) here — keep them in $HOME (e.g. ~/.gitconfig.local),
 # which sits outside this working tree and cannot be staged.
 !.gitignore
-!brew/*
 !zsh/.zshenv
 !zsh/.zshrc
 !zsh/rc.d/**
@@ -26,8 +25,10 @@
 !claude/.gitignore
 !claude/CLAUDE.md
 !claude/README.md
+# Deployed by Nix as Claude Code managed settings (/Library or /etc).
+!claude/managed-settings.json
 !claude/agents/**
-# Shared SSoT for skills + AGENTS.md (projected into claude/codex by bootstrap).
+# Shared SSoT for skills + AGENTS.md (projected into claude/codex by home-manager activation).
 # claude/skills and codex/skills are regenerated symlinks -> not tracked.
 !agents/**
 # SECURITY: codex/auth.json (OAuth credentials) lives under config/codex/.
@@ -35,5 +36,8 @@
 !codex/.gitignore
 !codex/AGENTS.md
 !codex/README.md
-!codex/config.toml
+# codex/config.toml is NOT tracked: Codex writes machine-local paths and trust into it.
+# Shared settings live in codex/system-config.toml, deployed to /etc/codex/config.toml.
+!codex/system-config.toml
+!codex/rules/**
 !codex/agents/**

@@ -1,15 +1,14 @@
 #!/usr/bin/env zsh
 #
-# Keep Codex's committed config portable if the clean filter is not configured.
-# The working tree copy is left alone so Codex keeps reading its full state.
+# Repository pre-commit hook. core.hooksPath points here (set by home-manager
+# activation, modules/home/default.nix).
 
 set -e
 
-# --- git-secrets scan (MUST stay first; the early exits below would skip it) ---
+# --- git-secrets scan (MUST stay first) ---
 # Block commits that contain the machine-local private identity. Prohibited
-# patterns live in this repo's local git config (registered by setup-link.sh
-# from ~/.gitconfig.local) and are never tracked. core.hooksPath points here,
-# so git-secrets is wired in by hand rather than via `git secrets --install`.
+# patterns live in this repo's local git config (registered from
+# ~/.gitconfig.local by home-manager activation) and are never tracked.
 # No-op on machines where git-secrets is not installed.
 if git secrets --list >/dev/null 2>&1; then
     git secrets --pre_commit_hook -- "$@"
@@ -17,10 +16,10 @@ fi
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-# --- AGENTS.md SSoT sync (MUST run before the config.toml early-exits below) ---
+# --- AGENTS.md SSoT sync ---
 # config/agents/AGENTS.md is the single source for global instructions. Codex
-# reads its copy as a real file (it does not follow file-symlinks), so keep
-# config/codex/AGENTS.md byte-identical to the source. One-directional.
+# does not follow file symlinks, so config/codex/AGENTS.md stays a byte-identical
+# real-file copy. One-directional.
 AGENTS_SRC="${REPO_ROOT}/config/agents/AGENTS.md"
 AGENTS_DST="${REPO_ROOT}/config/codex/AGENTS.md"
 if [[ -f "${AGENTS_SRC}" ]] && ! diff -q "${AGENTS_SRC}" "${AGENTS_DST}" >/dev/null 2>&1; then
@@ -30,10 +29,8 @@ if [[ -f "${AGENTS_SRC}" ]] && ! diff -q "${AGENTS_SRC}" "${AGENTS_DST}" >/dev/n
 fi
 
 # --- VS Code extension drift warning (advisory only, never blocks) ---
-# The extensions list is a declarative snapshot restored by setup-vscode.sh.
-# VS Code has no hook for extension changes, so warn here when the working tree
-# list has drifted from what is actually installed. Skip silently when the code
-# CLI is unavailable (CI / non-VS Code machines).
+# The extensions list is restored by `nix run .#switch`. VS Code has no hook for
+# extension changes, so warn when the list has drifted from what is installed.
 VSCODE_EXTENSIONS="${REPO_ROOT}/config/vscode/extensions"
 if command -v code >/dev/null 2>&1 && [[ -f "${VSCODE_EXTENSIONS}" ]]; then
     installed="$(code --list-extensions 2>/dev/null | sort || true)"
@@ -41,29 +38,3 @@ if command -v code >/dev/null 2>&1 && [[ -f "${VSCODE_EXTENSIONS}" ]]; then
         echo "pre-commit: VS Code extensions drifted from ${VSCODE_EXTENSIONS}; run 'codeexport' to update." >&2
     fi
 fi
-
-TARGET="config/codex/config.toml"
-SANITIZER="${REPO_ROOT}/config/git/hooks/sanitize-codex-config.awk"
-
-# Skip when the file is not tracked in the index at all (e.g. fresh clone
-# before the first commit, or the file was deliberately removed).
-staged_blob="$(git ls-files -s "${TARGET}" 2>/dev/null | awk '{print $2}')"
-if [[ -z "${staged_blob}" ]]; then
-    exit 0
-fi
-
-if [[ ! -r "${SANITIZER}" ]]; then
-    echo "pre-commit: sanitizer not found at ${SANITIZER}" >&2
-    exit 1
-fi
-
-# Pipe through awk to preserve trailing newline behavior; capturing via $(...)
-# would strip the final newline.
-sanitized_blob="$(git show ":${TARGET}" | awk -f "${SANITIZER}" | git hash-object -w --stdin)"
-
-if [[ "${staged_blob}" == "${sanitized_blob}" ]]; then
-    exit 0
-fi
-
-git update-index --cacheinfo "100644,${sanitized_blob},${TARGET}"
-echo "pre-commit: sanitized ${TARGET} (clean-filter fallback)"

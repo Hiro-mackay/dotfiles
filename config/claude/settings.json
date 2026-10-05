@@ -5,19 +5,6 @@
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
   "permissions": {
-    "deny": [
-      "Bash(sudo:*)",
-      "Bash(git reset:*)",
-      "Bash(git push --force:*)",
-      "Bash(git push -f:*)",
-      "Bash(git clean:*)",
-      "Bash(rm -rf:*)",
-      "Read(id_rsa)",
-      "Read(id_ed25519)",
-      "Read(~/.ssh/**)",
-      "Read(~/.aws/**)",
-      "Edit(**/secrets/**)"
-    ],
     "defaultMode": "auto"
   },
   "model": "opus",

@@ -1,0 +1,36 @@
+# Shared Codex settings, deployed to /etc/codex/config.toml (Codex's lowest-precedence
+# layer; it never writes there). Machine-specific values such as trust entries, notify,
+# Codex.app plugins and their marketplaces stay in ~/.codex/config.toml, which is untracked.
+# Keys set in ~/.codex/config.toml override this file.
+
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+sandbox_mode = "workspace-write"
+model = "gpt-5.6-sol"
+model_reasoning_effort = "medium"
+web_search = "cached"
+
+[plugins."ponytail@ponytail"]
+enabled = true
+
+[plugins."warp@codex-warp"]
+enabled = true
+
+[marketplaces.ponytail]
+source_type = "git"
+source = "https://github.com/DietrichGebert/ponytail.git"
+
+[marketplaces.codex-warp]
+source_type = "git"
+source = "https://github.com/warpdotdev/codex-warp.git"
+
+# Resolved through PATH (mise shims).
+[mcp_servers.codebase-memory-mcp]
+command = "codebase-memory-mcp"
+
+[tui]
+notification_condition = "unfocused"
+notifications = [ "agent-turn-complete", "approval-requested" ]
+status_line = [ "model-with-reasoning", "context-used", "estimated-thread-cost", "five-hour-limit", "weekly-limit", "approval-mode" ]
+terminal_title = [ "spinner", "project", "git-branch" ]
+theme = "dark-daltonized"

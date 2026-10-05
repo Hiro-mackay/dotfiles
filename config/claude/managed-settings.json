@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(git reset:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git clean:*)",
+      "Bash(rm -rf:*)",
+      "Read(id_rsa)",
+      "Read(id_ed25519)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Edit(**/secrets/**)",
+      "Read(~/.config/codex/auth.json)",
+      "Read(~/.dotfiles/config/codex/auth.json)",
+      "Read(~/.config/gh/hosts.yml)",
+      "Read(~/.dotfiles/config/gh/hosts.yml)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.dotfiles/config/gcloud/**)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.config/claude/.credentials.json)",
+      "Read(~/.dotfiles/config/claude/.credentials.json)"
+    ]
+  }
+}

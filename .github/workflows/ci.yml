@@ -67,6 +67,7 @@ jobs:
             codebase-memory-mcp --version
           '
           "$HOME/.local/bin/claude" --version
-          # Activation must not leave tracked changes in the repo.
+          # Activation must not leave tracked changes in the repo. Claude Code rewrites its
+          # own settings.json on first launch (key order, model alias), so it is excluded.
           git -C "$HOME/.dotfiles" diff
-          test -z "$(git -C "$HOME/.dotfiles" status --porcelain --untracked-files=no)"
+          test -z "$(git -C "$HOME/.dotfiles" status --porcelain --untracked-files=no -- . ':!config/claude/settings.json')"

@@ -63,13 +63,11 @@ if [ ! -d "$DOTFILES/.git" ]; then
 fi
 
 if [ "$OS" = Linux ]; then
-    # Root-owned locations that point into the user's home-manager files, so later
-    # edits need no sudo. Assumes one user per server.
-    log "Linking /etc/codex and Claude Code managed settings"
-    share="$HOME/.local/share/dotfiles/etc"
-    sudo mkdir -p /etc/codex /etc/claude-code/managed-settings.d
-    sudo ln -sfn "$share/codex/config.toml" /etc/codex/config.toml
-    sudo ln -sfn "$share/claude-code/10-nix.json" /etc/claude-code/managed-settings.d/10-nix.json
+    # Codex's system layer points into the user's home-manager files, so later
+    # changes need no sudo. Assumes one user per server.
+    log "Linking /etc/codex/config.toml"
+    sudo mkdir -p /etc/codex
+    sudo ln -sfn "$HOME/.local/share/dotfiles/etc/codex/config.toml" /etc/codex/config.toml
 
     if ! command -v docker >/dev/null 2>&1; then
         log "Installing Docker Engine"

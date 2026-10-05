@@ -46,28 +46,31 @@ jobs:
         run: |
           ln -s "$GITHUB_WORKSPACE" "$HOME/.dotfiles"
           sh install.sh
-      - name: Verify links, tools and shell
+      - name: Verify the environment
         run: |
           set -eux
           # Steps run in a non-login shell: load the Nix profile into PATH.
           . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-          test "$(readlink "$HOME/.config")" = "$HOME/.dotfiles/config"
-          test "$(readlink "$HOME/.zshenv")" = "$HOME/.dotfiles/config/zsh/.zshenv"
-          test "$(readlink "$HOME/.claude")" = "$HOME/.config/claude"
-          test "$(readlink "$HOME/.codex")" = "$HOME/.config/codex"
-          test -L "$HOME/.dotfiles/config/claude/skills/plan-template"
+          # Managed by home-manager (read-only store links).
+          test -L "$HOME/.config/zsh/.zshrc"
+          test -L "$HOME/.claude/settings.json"
+          test -f "$HOME/.claude/CLAUDE.md"
+          test -f "$HOME/.claude/skills/plan-template/SKILL.md"
+          test -f "$HOME/.codex/AGENTS.md"
+          test -f "$HOME/.codex/skills/plan-template/SKILL.md"
           test -f /etc/codex/config.toml
-          test -f /etc/claude-code/managed-settings.d/10-nix.json
+          ! test -e /etc/claude-code
+          jq -e '.permissions.deny | index("Bash(sudo:*)")' "$HOME/.claude/settings.json"
           zsh -ic '
             set -e
             for c in gwi gws z g mkcd cheat lg ubuntu dexec; do whence -w $c; done
             for c in op jc sbxc ccgo c2; do ! whence $c >/dev/null; done
-            command -v codex mise nh comma git-secrets
-            mise ls --global --current
+            command -v claude codex mise nh comma git-secrets
+            mise ls --current
             codebase-memory-mcp --version
+            print -r -- "HISTFILE=$HISTFILE"
           '
-          "$HOME/.local/bin/claude" --version
-          # Activation must not leave tracked changes in the repo. Claude Code rewrites its
-          # own settings.json on first launch (key order, model alias), so it is excluded.
-          git -C "$HOME/.dotfiles" diff
-          test -z "$(git -C "$HOME/.dotfiles" status --porcelain --untracked-files=no -- . ':!config/claude/settings.json')"
+          claude --version
+          codex --version
+          # The repo stays untouched: nothing is generated or linked into it.
+          test -z "$(git -C "$HOME/.dotfiles" status --porcelain)"

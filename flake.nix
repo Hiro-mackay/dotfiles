@@ -111,7 +111,10 @@
       homeConfigurations = lib.genAttrs linuxSystems mkHome;
 
       packages = forAllSystems (system: {
-        switch = import ./nix/switch.nix { pkgs = nixpkgs.legacyPackages.${system}; };
+        switch = import ./nix/switch.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          flake = self.outPath;
+        };
       });
 
       apps = forAllSystems (

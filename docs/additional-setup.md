@@ -49,7 +49,7 @@ Linux:
 
 | Flag | Effect |
 |------|--------|
-| `DOTFILES_HOST=minimal` | macOS: essential casks only (Hammerspoon, Warp) |
+| `DOTFILES_HOST=minimal` | macOS: essential casks only (Hammerspoon, Warp). Remembered in `~/.local/state/dotfiles/host` |
 | `DOTFILES_DISABLE_QUARANTINE=1` | macOS: disable the Gatekeeper "downloaded from the internet" check |
 
 ```sh

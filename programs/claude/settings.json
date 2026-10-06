@@ -6,21 +6,7 @@
   },
   "permissions": {
     "deny": [
-      "Bash(sudo:*)",
-      "Bash(git reset:*)",
-      "Bash(git push --force:*)",
-      "Bash(git push -f:*)",
-      "Bash(git clean:*)",
-      "Bash(rm -rf:*)",
-      "Read(id_rsa)",
-      "Read(id_ed25519)",
-      "Read(~/.ssh/**)",
-      "Read(~/.aws/**)",
-      "Edit(**/secrets/**)",
-      "Read(~/.codex/auth.json)",
-      "Read(~/.config/gh/hosts.yml)",
-      "Read(~/.config/gcloud/**)",
-      "Read(~/.claude/.credentials.json)"
+      "Edit(**/secrets/**)"
     ],
     "defaultMode": "auto"
   },

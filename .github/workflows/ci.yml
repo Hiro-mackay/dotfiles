@@ -77,7 +77,9 @@ jobs:
           test "$(git -C "$HOME/.dotfiles" config core.hooksPath)" = programs/git/hooks
           if git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m t; then exit 1; fi
           git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@users.noreply.github.com commit -q --allow-empty -m t
-          jq -e '.permissions.deny | index("Bash(sudo:*)")' "$HOME/.claude/settings.json"
+          # Both agents get the guardrails from programs/agents/guardrails.nix.
+          jq -e '.permissions.deny | index("Bash(sudo:*)") and index("Read(~/.ssh/**)")' "$HOME/.claude/settings.json"
+          codex execpolicy check --rules "$HOME/.codex/rules/guardrails.rules" sudo true | jq -e '.decision == "forbidden"'
           # The status line must render reset times with GNU date, without errors.
           sl="$(jq -r .statusLine.command "$HOME/.claude/settings.json")"
           echo '{"rate_limits":{"five_hour":{"used_percentage":10,"resets_at":1800000000}}}' | "$sl" 2>"$RUNNER_TEMP/sl.err" | grep -q '[0-9][0-9]/[0-9][0-9] '

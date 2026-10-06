@@ -11,6 +11,8 @@
 }:
 let
   skills = ../agents/skills;
+  guardrails = import ../agents/guardrails.nix;
+  settings = builtins.fromJSON (builtins.readFile ./settings.json);
 in
 {
   programs.claude-code = {
@@ -34,7 +36,16 @@ in
 
     mcpServers.codebase-memory-mcp.command = "codebase-memory-mcp";
 
-    settings = builtins.fromJSON (builtins.readFile ./settings.json) // {
+    settings = settings // {
+      permissions = settings.permissions // {
+        deny =
+          settings.permissions.deny
+          ++ map (cmd: "Bash(${lib.concatStringsSep " " cmd}:*)") guardrails.commands
+          ++ lib.concatMap (path: [
+            "Read(~/${path})"
+            "Read(~/${path}/**)"
+          ]) guardrails.secrets;
+      };
       statusLine = {
         type = "command";
         command = "${./statusline.sh}";

@@ -40,7 +40,7 @@ in
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      # TRADEOFF: "none" until the first switch is verified; then "zap" removes undeclared apps.
+      # "none" until the first switch is verified; then "zap" removes undeclared apps.
       cleanup = "none";
     };
     taps = [ "docker/tap" ];
@@ -52,7 +52,7 @@ in
     );
   };
 
-  # TRADEOFF: brew bundle runs before home-manager in activation, so one failed cask
+  # brew bundle runs before home-manager in activation, so one failed cask
   # (network, a restricted Mac) would skip the whole home configuration. It only warns,
   # as the old setup-brew.sh did; read the switch output.
   system.activationScripts.homebrew.text = lib.mkMerge [

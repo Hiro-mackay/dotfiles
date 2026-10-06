@@ -46,11 +46,12 @@ so no SSH key is needed. The base account (`github.login` in `programs/git`) ser
 every repository.
 
 Install runs `gh-setup`, and you can run it again any time to add an account. It asks
-which account to set up; Enter takes the base account. For another account it also
-asks the users or organizations whose repositories it is for, and the name and email
-for its commits. It signs in to the account in the browser and writes one file named
-after the first owner, holding its identity and its credential together, so a commit
-and the push never mix accounts:
+which account to set up; Enter takes the base account. Another account is signed in
+in the browser first; then gh-setup lists its organizations and asks which of them it
+is for (its own repositories always are), and the name and email for its commits
+(Enter takes its GitHub profile name and its noreply address). It writes one file named
+after the first organization, holding its identity and its credential together, so a
+commit and the push never mix accounts:
 
 ```
 ~/.gitconfig.accounts    the base account's name and email, and which owners use which other account

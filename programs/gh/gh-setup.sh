@@ -17,7 +17,7 @@ die() {
     exit 1
 }
 title() { printf '\n\033[1m== %s ==\033[0m\n' "$1" >&2; }
-ask() { # ask <prompt> [default] -> answer on stdout, like ssh-keygen's prompts
+ask() { # ask <prompt> [default] -> answer on stdout, like ssh-keygen's prompts; Enter takes the default
     if [ -n "${2:-}" ]; then printf 'Enter %s (%s): ' "$1" "$2" >&2; else printf 'Enter %s: ' "$1" >&2; fi
     read -r reply || reply=
     printf '%s\n' "${reply:-${2:-}}"
@@ -67,22 +67,32 @@ if [ "$(lower "$acct")" = "$(lower "$base")" ]; then
     exit
 fi
 
-# Another account. Earlier answers for it are the defaults.
+# Another account: sign in first, so its organizations and profile can be offered.
+sign_in "$acct"
 file=''
 for f in "$HOME"/.gitconfig.*; do
     [ "$(git config --file "$f" github.login 2>/dev/null)" = "$acct" ] && file=$f
 done
 prev() { [ -z "$file" ] || git config --file "$file" "$1" 2>/dev/null || true; }
-answer=$(ask "the users or organizations whose repositories it is for" "$(prev github.owners)")
-answer=${answer:-$acct}
-name=$(ask "the name for its commits" "$(prev user.name)")
-email=$(ask "the email for its commits" "$(prev user.email)")
+orgs=$(gh api user/orgs --jq '[.[].login] | join(", ")' 2>/dev/null || true)
+echo "$acct belongs to: ${orgs:-no organizations}" >&2
+earlier=''
+for o in $(prev github.owners); do [ "$(lower "$o")" = "$(lower "$acct")" ] || earlier="$earlier $o"; done
+answer=$(ask "the organizations (or users) whose repositories it is for; its own, $acct, always are" "${earlier# }")
+# Defaults: the earlier answers, else its GitHub profile name and noreply address.
+profile_name=$(gh api user --jq '.name // .login')
+noreply=$(gh api user --jq '"\(.id)+\(.login)@users.noreply.github.com"')
+pn=$(prev user.name) pe=$(prev user.email)
+name=$(ask "the name for its commits" "${pn:-$profile_name}")
+email=$(ask "the email for its commits" "${pe:-$noreply}")
 [ -n "$name" ] && [ -n "$email" ] || die "a name and an email are required"
 
 # Owners as GitHub spells them, plus lowercase: git matches URLs case-sensitively.
+# The file is named after the first organization given, or the account itself.
 owners='' patterns=''
-for o in $answer; do
+for o in $answer $acct; do
     o=$(canonical "$o")
+    case " $owners " in *" $o "*) continue ;; esac
     owners="$owners $o"
     patterns="$patterns $o"
     [ "$(lower "$o")" = "$o" ] || patterns="$patterns $(lower "$o")"
@@ -97,7 +107,7 @@ label=$(lower "${owners%% *}")
 file="$HOME/.gitconfig.$label"
 owner_of=$(git config --file "$file" github.login 2>/dev/null || true)
 [ -z "$owner_of" ] || [ "$owner_of" = "$acct" ] ||
-    die "$file already belongs to $owner_of; list a different owner first"
+    die "$file already belongs to $owner_of; list a different organization first"
 # An owner already tied to another account would make the two fight over its repos.
 for p in $patterns; do
     other=$(git config --file "$accounts" --get "includeIf.hasconfig:remote.*.url:https://github.com/$p/**.path" 2>/dev/null || true)
@@ -105,8 +115,6 @@ for p in $patterns; do
     [ -z "$other" ] || [ "$other" = "~/.gitconfig.$label" ] ||
         die "$p already uses $other; remove its lines from $accounts first"
 done
-
-sign_in "$acct"
 
 git config --file "$file" github.login "$acct"
 git config --file "$file" github.owners "$owners"

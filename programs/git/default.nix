@@ -2,6 +2,11 @@
 # writable file created from ./gitconfig.accounts on the first switch and edited per
 # machine afterwards; it is included last, so it can override anything here.
 { lib, pkgs, ... }:
+let
+  # The base GitHub account: git and gh use its token unless ~/.gitconfig.<owner>
+  # (gh-setup) names another account for a repository's owner.
+  baseLogin = "Hiro-mackay";
+in
 {
   programs.git = {
     enable = true;
@@ -18,6 +23,17 @@
         autoSetupRemote = true;
       };
       ghq.root = "~/Repository";
+
+      # GitHub over HTTPS only, with gh's token for both git and gh (gh-wrapper.sh).
+      url."https://github.com/".insteadOf = [
+        "git@github.com:"
+        "ssh://git@github.com/"
+      ];
+      github.login = baseLogin;
+      credential."https://github.com".helper = [
+        ""
+        "!f() { test \"$1\" = get && echo username=${baseLogin} && echo password=$(gh auth token -h github.com -u ${baseLogin}); }; f"
+      ];
     };
 
     ignores = [
@@ -27,31 +43,22 @@
       "**/.claude/.cc-writes/"
     ];
 
-    # The base account's key for GitHub, even while cloning. It comes before the
-    # accounts file, so another account there (gh-setup) overrides it.
-    includes =
+    # Included after the settings above, so another account there overrides them.
+    includes = [
+      { path = "~/.gitconfig.accounts"; }
+    ]
+    # This public repo, wherever it is cloned: run its pre-commit hook.
+    ++
       map
         (url: {
           condition = "hasconfig:remote.*.url:${url}";
-          contents.core.sshCommand = "ssh -i ~/.ssh/id_ed25519_github -o IdentitiesOnly=yes -o AddKeysToAgent=yes -o IgnoreUnknown=UseKeychain -o UseKeychain=yes";
+          contents.core.hooksPath = "programs/git/hooks";
         })
         [
-          "git@github.com:*/**"
-          "ssh://git@github.com/**"
-        ]
-      ++ [ { path = "~/.gitconfig.accounts"; } ]
-      # This public repo, wherever it is cloned: run its pre-commit hook.
-      ++
-        map
-          (url: {
-            condition = "hasconfig:remote.*.url:${url}";
-            contents.core.hooksPath = "programs/git/hooks";
-          })
-          [
-            "https://github.com/Hiro-mackay/dotfiles*"
-            "git@github.com:Hiro-mackay/dotfiles*"
-            "ssh://git@github.com/Hiro-mackay/dotfiles*"
-          ];
+          "https://github.com/Hiro-mackay/dotfiles*"
+          "git@github.com:Hiro-mackay/dotfiles*"
+          "ssh://git@github.com/Hiro-mackay/dotfiles*"
+        ];
   };
 
   home.packages = [ pkgs.git-secrets ];

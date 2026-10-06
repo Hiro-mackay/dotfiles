@@ -12,8 +12,8 @@ curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.s
 It installs the Xcode Command Line Tools (macOS) and Nix, clones this repo to
 `~/.dotfiles`, and applies the configuration. It asks for your password when it
 needs sudo, and on macOS it offers a restart at the end, which some settings need.
-At the end it sets up GitHub: it signs you in with gh, creates
-and registers the SSH key, and asks whether this machine needs other accounts. Running
+At the end it sets up GitHub: it signs you in with gh and asks whether this machine
+needs other accounts. Running
 it again is safe.
 
 ## After installing
@@ -24,8 +24,8 @@ it again is safe.
      Accessibility, then choose Reload Config in Hammerspoon's menu.
    - Open Docker Desktop once and run `sbx login`.
    - Import `programs/bettertouchtool/Default.bttpreset` in BetterTouchTool.
-3. Linux only: log in again so the `docker` group applies. Each server gets its own
-   GitHub key from install, so pushing works without your Mac connected.
+3. Linux only: log in again so the `docker` group applies. Install signs each server
+   in to GitHub, so pushing works without your Mac connected.
 
 ## Everyday use
 
@@ -41,27 +41,27 @@ from this repo.
 
 ## Git accounts
 
-Install sets up GitHub with `gh-setup`, and you can run it again any time to add an
-account. It asks which account to set up; Enter takes the base account (the one in
-`~/.gitconfig.accounts`), whose key `~/.ssh/id_ed25519_github` serves every GitHub
-repository. For another account it also asks the users or organizations whose
-repositories it is for, and the name and email for its commits. It signs in to the
-account in the browser, creates its key and registers it with GitHub.
+git and gh talk to GitHub over HTTPS with gh's token; SSH URLs are rewritten to HTTPS,
+so no SSH key is needed. The base account (`github.login` in `programs/git`) serves
+every repository.
 
-Another account lives in one file named after its first owner, holding its identity
-and its key together, so a commit and the push never mix accounts:
+Install runs `gh-setup`, and you can run it again any time to add an account. It asks
+which account to set up; Enter takes the base account. For another account it also
+asks the users or organizations whose repositories it is for, and the name and email
+for its commits. It signs in to the account in the browser and writes one file named
+after the first owner, holding its identity and its credential together, so a commit
+and the push never mix accounts:
 
 ```
-~/.gitconfig.accounts    the base account, and which owners use which other account
-~/.gitconfig.<owner>     one other account: [user], its key, HTTPS remotes sent over SSH
+~/.gitconfig.accounts    the base account's name and email, and which owners use which other account
+~/.gitconfig.<owner>     one other account: [user] and the token git uses
 ```
 
 It matches those owners' remotes in any directory, also while cloning. gh follows the
 same choice: in those repositories it runs as the other account, elsewhere as the base
-one, without `gh auth switch`. A repository
-with remotes of both kinds (a personal fork of an organization's repository) takes
-the other account for all of them. Check inside a repository with
-`git config --show-origin user.email`.
+one, without `gh auth switch`. A repository with remotes of both kinds (a personal fork
+of an organization's repository) takes the other account for all of them. Check inside
+a repository with `git config --show-origin user.email`.
 
 ## SSH
 

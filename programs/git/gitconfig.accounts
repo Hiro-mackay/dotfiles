@@ -7,9 +7,9 @@
 	email = 43330841+Hiro-mackay@users.noreply.github.com
 
 # Another GitHub account: run `gh-setup`. It puts that account's [user] and
-# SSH key in ~/.gitconfig.<owner> and adds conditions like these below, one per URL form
+# credential in ~/.gitconfig.<owner> and adds conditions like these below, one per URL form
 # (git@github.com:, ssh://git@github.com/, https://github.com/), so the identity and
-# the key switch together for that owner's repositories:
+# the credential switch together for that owner's repositories:
 #
 # [includeIf "hasconfig:remote.*.url:git@github.com:<owner>/**"]
 # 	path = ~/.gitconfig.<owner>
@@ -26,6 +26,6 @@
 # [gpg]
 # 	format = ssh
 # [user]
-# 	signingkey = ~/.ssh/id_ed25519_github.pub
+# 	signingkey = ~/.ssh/id_ed25519.pub
 # [commit]
 # 	gpgsign = true

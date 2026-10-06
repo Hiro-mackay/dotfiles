@@ -16,13 +16,15 @@ in
   programs.gh = {
     enable = true;
     package = gh;
+    # git's credential helper is set per account in programs/git and gh-setup.
+    gitCredentialHelper.enable = false;
     settings = {
-      git_protocol = "ssh";
+      git_protocol = "https";
       aliases.co = "pr checkout";
     };
   };
 
-  # gh-setup: a GitHub account's SSH key and the git settings that use it.
+  # gh-setup: sign in to a GitHub account and tie it to its owners' repositories.
   home.packages = [
     (pkgs.writeShellApplication {
       name = "gh-setup";

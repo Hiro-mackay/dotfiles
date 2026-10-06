@@ -138,6 +138,7 @@ printf 'github.com:\n    user: Hiro-mackay\n' >"$HOME/.config/gh/hosts.yml"
 check "gh uses the active account as is" "as " "$(cd "$T/r/own" && ghw pr list)"
 rm "$HOME/.config/gh/hosts.yml"
 sed -i.bak '/^work-me$/d' "$T/accts"
+check "local commands need no account" "as " "$(cd "$T/r/work" && ghw config get git_protocol)"
 check "gh refuses a signed-out account" 1 "$(cd "$T/r/work" && ghw pr list 2>&1 | grep -c 'run gh-setup')"
 
 if [ "$fails" != 0 ]; then echo "$fails failed" && exit 1; fi

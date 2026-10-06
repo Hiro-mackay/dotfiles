@@ -3,11 +3,12 @@
 # command line (-R/--repo, a github.com URL, or `gh repo <cmd> owner/name`), else the
 # current repository. git's settings name it: github.login, which ~/.gitconfig.<owner>
 # sets for its owners' repositories (gh-setup) and programs/git for the rest. Passed through
-# untouched: `gh auth` (git's credential helper too), a token already given in
+# untouched: local commands such as `gh auth` and `gh config`, a token already given in
 # GH_TOKEN or GITHUB_TOKEN, a host other than github.com, and GH_NO_AUTO_ACCOUNT (set
 # by gh-setup while it switches accounts).
 gh=@gh@
-case "${1:-}" in auth) exec "$gh" "$@" ;; esac
+# Commands that stay local need no account.
+case "${1:-}" in "" | auth | config | alias | completion | help | version | --version | -h | --help) exec "$gh" "$@" ;; esac
 [ -z "${GH_TOKEN:-}${GITHUB_TOKEN:-}${GH_NO_AUTO_ACCOUNT:-}" ] || exec "$gh" "$@"
 case "${GH_HOST:-github.com}" in github.com) ;; *) exec "$gh" "$@" ;; esac
 

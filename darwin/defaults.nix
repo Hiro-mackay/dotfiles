@@ -27,8 +27,7 @@ in
       orientation = "left";
       magnification = false;
       show-process-indicators = true;
-      # Only Finder and the Trash, which macOS always keeps: no pinned apps, no folder
-      # stacks (Downloads), no recent apps.
+      # Finder and the Trash stay: macOS keeps them in the Dock regardless.
       persistent-apps = [ ];
       persistent-others = [ ];
       show-recents = false;

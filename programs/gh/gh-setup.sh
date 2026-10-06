@@ -74,7 +74,7 @@ for f in "$HOME"/.gitconfig.*; do
 done
 prev() { [ -z "$file" ] || git config --file "$file" "$1" 2>/dev/null || true; }
 orgs=$(gh api user/orgs --jq '[.[].login] | join(", ")' 2>/dev/null || true)
-echo "  member of: ${orgs:-none} ($acct itself is always included)" >&2
+echo "  member of: ${orgs:-none}" >&2
 earlier=''
 for o in $(prev github.owners); do [ "$(lower "$o")" = "$(lower "$acct")" ] || earlier="$earlier $o"; done
 answer=$(ask "Organizations" "${earlier# }")

@@ -39,7 +39,12 @@ in
         };
       }
       // lib.optionalAttrs isDarwin {
-        gcloud = "latest";
+        # gcloud's installer needs the Python version it names (3.14 now); without the
+        # ordering it runs while python is still installing and falls back to macOS's 3.9.
+        gcloud = {
+          version = "latest";
+          depends = [ "python" ];
+        };
         bun = "latest";
         deno = "latest";
         ni = "latest";

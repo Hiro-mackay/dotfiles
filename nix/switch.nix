@@ -31,6 +31,6 @@ pkgs.writeShellApplication {
       fi
     fi
     # Last step: a failure leaves the applied configuration in place but fails the run.
-    mise install --yes || { echo "error: mise install failed. Run 'gh auth login', then 'mise install'." >&2; exit 1; }
+    mise install --yes || { echo "error: mise install failed (see above); fix it, then run 'mise install'. A GitHub API rate limit is fixed by 'gh auth login'." >&2; exit 1; }
   '';
 }

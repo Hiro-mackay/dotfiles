@@ -27,7 +27,7 @@
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "dark-daltonized",
-  "preferredNotifChannel": "terminal_bell",
+  "preferredNotifChannel": "notifications_disabled",
   "remoteControlAtStartup": false,
   "skipAutoPermissionPrompt": true,
   "skipDangerousModePermissionPrompt": true,

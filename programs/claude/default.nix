@@ -32,6 +32,8 @@ in
     plugins = {
       ponytail = inputs.ponytail;
       codex = "${inputs.codex-plugin-cc}/plugins/codex";
+      # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
+      warp = "${inputs.claude-code-warp}/plugins/warp";
     };
 
     mcpServers.codebase-memory-mcp.command = "codebase-memory-mcp";

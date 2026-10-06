@@ -20,8 +20,8 @@ enabled = true
 command = "codebase-memory-mcp"
 
 [tui]
-notification_condition = "unfocused"
-notifications = [ "agent-turn-complete", "approval-requested" ]
+# Notifications come from the Warp plugin (warp@codex-warp), not the TUI.
+notifications = false
 status_line = [ "model-with-reasoning", "context-used", "estimated-thread-cost", "five-hour-limit", "weekly-limit", "approval-mode" ]
 terminal_title = [ "spinner", "project", "git-branch" ]
 theme = "dark-daltonized"

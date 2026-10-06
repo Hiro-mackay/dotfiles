@@ -27,7 +27,10 @@ in
       orientation = "left";
       magnification = false;
       show-process-indicators = true;
+      # Only Finder and the Trash, which macOS always keeps: no pinned apps, no folder
+      # stacks (Downloads), no recent apps.
       persistent-apps = [ ];
+      persistent-others = [ ];
       show-recents = false;
       wvous-bl-corner = 10;
       wvous-br-corner = 5;

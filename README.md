@@ -56,7 +56,9 @@ and its key together, so a commit and the push never mix accounts:
 ~/.gitconfig.<owner>     one other account: [user], its key, HTTPS remotes sent over SSH
 ```
 
-It matches those owners' remotes in any directory, also while cloning. A repository
+It matches those owners' remotes in any directory, also while cloning. gh follows the
+same choice: in those repositories it runs as the other account, elsewhere as the base
+one, without `gh auth switch`. A repository
 with remotes of both kinds (a personal fork of an organization's repository) takes
 the other account for all of them. Check inside a repository with
 `git config --show-origin user.email`.

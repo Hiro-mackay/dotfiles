@@ -7,6 +7,8 @@
 # owners' remotes. Both switch together, so a commit and the key that pushes it always
 # belong to the same account.
 
+# Switch gh's accounts by hand here, not by the current repository (gh-wrapper.sh).
+export GH_NO_AUTO_ACCOUNT=1
 accounts="$HOME/.gitconfig.accounts"
 host=$(hostname -s)
 ssh_opts='-o IdentitiesOnly=yes -o AddKeysToAgent=yes -o IgnoreUnknown=UseKeychain -o UseKeychain=yes'

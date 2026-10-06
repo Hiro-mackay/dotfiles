@@ -17,6 +17,7 @@
     "cowork-plugin-management@synced": false
   },
   "language": "ja",
+  "outputStyle": "Concise",
   "effortLevel": "medium",
   "modelSettings": {
     "claude-opus-5-5": {

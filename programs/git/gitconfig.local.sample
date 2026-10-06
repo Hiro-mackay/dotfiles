@@ -18,8 +18,8 @@
 # 	email = <email>
 #
 # With a separate SSH key for that organization (Host github.com-<org> in
-# ~/.ssh/config). Kept here rather than in ~/.gitconfig.<org> so it applies to
-# `ghq get` too, before the repository directory exists:
+# ~/.ssh/config). Kept here rather than in ~/.gitconfig.<org> so it also applies when
+# cloning over SSH (`ghq get -p`), before the repository directory exists:
 #
 # [url "git@github.com-<org>:<org>/"]
 # 	insteadOf = git@github.com:<org>/

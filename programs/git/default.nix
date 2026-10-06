@@ -1,15 +1,11 @@
-# Git settings and the base account, the same on every machine. An untracked
-# ~/.gitconfig.local, where it exists, adds machine-specific accounts and settings;
-# it is included last, so it can override anything here. See ./gitconfig.local.sample.
-{ pkgs, ... }:
+# Git settings shared by every machine. Accounts live in ~/.gitconfig.accounts, a
+# writable file created from ./gitconfig.accounts on the first switch and edited per
+# machine afterwards; it is included last, so it can override anything here.
+{ lib, pkgs, ... }:
 {
   programs.git = {
     enable = true;
     settings = {
-      user = {
-        name = "mackay";
-        email = "43330841+Hiro-mackay@users.noreply.github.com";
-      };
       core = {
         editor = "vim";
         quotepath = false;
@@ -32,7 +28,7 @@
     ];
 
     includes = [
-      { path = "~/.gitconfig.local"; }
+      { path = "~/.gitconfig.accounts"; }
     ]
     # This public repo, wherever it is cloned: run its pre-commit hook.
     ++
@@ -49,4 +45,11 @@
   };
 
   home.packages = [ pkgs.git-secrets ];
+
+  # Created only when missing, so edits survive later switches.
+  home.activation.gitconfigAccounts = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -e "$HOME/.gitconfig.accounts" ]; then
+      run install -m 644 ${./gitconfig.accounts} "$HOME/.gitconfig.accounts"
+    fi
+  '';
 }

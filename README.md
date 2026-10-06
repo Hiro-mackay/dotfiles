@@ -1,8 +1,7 @@
 # dotfiles
 
-My development environment for macOS and Linux dev servers, built with Nix:
-nix-darwin and home-manager on macOS, home-manager on Linux. Each tool's config
-is in `programs/<tool>/`.
+My development environment for macOS and Linux dev servers. One Nix flake sets up
+both: nix-darwin and home-manager on macOS, home-manager on Linux.
 
 ## Install
 
@@ -10,25 +9,54 @@ is in `programs/<tool>/`.
 curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.sh | sh
 ```
 
-Then:
+It installs the Xcode Command Line Tools (macOS) and Nix, clones this repo to
+`~/.dotfiles`, and applies the configuration. It asks for your password when it
+needs sudo, and on macOS it offers a restart at the end, which some settings need.
+Running it again is safe.
 
-- Git: the base account comes with the config. Only a machine that needs more
-  (another account, signing) gets an untracked `~/.gitconfig.local`; see
-  `programs/git/gitconfig.local.sample`.
-- Sign in: `gh auth login`, `claude`, `codex`.
-- macOS: run `sbx login`, allow Hammerspoon and Warp under Accessibility, open
-  Docker Desktop once, and import `programs/bettertouchtool/Default.bttpreset`.
-- Linux: log in again so the `docker` group applies. Push from a server with
-  `ssh -A`.
+## After installing
 
-## Update
+1. Sign in: `gh auth login`, then `claude` and `codex`.
+2. macOS only:
+   - Allow Hammerspoon and Warp in System Settings → Privacy & Security →
+     Accessibility, then choose Reload Config in Hammerspoon's menu.
+   - Open Docker Desktop once and run `sbx login`.
+   - Import `programs/bettertouchtool/Default.bttpreset` in BetterTouchTool.
+3. Linux only: log in again so the `docker` group applies. To push from a server,
+   connect with `ssh -A`.
 
-```sh
-dotup                       # pull this repo, apply it, upgrade mise tools
-nix run ~/.dotfiles#switch  # apply local edits without pulling
+## Everyday use
+
+| To | Run |
+|---|---|
+| Get the latest config and tool versions | `dotup` |
+| Apply your own edits in `~/.dotfiles` | `nix run ~/.dotfiles#switch` |
+
+Each tool's settings are in `programs/<tool>/`. Edit them there and apply them. The
+settings screens of Claude Code and VS Code cannot save, because their files come
+from this repo.
+
+## Git accounts
+
+The base account works with no setup. Each machine keeps its accounts in one file,
+`~/.gitconfig.accounts`, which the first install creates and you can edit:
+
+```
+~/.config/git/config     shared settings from this repo; then reads the next file
+~/.gitconfig.accounts    the base account, and which repositories use another one
+~/.gitconfig.local       the other account, if any
 ```
 
-CI updates `flake.lock` every Monday. Each update waits a week on the
-`flake-update/pending` branch, then reaches `main` if the checks pass; delete the
-branch to drop it. Known CVSS 9+ vulnerabilities in the macOS closure are reported
-in an issue.
+To use another account for some repositories:
+
+1. In `~/.gitconfig.accounts`, uncomment one condition (a directory or a remote URL)
+   and fill it in.
+2. Put that account's `[user]` in `~/.gitconfig.local`.
+3. Check with `git config --show-origin user.email` inside one of those repositories.
+
+## Updates
+
+Every Monday, CI updates the pinned versions (`flake.lock`). Each update waits a week
+on the `flake-update/pending` branch before it reaches `main`, so a bad upstream
+release has time to surface; delete that branch to skip an update. Known critical
+vulnerabilities (CVSS 9+) are reported in an issue.

@@ -77,8 +77,9 @@ jobs:
           # This repo runs its pre-commit hook (matched by remote URL), which takes only
           # GitHub noreply addresses.
           test "$(git -C "$HOME/.dotfiles" config core.hooksPath)" = programs/git/hooks
-          # The base account needs no local file.
-          git config --global user.email | grep -q 'users.noreply.github.com$'
+          # The switch created a writable accounts file with the base account.
+          test -f "$HOME/.gitconfig.accounts" && test ! -L "$HOME/.gitconfig.accounts"
+          git config --global --includes user.email | grep -q 'users.noreply.github.com$'
           if git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m t; then exit 1; fi
           git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@users.noreply.github.com commit -q --allow-empty -m t
           # Both agents get the guardrails from programs/agents/guardrails.nix.

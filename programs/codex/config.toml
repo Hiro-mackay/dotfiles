@@ -1,7 +1,7 @@
-# Shared Codex settings, deployed to /etc/codex/config.toml (Codex's lowest-precedence
-# layer; it never writes there). Machine-specific values such as trust entries, notify,
-# Codex.app plugins and their marketplaces stay in ~/.codex/config.toml, which is untracked.
-# Keys set in ~/.codex/config.toml override this file.
+# Declared Codex settings. Every switch merges them into ~/.codex/config.toml, which stays
+# writable and untracked: keys Codex writes there (trust, machine paths) are kept, and
+# the keys below win. The sandbox, plugin marketplaces and guardrails are added in
+# default.nix.
 
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"

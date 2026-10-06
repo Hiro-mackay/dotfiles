@@ -71,7 +71,8 @@ in
       () {
         setopt local_options extended_glob
         if [[ -n ''${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
-          compinit
+          # compinit leaves an unchanged dump untouched; reset its age by hand.
+          compinit && touch "$ZDOTDIR/.zcompdump"
         else
           compinit -C
         fi

@@ -1,13 +1,13 @@
 # ssh-setup: add one host to ~/.ssh/config, creating its key if needed.
 # ~/.ssh/config is not managed by Nix; this only appends a block for a new Host.
 #
-#   ssh-setup [-H hostname] [-u user] [-p port] [-i keyfile] [-A] [host]
+#   ssh-setup [-u user] [-p port] [-i keyfile] [-A] [host [hostname]]
 #
-# Only the host name is required. The rest is derived from it, shown for
-# confirmation, and can be edited there or set with the options.
+# Asks for the host name and the server if not given. The rest has defaults,
+# shown for confirmation, and can be edited there or set with the options.
 
 usage() {
-    echo "usage: ssh-setup [-H hostname] [-u user] [-p port] [-i keyfile] [-A] [host]" >&2
+    echo "usage: ssh-setup [-u user] [-p port] [-i keyfile] [-A] [host [hostname]]" >&2
     exit 2
 }
 ask() { # ask <prompt> <default> -> answer on stdout
@@ -17,9 +17,8 @@ ask() { # ask <prompt> <default> -> answer on stdout
 }
 
 hostname='' user='' port='' key='' forward=no
-while getopts 'H:u:p:i:Ah' opt; do
+while getopts 'u:p:i:Ah' opt; do
     case "$opt" in
-    H) hostname=$OPTARG ;;
     u) user=$OPTARG ;;
     p) port=$OPTARG ;;
     i) key=$OPTARG ;;
@@ -28,8 +27,8 @@ while getopts 'H:u:p:i:Ah' opt; do
     esac
 done
 shift $((OPTIND - 1))
-alias=${1:-}
-[ -n "$alias" ] || alias=$(ask "Host name (used as 'ssh <name>')" "")
+alias=${1:-} hostname=${2:-}
+[ -n "$alias" ] || alias=$(ask "Host name, used as 'ssh <name>' (e.g. github-work)" "")
 [ -n "$alias" ] || usage
 
 config="$HOME/.ssh/config"
@@ -42,15 +41,8 @@ if grep -qiE "^[[:space:]]*Host([[:space:]].*)?[[:space:]]$alias([[:space:]]|$)"
     exit 1
 fi
 
-# Defaults derived from the host name: github.com-work -> github.com, user git.
-if [ -z "$hostname" ]; then
-    case "$alias" in
-    github.com*) hostname=github.com ;;
-    gitlab.com*) hostname=gitlab.com ;;
-    bitbucket.org*) hostname=bitbucket.org ;;
-    *) hostname=$alias ;;
-    esac
-fi
+[ -n "$hostname" ] || hostname=$(ask "Server address (e.g. github.com)" "")
+[ -n "$hostname" ] || usage
 if [ -z "$user" ]; then
     case "$hostname" in
     github.com | gitlab.com | bitbucket.org) user=git ;;

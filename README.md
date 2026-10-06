@@ -59,20 +59,18 @@ To use another account for some repositories:
 `~/.ssh/config` stays yours; nothing here manages it. To add a host:
 
 ```sh
-ssh-setup <host>    # e.g. ssh-setup github.com-work
+ssh-setup <name> <server>    # e.g. ssh-setup github-work github.com
 ```
 
-It fills in the rest from the name (`github.com-work` → server `github.com`, user
-`git`, key `~/.ssh/id_ed25519_github.com-work`) and shows the block; press Enter to write it, or
-`e` to edit. It creates the key if missing (you choose the passphrase), prints the
-public key, and for GitHub offers to add it to the account gh is signed in to. Options
-set values up front: `-H` server, `-u` user, `-p` port, `-i` key file, `-A` agent
-forwarding.
+It shows the Host block with defaults (user `git` for GitHub, GitLab and Bitbucket,
+key `~/.ssh/id_ed25519_<name>`); press Enter to write it, or `e` to edit. It creates
+the key if missing (you choose the passphrase), prints the public key, and for GitHub
+offers to add it to the account gh is signed in to. Options set values up front:
+`-u` user, `-p` port, `-i` key file, `-A` agent forwarding.
 
-For two GitHub accounts on one machine, run it once per account, for example
-`github.com` for the base account and `github.com-work` for the other. Then point the
-other account's repositories at its host in `~/.gitconfig.accounts` (the
-`url ... insteadOf` example there).
+Git URLs name `github.com`, so point them at your host in `~/.gitconfig.accounts`
+(the `url ... insteadOf` examples there): all of GitHub for the base account's host,
+and one owner's repositories for another account's host.
 
 ## Updates
 

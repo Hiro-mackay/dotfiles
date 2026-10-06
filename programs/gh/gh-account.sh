@@ -4,8 +4,8 @@
 #   gh-account <owner>...   another account, for the repositories of these owners
 #
 # git picks the base account's key for every github.com remote (programs/git). Another
-# account gets a name (e.g. work) and a file ~/.gitconfig.<name> holding its identity
-# and its key, included for its owners' remotes. Both switch together, so a commit and
+# account gets a file named after its first owner, ~/.gitconfig.<owner>, holding its
+# identity and its key, included for its owners' remotes. Both switch together, so a commit and
 # the key that pushes it always belong to the same account.
 
 accounts="$HOME/.gitconfig.accounts"
@@ -15,10 +15,11 @@ die() {
     echo "error: $*" >&2
     exit 1
 }
-ask() { # ask <prompt> <default> -> answer on stdout
-    printf '%s [%s]: ' "$1" "$2" >&2
+title() { printf '\n\033[1m== %s ==\033[0m\n' "$1" >&2; }
+ask() { # ask <prompt> [default] -> answer on stdout, like ssh-keygen's prompts
+    if [ -n "${2:-}" ]; then printf 'Enter %s (%s): ' "$1" "$2" >&2; else printf 'Enter %s: ' "$1" >&2; fi
     read -r reply || reply=
-    printf '%s\n' "${reply:-$2}"
+    printf '%s\n' "${reply:-${2:-}}"
 }
 login() { gh api user --jq .login 2>/dev/null; }
 sign_in() { # sign_in [login]: make that account active in gh, adding it if needed
@@ -51,6 +52,7 @@ check() { # check <key> <login>: the key signs in to GitHub as that account
 }
 
 if [ $# -eq 0 ]; then
+    title "GitHub: base account"
     me=$(login) || { sign_in && me=$(login); } || die "could not sign in with gh"
     key="$HOME/.ssh/id_ed25519_github"
     make_key "$key" "$me"
@@ -69,8 +71,8 @@ for o in "$@"; do
     [ "$lower" = "$canonical" ] || owners="$owners $lower"
 done
 
-label=$(ask "Short name for this account, for ~/.gitconfig.<name> (e.g. work)" "")
-case "$label" in accounts | *[!a-z0-9_-]* | '') die "use lowercase letters, digits, - or _ (not 'accounts')" ;; esac
+label=$(printf '%s' "${owners# }" | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]')
+[ "$label" != accounts ] || die "an owner named accounts would clash with ~/.gitconfig.accounts"
 file="$HOME/.gitconfig.$label"
 key="$HOME/.ssh/id_ed25519_github_$label"
 # An owner already tied to another account would make the two fight over its repos.
@@ -82,17 +84,23 @@ for owner in $owners; do
         die "$owner already uses $other; remove its lines from $accounts first"
 done
 
-acct=$(ask "GitHub login of that account" "")
+# Every question first, then the sign-in, the key and the files.
+title "GitHub: another account for$owners (~/.gitconfig.$label)"
+acct=$(ask "the GitHub login of that account" "$(git config --file "$file" github.login || true)")
+[ -n "$acct" ] || die "a GitHub login is required"
+[ "$acct" != "$base" ] || die "that is the base account ($base); give the other one"
+name=$(ask "the name for its commits" "$(git config --file "$file" user.name || true)")
+email=$(ask "the email for its commits" "$(git config --file "$file" user.email || true)")
+[ -n "$name" ] && [ -n "$email" ] || die "a name and an email are required"
+
 # gh stays signed in to the base account afterwards, also when this stops early.
 trap 'gh auth switch -h github.com -u "$base" >/dev/null 2>&1 || true' EXIT
 sign_in "$acct"
-acct=$(login) || die "could not sign in with gh"
-[ "$acct" != "$base" ] || die "that is the base account ($base); sign in to the other one"
-name=$(ask "Name for its commits" "$(git config --file "$file" user.name || gh api user --jq '.name // ""')")
-email=$(ask "Email for its commits" "$(git config --file "$file" user.email || gh api user --jq '.email // ""')")
+[ "$(login)" = "$acct" ] || die "gh is signed in as $(login), not $acct"
 make_key "$key" "$acct"
 register "$key.pub"
 
+git config --file "$file" github.login "$acct"
 git config --file "$file" user.name "$name"
 git config --file "$file" user.email "$email"
 git config --file "$file" core.sshCommand \

@@ -72,13 +72,13 @@ fi
 # Interactive, so only with a terminal (stdin is the curl pipe); gh-account repeats it.
 if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
     PATH="/etc/profiles/per-user/$(id -un)/bin:$HOME/.nix-profile/bin:$PATH"
-    log "Setting up the GitHub account and its SSH key"
+    printf '\n\033[1m==== GitHub accounts: answer a few questions ====\033[0m\n'
     if ! gh-account </dev/tty; then
         log "Run 'gh-account' to retry"
     else
-        while printf '==> Set up another GitHub account (e.g. for work)? [y/N] ' &&
+        while printf '\nSet up another GitHub account, e.g. for work? [y/N]: ' &&
             read -r answer </dev/tty && case "$answer" in [yY]*) true ;; *) false ;; esac; do
-            printf '==> Users or organizations whose repositories use it: '
+            printf 'Enter the users or organizations whose repositories use it: '
             read -r owners </dev/tty || owners=
             # shellcheck disable=SC2086 # one argument per owner
             if [ -z "$owners" ] || ! gh-account $owners </dev/tty; then

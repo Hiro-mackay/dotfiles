@@ -7,12 +7,12 @@
 	email = 43330841+Hiro-mackay@users.noreply.github.com
 
 # Another GitHub account: run `gh-account <owner>...`. It puts that account's [user] and
-# SSH key in ~/.gitconfig.<name> and adds conditions like these below, one per URL form
+# SSH key in ~/.gitconfig.<owner> and adds conditions like these below, one per URL form
 # (git@github.com:, ssh://git@github.com/, https://github.com/), so the identity and
 # the key switch together for that owner's repositories:
 #
 # [includeIf "hasconfig:remote.*.url:git@github.com:<owner>/**"]
-# 	path = ~/.gitconfig.<name>
+# 	path = ~/.gitconfig.<owner>
 
 # Strings the dotfiles repo must never contain (its pre-commit hook rejects them),
 # e.g. another account's email domain or a name that must stay private:

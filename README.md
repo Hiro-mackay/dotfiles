@@ -49,12 +49,13 @@ push never mix accounts. Install offers it; to add it later:
 gh-account <owner>...    # e.g. gh-account my-org
 ```
 
-It signs in to that account in the browser, asks for a short name (e.g. `work`) and
-the name and email for its commits, creates and registers its key, and writes:
+It asks for that account's GitHub login and the name and email for its commits, signs
+in to it in the browser, creates and registers its key, and writes (named after the
+first owner):
 
 ```
 ~/.gitconfig.accounts    the base account, and which owners use which other account
-~/.gitconfig.<name>      one other account: [user] and its key (core.sshCommand)
+~/.gitconfig.<owner>     one other account: [user] and its key (core.sshCommand)
 ```
 
 It matches remotes of those owners in any directory, also while cloning. Check inside a

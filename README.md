@@ -56,10 +56,18 @@ To use another account for some repositories:
 
 ## SSH
 
-`~/.ssh/config` stays yours; nothing here manages it. To add a host, run `ssh-setup`.
-It asks for the host name, server, user, port and key file (Enter accepts each
-default), creates the key if needed, appends the Host block and prints the public key.
-For GitHub it can also add the key to the account gh is signed in to.
+`~/.ssh/config` stays yours; nothing here manages it. To add a host:
+
+```sh
+ssh-setup <host>    # e.g. ssh-setup github.com-work
+```
+
+It fills in the rest from the name (`github.com-work` → server `github.com`, user
+`git`, key `~/.ssh/github.com-work`) and shows the block; press Enter to write it, or
+`e` to edit. It creates the key if missing (you choose the passphrase), prints the
+public key, and for GitHub offers to add it to the account gh is signed in to. Options
+set values up front: `-H` server, `-u` user, `-p` port, `-i` key file, `-A` agent
+forwarding.
 
 For two GitHub accounts on one machine, run it once per account, for example
 `github.com` for the base account and `github.com-work` for the other. Then point the

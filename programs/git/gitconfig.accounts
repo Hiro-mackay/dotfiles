@@ -6,25 +6,13 @@
 	name = mackay
 	email = 43330841+Hiro-mackay@users.noreply.github.com
 
-# Another account for some repositories: uncomment one condition, fill it in, and put
-# that account's [user] in ~/.gitconfig.local.
+# Another GitHub account: run `gh-account <owner>...`. It puts that account's [user] and
+# SSH key in ~/.gitconfig.<name> and adds conditions like these below, one per URL form
+# (git@github.com:, ssh://git@github.com/, https://github.com/), so the identity and
+# the key switch together for that owner's repositories:
 #
-# By directory:
-# [includeIf "gitdir/i:<directory>/"]
-# 	path = ~/.gitconfig.local
-#
-# By remote URL:
-# [includeIf "hasconfig:remote.*.url:<url-pattern>"]
-# 	path = ~/.gitconfig.local
-#
-# A different SSH key for some remotes (a Host alias in ~/.ssh/config). Unconditional,
-# so it also applies when cloning over SSH, before the repository exists:
-#
-# [url "git@<host-alias>:<owner>/"]
-# 	insteadOf = git@github.com:<owner>/
-#
-# Without <owner>/ on both sides, every GitHub URL goes there (e.g. the base account's
-# host); the longer, per-owner rule above still wins for that owner.
+# [includeIf "hasconfig:remote.*.url:git@github.com:<owner>/**"]
+# 	path = ~/.gitconfig.<name>
 
 # Strings the dotfiles repo must never contain (its pre-commit hook rejects them),
 # e.g. another account's email domain or a name that must stay private:
@@ -38,6 +26,6 @@
 # [gpg]
 # 	format = ssh
 # [user]
-# 	signingkey = ~/.ssh/id_ed25519.pub
+# 	signingkey = ~/.ssh/id_ed25519_github.pub
 # [commit]
 # 	gpgsign = true

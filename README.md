@@ -12,11 +12,13 @@ curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.s
 It installs the Xcode Command Line Tools (macOS) and Nix, clones this repo to
 `~/.dotfiles`, and applies the configuration. It asks for your password when it
 needs sudo, and on macOS it offers a restart at the end, which some settings need.
-Running it again is safe.
+At the end it sets up GitHub: it signs you in with gh, creates
+and registers the SSH key, and asks whether this machine needs other accounts. Running
+it again is safe.
 
 ## After installing
 
-1. Sign in: `gh auth login`, then `claude` and `codex`.
+1. Sign in: `claude` and `codex`.
 2. macOS only:
    - Allow Hammerspoon and Warp in System Settings → Privacy & Security →
      Accessibility, then choose Reload Config in Hammerspoon's menu.
@@ -38,43 +40,43 @@ from this repo.
 
 ## Git accounts
 
-The base account works with no setup. Each machine keeps its accounts in one file,
-`~/.gitconfig.accounts`, which the first install creates and you can edit:
+The base account and its key (`~/.ssh/id_ed25519_github`) work for every GitHub
+repository; install sets them up. Another account is tied to the owners of its
+repositories, with its identity and its key switching together, so a commit and the
+push never mix accounts. Install offers it; to add it later:
+
+```sh
+gh-account <owner>...    # e.g. gh-account my-org
+```
+
+It signs in to that account in the browser, asks for a short name (e.g. `work`) and
+the name and email for its commits, creates and registers its key, and writes:
 
 ```
-~/.config/git/config     shared settings from this repo; then reads the next file
-~/.gitconfig.accounts    the base account, and which repositories use another one
-~/.gitconfig.local       the other account, if any
+~/.gitconfig.accounts    the base account, and which owners use which other account
+~/.gitconfig.<name>      one other account: [user] and its key (core.sshCommand)
 ```
 
-To use another account for some repositories:
-
-1. In `~/.gitconfig.accounts`, uncomment one condition (a directory or a remote URL)
-   and fill it in.
-2. Put that account's `[user]` in `~/.gitconfig.local`.
-3. Check with `git config --show-origin user.email` inside one of those repositories.
+It matches remotes of those owners in any directory, also while cloning. Check inside a
+repository with `git config --show-origin user.email`.
 
 ## SSH
 
-`~/.ssh/config` stays yours; nothing here manages it. To add a host:
+`~/.ssh/config` stays yours; nothing here manages it. GitHub needs nothing in it (see
+Git accounts). To add a server:
 
 ```sh
-ssh-setup <name> <server>    # e.g. ssh-setup github-work github.com
+ssh-setup <name> <server>    # e.g. ssh-setup devbox 10.0.0.5
 ```
 
-It shows the Host block with defaults (user `git` for GitHub, GitLab and Bitbucket,
-key `~/.ssh/id_ed25519_<name>`); press Enter to write it, or `e` to edit. It creates
-the key if missing (you choose the passphrase), prints the public key, and for GitHub
-offers to add it to the account gh is signed in to. Options set values up front:
-`-u` user, `-p` port, `-i` key file, `-A` agent forwarding.
+It shows the Host block with defaults (key `~/.ssh/id_ed25519_<name>`); press Enter to
+write it, or `e` to edit. It creates the key if missing (you choose the passphrase) and
+prints the public key. Options set values up front: `-u` user, `-p` port, `-i` key
+file, `-A` agent forwarding.
 
 For a local container with sshd on a published port, e.g.
 `ssh-setup -p 2222 -u dev sandbox 127.0.0.1`. Create the key before the container
 copies your public keys into its `authorized_keys`.
-
-Git URLs name `github.com`, so point them at your host in `~/.gitconfig.accounts`
-(the `url ... insteadOf` examples there): all of GitHub for the base account's host,
-and one owner's repositories for another account's host.
 
 ## Updates
 

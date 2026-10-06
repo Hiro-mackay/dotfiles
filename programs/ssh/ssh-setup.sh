@@ -95,13 +95,6 @@ if command -v pbcopy >/dev/null 2>&1; then
     echo "(public key copied to the clipboard)" >&2
 fi
 
-if [ "$hostname" = github.com ] && command -v gh >/dev/null 2>&1 &&
-    login=$(gh api user --jq .login 2>/dev/null); then
-    case "$(ask "Add this key to the GitHub account $login? ('gh auth switch' first if not) (y/n)" y)" in
-    [yY]*) gh ssh-key add "$key.pub" --title "$(hostname -s) $alias" ;;
-    esac
-fi
-
 # Git hosts answer `ssh -T` with a greeting; other servers would open a shell.
 case "$hostname" in
 github.com | gitlab.com | bitbucket.org) ssh -T "$alias" || true ;;

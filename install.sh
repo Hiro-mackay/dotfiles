@@ -68,6 +68,26 @@ if [ "$OS" = Linux ] && [ "$(basename "${SHELL:-}")" != zsh ]; then
     # shellcheck disable=SC2016 # printed literally for the user to run
     printf '  command -v zsh | sudo tee -a /etc/shells && chsh -s "$(command -v zsh)"\n'
 fi
+# GitHub: the base account's key, then any other accounts this machine needs.
+# Interactive, so only with a terminal (stdin is the curl pipe); gh-account repeats it.
+if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
+    PATH="/etc/profiles/per-user/$(id -un)/bin:$HOME/.nix-profile/bin:$PATH"
+    log "Setting up the GitHub account and its SSH key"
+    if ! gh-account </dev/tty; then
+        log "Run 'gh-account' to retry"
+    else
+        while printf '==> Set up another GitHub account (e.g. for work)? [y/N] ' &&
+            read -r answer </dev/tty && case "$answer" in [yY]*) true ;; *) false ;; esac; do
+            printf '==> Users or organizations whose repositories use it: '
+            read -r owners </dev/tty || owners=
+            # shellcheck disable=SC2086 # one argument per owner
+            if [ -z "$owners" ] || ! gh-account $owners </dev/tty; then
+                log "Run 'gh-account <owner>...' to retry"
+            fi
+        done
+    fi
+fi
+
 log "Done. Open a new terminal. Remaining steps are in the README."
 
 # Trackpad, appearance and other macOS settings take effect only after a restart.

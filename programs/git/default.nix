@@ -27,21 +27,31 @@
       "**/.claude/.cc-writes/"
     ];
 
-    includes = [
-      { path = "~/.gitconfig.accounts"; }
-    ]
-    # This public repo, wherever it is cloned: run its pre-commit hook.
-    ++
+    # The base account's key for GitHub, even while cloning. It comes before the
+    # accounts file, so another account there (gh-account) overrides it.
+    includes =
       map
         (url: {
           condition = "hasconfig:remote.*.url:${url}";
-          contents.core.hooksPath = "programs/git/hooks";
+          contents.core.sshCommand = "ssh -i ~/.ssh/id_ed25519_github -o IdentitiesOnly=yes -o AddKeysToAgent=yes -o IgnoreUnknown=UseKeychain -o UseKeychain=yes";
         })
         [
-          "https://github.com/Hiro-mackay/dotfiles*"
-          "git@github.com:Hiro-mackay/dotfiles*"
-          "ssh://git@github.com/Hiro-mackay/dotfiles*"
-        ];
+          "git@github.com:*/**"
+          "ssh://git@github.com/**"
+        ]
+      ++ [ { path = "~/.gitconfig.accounts"; } ]
+      # This public repo, wherever it is cloned: run its pre-commit hook.
+      ++
+        map
+          (url: {
+            condition = "hasconfig:remote.*.url:${url}";
+            contents.core.hooksPath = "programs/git/hooks";
+          })
+          [
+            "https://github.com/Hiro-mackay/dotfiles*"
+            "git@github.com:Hiro-mackay/dotfiles*"
+            "ssh://git@github.com/Hiro-mackay/dotfiles*"
+          ];
   };
 
   home.packages = [ pkgs.git-secrets ];

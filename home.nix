@@ -49,8 +49,13 @@
   };
 
   home.sessionPath = [
-    "${config.home.homeDirectory}/.local/bin"
     "${config.home.homeDirectory}/.cargo/bin"
     "${config.xdg.dataHome}/pnpm"
   ];
+
+  # Appended, not prepended: a leftover native install there (claude,
+  # codebase-memory-mcp) must not shadow the Nix and mise versions.
+  home.sessionVariablesExtra = ''
+    export PATH="$PATH:${config.home.homeDirectory}/.local/bin"
+  '';
 }

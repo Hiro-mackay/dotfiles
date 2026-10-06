@@ -45,7 +45,7 @@ use_token() { # use_token <config file> <login>: git gets that account's token f
     git config --file "$1" --unset-all "$cred" 2>/dev/null || true
     git config --file "$1" --add "$cred" ''
     git config --file "$1" --add "$cred" \
-        "!f() { test \"\$1\" = get && echo username=$2 && echo password=\$(gh auth token -h github.com -u $2); }; f"
+        "!f() { test \"\$1\" = get || exit 0; t=\$(gh auth token -h github.com -u $2) || { echo \"git: gh is not signed in as $2; run gh-setup\" >&2; exit 1; }; echo username=$2; echo password=\$t; }; f"
 }
 
 # The base account, from the shared settings (--global skips the accounts file).

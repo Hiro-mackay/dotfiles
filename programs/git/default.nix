@@ -32,7 +32,7 @@ in
       github.login = baseLogin;
       credential."https://github.com".helper = [
         ""
-        "!f() { test \"$1\" = get && echo username=${baseLogin} && echo password=$(gh auth token -h github.com -u ${baseLogin}); }; f"
+        "!f() { test \"$1\" = get || exit 0; t=$(gh auth token -h github.com -u ${baseLogin}) || { echo \"git: gh is not signed in as ${baseLogin}; run gh-setup\" >&2; exit 1; }; echo username=${baseLogin}; echo password=$t; }; f"
       ];
     };
 

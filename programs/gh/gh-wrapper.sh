@@ -1,13 +1,41 @@
 #!/bin/sh
-# gh, signed in as the account set for the current repository: ~/.gitconfig.<owner>
-# sets github.login for its owners' repositories (gh-setup), ~/.gitconfig.accounts for
-# the rest. `gh auth` (git's credential helper too) and an explicit GH_TOKEN pass
-# through, as does GH_NO_AUTO_ACCOUNT, which gh-setup sets while it switches accounts.
+# gh, signed in as the account for the repository it acts on: the one named on the
+# command line (-R/--repo, a github.com URL, or `gh repo <cmd> owner/name`), else the
+# current repository. ~/.gitconfig.<owner> sets github.login for its owners'
+# repositories (gh-setup), the shared git settings for the rest. `gh auth` (git's
+# credential helper too), an explicit GH_TOKEN and GH_NO_AUTO_ACCOUNT (set by gh-setup
+# while it switches accounts) pass through.
 gh=@gh@
 case "${1:-}" in auth) exec "$gh" "$@" ;; esac
-if [ -z "${GH_TOKEN:-}${GH_NO_AUTO_ACCOUNT:-}" ] &&
-    account=$(git config --get github.login 2>/dev/null) &&
-    token=$("$gh" auth token -h github.com -u "$account" 2>/dev/null); then
-    GH_TOKEN=$token exec "$gh" "$@"
+[ -z "${GH_TOKEN:-}${GH_NO_AUTO_ACCOUNT:-}" ] || exec "$gh" "$@"
+
+target='' prev=''
+for a in "$@"; do
+    case "$prev" in -R | --repo) target=$a ;; esac
+    case "$a" in
+    --repo=*) target=${a#--repo=} ;;
+    -R?*) target=${a#-R} ;;
+    https://github.com/*/*) [ -n "$target" ] || target=$a ;;
+    esac
+    prev=$a
+done
+if [ -z "$target" ] && [ "${1:-}" = repo ]; then
+    case "${3:-}" in */*) target=$3 ;; esac
 fi
-exec "$gh" "$@"
+
+account=''
+if [ -n "$target" ]; then
+    owner=${target#https://github.com/}
+    owner=$(printf '%s' "${owner%%/*}" | tr '[:upper:]' '[:lower:]')
+    file=$(git config --file "$HOME/.gitconfig.accounts" \
+        --get "includeIf.hasconfig:remote.*.url:https://github.com/$owner/**.path" 2>/dev/null) &&
+        account=$(git config --file "$HOME/${file#\~/}" github.login 2>/dev/null)
+    # An owner without an account of its own belongs to the base account.
+    [ -n "$account" ] || account=$(git config --global github.login 2>/dev/null)
+fi
+[ -n "$account" ] || account=$(git config --get github.login 2>/dev/null) || exec "$gh" "$@"
+token=$("$gh" auth token -h github.com -u "$account" 2>/dev/null) || {
+    echo "gh: not signed in as $account, the account for this repository; run gh-setup" >&2
+    exit 1
+}
+GH_TOKEN=$token exec "$gh" "$@"

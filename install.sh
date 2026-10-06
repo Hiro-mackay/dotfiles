@@ -69,3 +69,14 @@ if [ "$OS" = Linux ] && [ "$(basename "${SHELL:-}")" != zsh ]; then
     printf '  command -v zsh | sudo tee -a /etc/shells && chsh -s "$(command -v zsh)"\n'
 fi
 log "Done. Open a new terminal. Remaining steps are in the README."
+
+# Trackpad, appearance and other macOS settings take effect only after a restart.
+# Ask first (work may be open) and restart the normal way, so apps can ask to save.
+# stdin is the curl pipe, so the answer comes from the terminal.
+if [ "$OS" = Darwin ] && [ -t 1 ]; then
+    printf '==> Restart now to apply the macOS settings? [y/N] '
+    read -r answer </dev/tty || answer=
+    case "$answer" in
+    [yY]*) osascript -e 'tell application "loginwindow" to «event aevtrrst»' ;;
+    esac
+fi

@@ -1,13 +1,15 @@
 # ssh-setup: add one host to ~/.ssh/config, creating its key if needed.
 # ~/.ssh/config is not managed by Nix; this only appends a block for a new Host.
 #
-#   ssh-setup [-u user] [-p port] [-i keyfile] [-A] [host [hostname]]
+#   ssh-setup [-c] [-u user] [-p port] [-i keyfile] [-A] [host [hostname]]
 #
+# -c is for a local container that gets recreated: the server defaults to localhost,
+# its changing host key is not stored, and the agent is forwarded for git.
 # Asks for the host name and the server if not given. The rest has defaults,
 # shown for confirmation, and can be edited there or set with the options.
 
 usage() {
-    echo "usage: ssh-setup [-u user] [-p port] [-i keyfile] [-A] [host [hostname]]" >&2
+    echo "usage: ssh-setup [-c] [-u user] [-p port] [-i keyfile] [-A] [host [hostname]]" >&2
     exit 2
 }
 ask() { # ask <prompt> <default> -> answer on stdout
@@ -16,9 +18,10 @@ ask() { # ask <prompt> <default> -> answer on stdout
     printf '%s\n' "${reply:-$2}"
 }
 
-hostname='' user='' port='' key='' forward=no
-while getopts 'u:p:i:Ah' opt; do
+hostname='' user='' port='' key='' forward=no container=no
+while getopts 'cu:p:i:Ah' opt; do
     case "$opt" in
+    c) container=yes forward=yes ;;
     u) user=$OPTARG ;;
     p) port=$OPTARG ;;
     i) key=$OPTARG ;;
@@ -41,6 +44,7 @@ if grep -qiE "^[[:space:]]*Host([[:space:]].*)?[[:space:]]$alias([[:space:]]|$)"
     exit 1
 fi
 
+[ -n "$hostname" ] || [ "$container" = no ] || hostname=localhost
 [ -n "$hostname" ] || hostname=$(ask "Server address (e.g. github.com)" "")
 [ -n "$hostname" ] || usage
 if [ -z "$user" ]; then
@@ -57,6 +61,7 @@ show() {
     [ "$port" = 22 ] || printf '  Port %s\n' "$port" >&2
     printf '  IdentityFile %s%s\n' "$key" "$([ -f "$key" ] && echo ' (existing key)' || echo ' (new key)')" >&2
     [ "$forward" = no ] || printf '  ForwardAgent yes\n' >&2
+    [ "$container" = no ] || printf '  (container: host key not stored)\n' >&2
 }
 show
 case "$(ask "Write this? (y/n/e to edit)" y)" in
@@ -86,6 +91,7 @@ fi
     printf '  IdentityFile %s\n  IdentitiesOnly yes\n  AddKeysToAgent yes\n' "$key"
     [ "$(uname -s)" != Darwin ] || printf '  UseKeychain yes\n'
     [ "$forward" = no ] || printf '  ForwardAgent yes\n'
+    [ "$container" = no ] || printf '  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  LogLevel ERROR\n'
 } >>"$config"
 echo "Added Host $alias to $config" >&2
 

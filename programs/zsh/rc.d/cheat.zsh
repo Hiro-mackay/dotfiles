@@ -207,6 +207,7 @@ SHEET
   DOTFILES
     dotup          pull dotfiles, apply them, upgrade mise tools
     ssh-setup      add an SSH host and its key interactively
+    gh-setup       set up a GitHub account (asks which one)
 
   EDITORS
     co             open VS Code here

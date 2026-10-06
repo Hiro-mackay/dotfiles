@@ -1,30 +1,14 @@
-# Git accounts on this machine. The dotfiles switch creates this file once, if it is
-# missing; after that it is yours to edit and is never overwritten or tracked.
+# Git accounts on this machine besides the base one (programs/git). The dotfiles switch
+# creates this file once, if it is missing; after that it is yours to edit and is never
+# overwritten or tracked.
 
-# Base account
-[user]
-	name = mackay
-	email = 43330841+Hiro-mackay@users.noreply.github.com
-
-# Another account for some repositories: uncomment one condition, fill it in, and put
-# that account's [user] in ~/.gitconfig.local.
+# Another GitHub account: run `gh-setup`. It puts that account's [user] and
+# credential in ~/.gitconfig.<owner> and adds conditions like these below, one per URL form
+# (git@github.com:, ssh://git@github.com/, https://github.com/), so the identity and
+# the credential switch together for that owner's repositories:
 #
-# By directory:
-# [includeIf "gitdir/i:<directory>/"]
-# 	path = ~/.gitconfig.local
-#
-# By remote URL:
-# [includeIf "hasconfig:remote.*.url:<url-pattern>"]
-# 	path = ~/.gitconfig.local
-#
-# A different SSH key for some remotes (a Host alias in ~/.ssh/config). Unconditional,
-# so it also applies when cloning over SSH, before the repository exists:
-#
-# [url "git@<host-alias>:<owner>/"]
-# 	insteadOf = git@github.com:<owner>/
-#
-# Without <owner>/ on both sides, every GitHub URL goes there (e.g. the base account's
-# host); the longer, per-owner rule above still wins for that owner.
+# [includeIf "hasconfig:remote.*.url:git@github.com:<owner>/**"]
+# 	path = ~/.gitconfig.<owner>
 
 # Strings the dotfiles repo must never contain (its pre-commit hook rejects them),
 # e.g. another account's email domain or a name that must stay private:

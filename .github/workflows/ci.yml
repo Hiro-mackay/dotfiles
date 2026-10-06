@@ -77,7 +77,7 @@ jobs:
           # This repo runs its pre-commit hook (matched by remote URL), which takes only
           # GitHub noreply addresses.
           test "$(git -C "$HOME/.dotfiles" config core.hooksPath)" = programs/git/hooks
-          # The switch created a writable accounts file with the base account.
+          # The switch created a writable accounts file; the base account comes from Nix.
           test -f "$HOME/.gitconfig.accounts" && test ! -L "$HOME/.gitconfig.accounts"
           git config --global --includes user.email | grep -q 'users.noreply.github.com$'
           if git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m t; then exit 1; fi
@@ -98,5 +98,7 @@ jobs:
             [[ "export AWS_SECRET_ACCESS_KEY=x" == ${~HISTORY_IGNORE} ]]
             [[ "ls -la" != ${~HISTORY_IGNORE} ]]
           '
+          # Accounts: gh-setup, git's credentials and the gh wrapper, against a fake GitHub.
+          sh "$HOME/.dotfiles/programs/gh/test.sh"
           # The repo stays untouched: nothing is generated or linked into it.
           test -z "$(git -C "$HOME/.dotfiles" status --porcelain)"

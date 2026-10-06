@@ -127,7 +127,9 @@ git config --file "$file" user.email "$email"
 use_token "$file" "$acct"
 touch "$accounts"
 # Owners dropped from this account since the last run lose their conditions.
-{ git config --file "$accounts" --get-regexp '^includeif\..*\.path$' 2>/dev/null || true; } |
+# Only conditions in the form written below; hand-written ones stay.
+{ git config --file "$accounts" --get-regexp \
+    '^includeif\.hasconfig:remote\.\*\.url:(https://github\.com/|git@github\.com:|ssh://git@github\.com/)[^/]*/\*\*\.path$' 2>/dev/null || true; } |
     while read -r k v; do
         # shellcheck disable=SC2088 # compared as written in the file, not expanded
         [ "$v" = "~/.gitconfig.$label" ] || continue
@@ -136,7 +138,7 @@ touch "$accounts"
         o=${o#git@github.com:}
         o=${o#ssh://git@github.com/}
         o=${o%%/*}
-        case " $patterns " in *" $o "*) ;; *) git config --file "$accounts" --unset "$k" ;; esac
+        case " $patterns " in *" $o "*) ;; *) git config --file "$accounts" --unset-all "$k" ;; esac
     done
 for p in $patterns; do
     for url in "https://github.com/$p/**" "git@github.com:$p/**" "ssh://git@github.com/$p/**"; do

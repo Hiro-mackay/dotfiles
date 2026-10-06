@@ -25,9 +25,11 @@ in
 
     # One directory link per skill (an attrset, not a path) so tool-owned entries such
     # as skills/synced keep living next to them. critique is for Codex only.
-    skills = lib.mapAttrs (name: _: skills + "/${name}") (
-      removeAttrs (builtins.readDir skills) [ "critique" ]
-    );
+    skills =
+      lib.mapAttrs (name: _: skills + "/${name}") (removeAttrs (builtins.readDir skills) [ "critique" ])
+      // {
+        i-have-adhd = "${inputs.i-have-adhd}/skills/i-have-adhd";
+      };
 
     # Marketplace plugins pinned through flake inputs, loaded as personal plugins.
     plugins = {

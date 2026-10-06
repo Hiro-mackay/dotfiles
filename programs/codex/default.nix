@@ -16,7 +16,11 @@ in
     enable = true;
     package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
     context = ../agents/AGENTS.md;
-    skills = ../agents/skills;
+    skills =
+      lib.mapAttrs (name: _: ../agents/skills + "/${name}") (builtins.readDir ../agents/skills)
+      // {
+        i-have-adhd = "${inputs.i-have-adhd}/skills/i-have-adhd";
+      };
     # Plugin marketplaces come from the flake inputs (pinned, updated with flake.lock)
     # instead of Codex fetching them from git.
     rules.guardrails = lib.concatMapStrings (

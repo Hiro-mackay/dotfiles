@@ -29,6 +29,12 @@
       url = "github:openai/codex-plugin-cc";
       flake = false;
     };
+    # Opt-in output-shaping skill (/i-have-adhd), shared by Claude Code and Codex.
+    # Only the skill is used; the repo's always-on SessionStart hook is not.
+    i-have-adhd = {
+      url = "github:ayghri/i-have-adhd";
+      flake = false;
+    };
     # Warp notifications for Claude Code (the Codex counterpart is codex-warp below).
     claude-code-warp = {
       url = "github:warpdotdev/claude-code-warp";

@@ -273,6 +273,22 @@
         "type": "github"
       }
     },
+    "i-have-adhd": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789836285,
+        "narHash": "sha256-UExi0k71MOtLwqVaFRGhgvqq6+jxwbQxZZVZxceHGrw=",
+        "owner": "ayghri",
+        "repo": "i-have-adhd",
+        "rev": "839872f9d1cd634fed642b4589ce7226199cc15f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ayghri",
+        "repo": "i-have-adhd",
+        "type": "github"
+      }
+    },
     "llm-agents": {
       "inputs": {
         "bun2nix": "bun2nix",
@@ -491,6 +507,7 @@
         "codex-warp": "codex-warp",
         "determinate": "determinate",
         "home-manager": "home-manager",
+        "i-have-adhd": "i-have-adhd",
         "llm-agents": "llm-agents",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",

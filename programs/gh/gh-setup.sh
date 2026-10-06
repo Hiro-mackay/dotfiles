@@ -17,8 +17,8 @@ die() {
     exit 1
 }
 title() { printf '\n\033[1m== %s ==\033[0m\n' "$1" >&2; }
-ask() { # ask <prompt> [default] -> answer on stdout, like ssh-keygen's prompts; Enter takes the default
-    if [ -n "${2:-}" ]; then printf 'Enter %s (%s): ' "$1" "$2" >&2; else printf 'Enter %s: ' "$1" >&2; fi
+ask() { # ask <label> [default] -> answer on stdout; Enter takes the default
+    if [ -n "${2:-}" ]; then printf '%s [%s]: ' "$1" "$2" >&2; else printf '%s: ' "$1" >&2; fi
     read -r reply || reply=
     printf '%s\n' "${reply:-${2:-}}"
 }
@@ -33,7 +33,7 @@ canonical() { # canonical <login>: as GitHub spells it, when gh can ask; else un
 }
 sign_in() { # sign_in <login>: make that account active in gh, adding it if needed
     if ! gh auth switch -h github.com -u "$1" >/dev/null 2>&1; then
-        echo "Sign in to GitHub as $1 in the browser" >&2
+        echo "Signing in as $1 in the browser..." >&2
         gh auth login -h github.com -p https --skip-ssh-key -w -s workflow
     fi
     [ "$(lower "$(active)")" = "$(lower "$1")" ] || die "gh is signed in as $(active), not $1"
@@ -53,17 +53,16 @@ use_token() { # use_token <config file> <login>: git gets that account's token f
 # The base account, from the shared settings (--global skips the accounts file).
 base=$(git config --global github.login 2>/dev/null) || die "no github.login in the git settings"
 
-title "GitHub account setup"
-acct=$(ask "the GitHub login of the account to set up" "$base")
+title "GitHub account"
+acct=$(ask "Login" "$base")
 [ -n "$acct" ] || die "a GitHub login is required"
 acct=$(canonical "$acct")
 # gh stays signed in to the base account afterwards, also when this stops early.
 trap 'gh auth switch -h github.com -u "$base" >/dev/null 2>&1 || true' EXIT
 
 if [ "$(lower "$acct")" = "$(lower "$base")" ]; then
-    echo "$acct is the base account, used for all of GitHub" >&2
     sign_in "$acct"
-    echo "OK: git and gh use $acct" >&2
+    echo "Done: $acct, the base account, for all of GitHub" >&2
     exit
 fi
 
@@ -75,16 +74,16 @@ for f in "$HOME"/.gitconfig.*; do
 done
 prev() { [ -z "$file" ] || git config --file "$file" "$1" 2>/dev/null || true; }
 orgs=$(gh api user/orgs --jq '[.[].login] | join(", ")' 2>/dev/null || true)
-echo "$acct belongs to: ${orgs:-no organizations}" >&2
+echo "  member of: ${orgs:-none} ($acct itself is always included)" >&2
 earlier=''
 for o in $(prev github.owners); do [ "$(lower "$o")" = "$(lower "$acct")" ] || earlier="$earlier $o"; done
-answer=$(ask "the organizations (or users) whose repositories it is for; its own, $acct, always are" "${earlier# }")
+answer=$(ask "Organizations" "${earlier# }")
 # Defaults: the earlier answers, else its GitHub profile name and noreply address.
 profile_name=$(gh api user --jq '.name // .login')
 noreply=$(gh api user --jq '"\(.id)+\(.login)@users.noreply.github.com"')
 pn=$(prev user.name) pe=$(prev user.email)
-name=$(ask "the name for its commits" "${pn:-$profile_name}")
-email=$(ask "the email for its commits" "${pe:-$noreply}")
+name=$(ask "Commit name" "${pn:-$profile_name}")
+email=$(ask "Commit email" "${pe:-$noreply}")
 [ -n "$name" ] && [ -n "$email" ] || die "a name and an email are required"
 
 # Owners as GitHub spells them, plus lowercase: git matches URLs case-sensitively.
@@ -130,6 +129,5 @@ for p in $patterns; do
             git config --file "$accounts" "$k" "~/.gitconfig.$label"
     done
 done
-echo "OK: repositories of $owners use $acct ($email), ~/.gitconfig.$label" >&2
-echo "If an organization uses SAML single sign-on, authorize GitHub CLI for it:" \
-    "https://github.com/settings/applications" >&2
+echo "Done: $acct for $owners (~/.gitconfig.$label)" >&2
+echo "  SAML SSO organizations: authorize GitHub CLI at https://github.com/settings/applications" >&2

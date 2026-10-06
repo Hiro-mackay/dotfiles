@@ -1,45 +1,55 @@
-#!/usr/bin/env zsh
+#!/bin/sh
+# Bootstrap: install Determinate Nix, clone this repo to ~/.dotfiles, then apply
+# the configuration with `nix run .#switch`. Safe to re-run.
+#
+#   curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.sh | sh
+set -eu
 
-INSTALL_DIR="$HOME/.dotfiles"
-BOOTSTRAP_DIR="$INSTALL_DIR/bootstrap"
+DOTFILES="${HOME}/.dotfiles"
+OS="$(uname -s)"
 
-if [ ! -d "$INSTALL_DIR" ]; then
-    REPO_URL="https://github.com/Hiro-mackay/dotfiles/archive/main.tar.gz"
-    echo "⏳ Creating dotfiles directory..."
-    mkdir -p "$INSTALL_DIR"
+log() { printf '==> %s\n' "$*"; }
 
-    echo "⏳ Downloading and extracting dotfiles..."
-    if curl -L "$REPO_URL" | tar xz --strip 1 -C "$INSTALL_DIR"; then
-        echo "✅ Dotfiles downloaded and extracted successfully."
-
-        if [ -d "$BOOTSTRAP_DIR" ]; then
-            echo "⏳ Setting permissions..."
-            chmod -R 755 "$BOOTSTRAP_DIR"
-
-            echo "⏳ Running setup script..."
-            "${BOOTSTRAP_DIR}/setup.sh"
-
-            echo ""
-            echo "================================="
-            echo "  Next steps"
-            echo "================================="
-            echo "  1. Open a new terminal to apply shell settings"
-            echo "  2. To enable git-based updates:"
-            echo "     cd ~/.dotfiles"
-            echo "     git init"
-            echo "     git remote add origin https://github.com/Hiro-mackay/dotfiles.git"
-            echo "     git fetch origin"
-            echo "     git reset --mixed origin/main"
-            echo ""
-        else
-            echo "❌ Bootstrap directory not found at $BOOTSTRAP_DIR"
-            exit 1
-        fi
-    else
-        echo "❌ Failed to download or extract dotfiles"
-        exit 1
-    fi
-else
-    echo "dotfiles already exists. Re-running setup..."
-    "${BOOTSTRAP_DIR}/setup.sh"
+if [ "$OS" = Darwin ] && ! xcode-select -p >/dev/null 2>&1; then
+    xcode-select --install || true
+    echo "error: install the Xcode Command Line Tools (dialog opened), then re-run" >&2
+    exit 1
 fi
+
+if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
+    log "Installing Determinate Nix"
+    # The numtide binary cache serves Codex prebuilt; without it Nix compiles Codex from
+    # source. On macOS nix-darwin keeps it in determinateNix.customSettings afterwards.
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
+        sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com
+extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+fi
+# shellcheck disable=SC1091
+. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+
+[ -d "$DOTFILES/.git" ] || nix run nixpkgs#git -- clone https://github.com/Hiro-mackay/dotfiles.git "$DOTFILES"
+
+if [ "$OS" = Linux ] && ! command -v docker >/dev/null 2>&1; then
+    log "Installing Docker Engine"
+    curl -fsSL https://get.docker.com | sudo sh
+    sudo usermod -aG docker "$(id -un)"
+fi
+
+if [ "$OS" = Darwin ] && [ -f /etc/nix/nix.custom.conf ] && [ ! -L /etc/nix/nix.custom.conf ]; then
+    # The installer writes this file and the determinate module manages it, so
+    # nix-darwin would stop with "Unexpected files in /etc". The running daemon keeps
+    # the cache settings, and determinateNix.customSettings writes them back.
+    log "Moving the installer's /etc/nix/nix.custom.conf aside for nix-darwin"
+    sudo mv /etc/nix/nix.custom.conf /etc/nix/nix.custom.conf.before-nix-darwin
+fi
+
+log "Applying the configuration"
+cd "$DOTFILES"
+nix run .#switch
+
+if [ "$OS" = Linux ] && [ "$(basename "${SHELL:-}")" != zsh ]; then
+    log "To make zsh the login shell:"
+    # shellcheck disable=SC2016 # printed literally for the user to run
+    printf '  command -v zsh | sudo tee -a /etc/shells && chsh -s "$(command -v zsh)"\n'
+fi
+log "Done. Open a new terminal. Remaining steps are in the README."

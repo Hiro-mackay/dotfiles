@@ -1,0 +1,99 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  # Called by update-flake-lock.yml to check its branch before it reaches main.
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    # Evaluates every configuration and checks formatting.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
+      - run: nix flake check --all-systems --no-build --impure
+      - run: nix fmt -- --ci
+
+  darwin:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
+        with:
+          extra-conf: |
+            extra-substituters = https://cache.numtide.com
+            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
+      - name: Build the darwin configuration as the runner user
+        run: nix build --impure --no-link --print-out-paths .#darwinConfigurations.default.system
+
+  linux-e2e:
+    # Fresh Ubuntu, normal user, real install.sh: proves the environment can be
+    # rebuilt from scratch. Not a container: the Nix daemon needs systemd.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref }}
+      - name: install.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          ln -s "$GITHUB_WORKSPACE" "$HOME/.dotfiles"
+          sh install.sh
+      - name: Verify the environment
+        run: |
+          set -eux
+          # Steps run in a non-login shell: load the Nix profile into PATH.
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          # Managed by home-manager (read-only store links).
+          test -L "$HOME/.config/zsh/.zshrc"
+          test -L "$HOME/.claude/settings.json"
+          test -f "$HOME/.claude/CLAUDE.md"
+          test -f "$HOME/.claude/skills/plan-template/SKILL.md"
+          test -f "$HOME/.codex/AGENTS.md"
+          test -f "$HOME/.codex/skills/plan-template/SKILL.md"
+          # Declared Codex settings merged into the user's writable config.
+          test ! -L "$HOME/.codex/config.toml"
+          grep -q codebase-memory-mcp "$HOME/.codex/config.toml"
+          # MCP servers are registered by the mise shim's absolute path.
+          test -x "$HOME/.local/share/mise/shims/codebase-memory-mcp"
+          # bash as the login shell gets the same PATH and variables.
+          bash -lc 'command -v claude codex mise && test -n "$DOTFILES_DIR"'
+          # This repo runs its pre-commit hook (matched by remote URL), which takes only
+          # GitHub noreply addresses.
+          test "$(git -C "$HOME/.dotfiles" config core.hooksPath)" = programs/git/hooks
+          if git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m t; then exit 1; fi
+          git -C "$HOME/.dotfiles" -c user.name=t -c user.email=t@users.noreply.github.com commit -q --allow-empty -m t
+          # Both agents get the guardrails from programs/agents/guardrails.nix.
+          jq -e '.permissions.deny | index("Bash(sudo:*)") and index("Read(~/.ssh/**)")' "$HOME/.claude/settings.json"
+          codex execpolicy check --rules "$HOME/.codex/rules/guardrails.rules" sudo true | jq -e '.decision == "forbidden"'
+          # The status line must render reset times with GNU date, without errors.
+          sl="$(jq -r .statusLine.command "$HOME/.claude/settings.json")"
+          echo '{"rate_limits":{"five_hour":{"used_percentage":10,"resets_at":1800000000}}}' | "$sl" 2>"$RUNNER_TEMP/sl.err" | grep -q '[0-9][0-9]/[0-9][0-9] '
+          test ! -s "$RUNNER_TEMP/sl.err"
+          zsh -ic '
+            set -e
+            for c in gwi gws z g mkcd cheat lg ubuntu dexec; do whence -w $c; done
+            for c in op jc sbxc ccgo c2; do if whence $c >/dev/null; then exit 1; fi; done
+            command -v claude codex mise comma git-secrets
+            codebase-memory-mcp --version
+            [[ "export AWS_SECRET_ACCESS_KEY=x" == ${~HISTORY_IGNORE} ]]
+            [[ "ls -la" != ${~HISTORY_IGNORE} ]]
+          '
+          # The repo stays untouched: nothing is generated or linked into it.
+          test -z "$(git -C "$HOME/.dotfiles" status --porcelain)"

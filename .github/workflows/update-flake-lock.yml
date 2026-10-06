@@ -1,0 +1,142 @@
+name: update-flake-lock
+
+# Weekly. A flake.lock update waits a week on the flake-update/pending branch before it
+# can reach main, which leaves time for a compromised upstream release to be found;
+# deleting the branch drops the update. A week-old pending update is re-applied on
+# today's main, run through the full CI and fast-forwarded into main. Then the next
+# update starts, and the main closure is scanned for known vulnerabilities.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 1" # Mondays 09:00 JST
+
+permissions: {}
+
+env:
+  CANDIDATE: flake-update/candidate-${{ github.run_id }}
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      candidate: ${{ steps.prepare.outputs.candidate }}
+      waiting: ${{ steps.prepare.outputs.waiting }}
+    steps:
+      # main, not the branch a manual run was started from.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+      - id: prepare
+        run: |
+          git fetch -q origin flake-update/pending 2>/dev/null || exit 0
+          # A week, less half a day so a late scheduled run still counts.
+          if [ $(($(date +%s) - $(git log -1 --format=%ct FETCH_HEAD))) -lt $((7 * 86400 - 43200)) ]; then
+            echo waiting=true >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git checkout FETCH_HEAD -- flake.lock
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "$(git log -1 --format=%B FETCH_HEAD)"
+          git push -q origin "HEAD:refs/heads/$CANDIDATE"
+          echo "candidate=$CANDIDATE" >>"$GITHUB_OUTPUT"
+
+  ci:
+    needs: prepare
+    if: needs.prepare.outputs.candidate != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.prepare.outputs.candidate }}
+
+  promote:
+    needs: [prepare, ci]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+      # Fast-forward only: if main moved since prepare, the push is rejected.
+      - run: git push -q origin HEAD:main
+
+  next:
+    needs: [prepare, promote]
+    # A candidate that failed CI keeps its pending branch, so next week retries it.
+    if: >-
+      always() && needs.prepare.result == 'success' && needs.prepare.outputs.waiting != 'true' &&
+      (needs.prepare.outputs.candidate == '' || needs.promote.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          # Nix runs next; keep the write token out of its reach until the push.
+          persist-credentials: false
+      # Without this the action writes the job token into nix.conf, within Nix's reach.
+      - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
+        with:
+          github-token: ""
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rev-parse HEAD >"$RUNNER_TEMP/before"
+          # The commit message lists every input with its old and new revision.
+          nix flake update --commit-lock-file
+      - env:
+          TOKEN: ${{ github.token }}
+        run: |
+          remote="https://x-access-token:$TOKEN@github.com/$GITHUB_REPOSITORY"
+          # One ref per push: a push deleting a missing ref fails as a whole.
+          for ref in flake-update/pending "$CANDIDATE"; do
+            git push -q "$remote" --delete "$ref" 2>/dev/null || true
+          done
+          if [ "$(git rev-parse HEAD)" != "$(cat "$RUNNER_TEMP/before")" ]; then
+            git push -q "$remote" HEAD:refs/heads/flake-update/pending
+          fi
+
+  # Known vulnerabilities (CVSS 9+) in the macOS system closure on main, reported in
+  # one open issue. GitHub notifies on a new issue and on each new comment.
+  scan:
+    needs: promote
+    if: always()
+    runs-on: macos-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+      - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
+        with:
+          github-token: ""
+          extra-conf: |
+            extra-substituters = https://cache.numtide.com
+            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          system="$(nix build --impure --no-link --print-out-paths .#darwinConfigurations.default.system)"
+          nix run nixpkgs#vulnix -- --closure --json "$system" >vulnix.json || true
+          # Fail loudly (GitHub mails failed runs) if vulnix broke or its format changed.
+          jq -e 'length == 0 or any(.[]; has("cvssv3_basescore"))' vulnix.json >/dev/null
+          jq -r '.[] | . as $p | (.cvssv3_basescore // {}) | to_entries[] | select(.value >= 9)
+            | "- \($p.pname) \($p.version): \(.key) (CVSS \(.value))"' vulnix.json | sort -u >report.md
+          title="Vulnerable Nix packages (CVSS 9+)"
+          issue="$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty')"
+          if [ -s report.md ] && [ -z "$issue" ]; then
+            gh issue create --title "$title" --body-file report.md
+          elif [ -s report.md ] && [ "$(gh issue view "$issue" --json body --jq .body)" != "$(cat report.md)" ]; then
+            gh issue edit "$issue" --body-file report.md
+            gh issue comment "$issue" --body-file report.md
+          elif [ ! -s report.md ] && [ -n "$issue" ]; then
+            gh issue close "$issue" --comment "No CVSS 9+ findings this week."
+          fi

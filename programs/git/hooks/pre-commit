@@ -1,0 +1,18 @@
+#!/bin/sh
+# pre-commit for this public repo (core.hooksPath is set in programs/git/default.nix).
+
+# Only GitHub noreply addresses may author or commit here, so no other identity
+# (a work account, a private address) reaches the public history. git var reports the
+# identity this commit records, including --author, --amend and GIT_AUTHOR_EMAIL.
+for ident in GIT_AUTHOR_IDENT GIT_COMMITTER_IDENT; do
+    case "$(git var "$ident")" in
+    *"@users.noreply.github.com> "*) ;;
+    *)
+        echo "pre-commit: this repo takes commits only from a GitHub noreply address (see ~/.gitconfig.local)" >&2
+        exit 1
+        ;;
+    esac
+done
+
+# Reject the strings listed as secrets.patterns in ~/.gitconfig.local.
+exec git secrets --pre_commit_hook -- "$@"

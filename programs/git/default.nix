@@ -40,6 +40,7 @@
         [
           "https://github.com/Hiro-mackay/dotfiles*"
           "git@github.com:Hiro-mackay/dotfiles*"
+          "ssh://git@github.com/Hiro-mackay/dotfiles*"
         ];
   };
 

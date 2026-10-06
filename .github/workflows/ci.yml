@@ -3,7 +3,9 @@ name: ci
 on:
   push:
     branches: [main]
+    paths-ignore: ["**/README.md", "README.md", "docs/**"]
   pull_request:
+    paths-ignore: ["**/README.md", "README.md", "docs/**"]
   workflow_dispatch:
   # Called by update-flake-lock.yml to check its branch before it reaches main.
   workflow_call:
@@ -14,6 +16,11 @@ on:
 
 permissions:
   contents: read
+
+# A new push to a pull request replaces the run still going for the older one.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -28,7 +35,12 @@ jobs:
       - run: nix fmt -- --ci
 
   darwin:
-    runs-on: macos-latest
+    # The macOS configuration, without a Mac. check evaluates it; this asks the binary
+    # caches what building it would take. Everything must be downloadable except the
+    # configuration's own small files (written by a single build command) and a few
+    # helper scripts nix-darwin, home-manager and nix-homebrew make from local
+    # sources. Anything else would be compiled from source on the Mac.
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -38,8 +50,20 @@ jobs:
           extra-conf: |
             extra-substituters = https://cache.numtide.com
             extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
-      - name: Build the darwin configuration as the runner user
-        run: nix build --impure --no-link --print-out-paths .#darwinConfigurations.default.system
+      - name: Check that the darwin configuration comes from binary caches
+        run: |
+          nix build --impure --dry-run .#darwinConfigurations.default.system 2>"$RUNNER_TEMP/dry"
+          grep -E '^  /nix/store/.*\.drv$' "$RUNNER_TEMP/dry" | xargs -r nix derivation show >"$RUNNER_TEMP/drv.json"
+          # Built with configure/build/install phases and not a download: a package.
+          compiled=$(jq -r '.derivations[]
+            | select((.outputs | map(has("hash") or has("method")) | any | not)
+              and ((.env.buildCommand // .structuredAttrs.buildCommand) == null))
+            | .name' "$RUNNER_TEMP/drv.json" |
+            grep -vxE 'brew|builder\.pl|check-link-targets\.sh|darwin-(option|rebuild|version)|nuke-homebrew-repository' || true)
+          if [ -n "$compiled" ]; then
+            echo "::error::Not in a binary cache, so a Mac would compile: $(printf '%s' "$compiled" | tr '\n' ' ')"
+            exit 1
+          fi
 
   linux-e2e:
     # Fresh Ubuntu, normal user, real install.sh: proves the environment can be
@@ -52,6 +76,9 @@ jobs:
       - name: install.sh
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          # gopls is compiled from Go sources (~40 s); that it compiles is upstream's
+          # concern, not this repo's. The other tools still install.
+          MISE_DISABLE_TOOLS: go:golang.org/x/tools/gopls
         run: |
           ln -s "$GITHUB_WORKSPACE" "$HOME/.dotfiles"
           sh install.sh

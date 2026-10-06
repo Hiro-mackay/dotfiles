@@ -21,6 +21,14 @@
     ./programs/hammerspoon
   ];
 
+  # No option manuals (home-manager-help, man home-configuration.nix): they slow
+  # every switch.
+  manual = {
+    html.enable = false;
+    json.enable = false;
+    manpages.enable = false;
+  };
+
   home.stateVersion = "26.05";
   news.display = "silent";
   xdg.enable = true;

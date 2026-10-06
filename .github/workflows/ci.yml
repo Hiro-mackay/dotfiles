@@ -104,6 +104,9 @@ jobs:
           # This repo runs its pre-commit hook (matched by remote URL), which takes only
           # GitHub noreply addresses.
           test "$(git -C "$HOME/.dotfiles" config core.hooksPath)" = programs/git/hooks
+          # gh owns its config.yml (it writes it on login); the switch sets values in it.
+          test -f "$HOME/.config/gh/config.yml" && test ! -L "$HOME/.config/gh/config.yml"
+          test "$(gh config get git_protocol)" = https
           # The switch created a writable accounts file; the base account comes from Nix.
           test -f "$HOME/.gitconfig.accounts" && test ! -L "$HOME/.gitconfig.accounts"
           git config --global --includes user.email | grep -q 'users.noreply.github.com$'

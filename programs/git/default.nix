@@ -1,6 +1,7 @@
-# Git settings shared by every machine. Accounts live in ~/.gitconfig.accounts, a
-# writable file created from ./gitconfig.accounts on the first switch and edited per
-# machine afterwards; it is included last, so it can override anything here.
+# Git settings shared by every machine. ~/.gitconfig.accounts, a writable file created
+# from ./gitconfig.accounts on the first switch, holds the base account's name and
+# email and which owners use which other account (gh-setup). It is included after the
+# settings here, so an account there overrides the base account's login and credential.
 {
   config,
   lib,
@@ -50,7 +51,7 @@ in
       "**/.claude/.cc-writes/"
     ];
 
-    # Included after the settings above, so another account there overrides them.
+    # After the settings above, so another account there overrides them.
     includes = [
       { path = "~/.gitconfig.accounts"; }
     ]

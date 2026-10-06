@@ -22,6 +22,9 @@
 #
 # [url "git@<host-alias>:<owner>/"]
 # 	insteadOf = git@github.com:<owner>/
+#
+# Without <owner>/ on both sides, every GitHub URL goes there (e.g. the base account's
+# host); the longer, per-owner rule above still wins for that owner.
 
 # Strings the dotfiles repo must never contain (its pre-commit hook rejects them),
 # e.g. another account's email domain or a name that must stay private:

@@ -54,6 +54,28 @@ To use another account for some repositories:
 2. Put that account's `[user]` in `~/.gitconfig.local`.
 3. Check with `git config --show-origin user.email` inside one of those repositories.
 
+## SSH
+
+`~/.ssh/config` stays yours; nothing here manages it. To add a host:
+
+```sh
+ssh-setup <name> <server>    # e.g. ssh-setup github-work github.com
+```
+
+It shows the Host block with defaults (user `git` for GitHub, GitLab and Bitbucket,
+key `~/.ssh/id_ed25519_<name>`); press Enter to write it, or `e` to edit. It creates
+the key if missing (you choose the passphrase), prints the public key, and for GitHub
+offers to add it to the account gh is signed in to. Options set values up front:
+`-u` user, `-p` port, `-i` key file, `-A` agent forwarding.
+
+For a local container with sshd on a published port, e.g.
+`ssh-setup -p 2222 -u dev sandbox 127.0.0.1`. Create the key before the container
+copies your public keys into its `authorized_keys`.
+
+Git URLs name `github.com`, so point them at your host in `~/.gitconfig.accounts`
+(the `url ... insteadOf` examples there): all of GitHub for the base account's host,
+and one owner's repositories for another account's host.
+
 ## Updates
 
 Every Monday, CI updates the pinned versions (`flake.lock`). Each update waits a week

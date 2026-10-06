@@ -13,6 +13,7 @@
     ./programs/zsh
     ./programs/git
     ./programs/gh
+    ./programs/ssh
     ./programs/mise
     ./programs/claude
     ./programs/codex

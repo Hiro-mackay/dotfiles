@@ -11,6 +11,12 @@
     ./darwin/homebrew.nix
   ];
 
+  # No option manuals (darwin-help, man pages): building them slows every switch.
+  documentation.enable = false;
+  # It bundles a second, default system with those manuals. When needed:
+  # nix run nix-darwin#darwin-uninstaller
+  system.tools.darwin-uninstaller.enable = false;
+
   nixpkgs.hostPlatform = "aarch64-darwin";
   system.stateVersion = 7;
   system.primaryUser = username;

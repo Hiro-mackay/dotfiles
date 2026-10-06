@@ -4,6 +4,7 @@ let
   gh = pkgs.symlinkJoin {
     name = "gh-${pkgs.gh.version}";
     inherit (pkgs.gh) version;
+    meta.mainProgram = "gh";
     paths = [ pkgs.gh ];
     postBuild = ''
       rm $out/bin/gh

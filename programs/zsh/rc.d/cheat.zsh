@@ -206,6 +206,7 @@ SHEET
 
   DOTFILES
     dotup          pull dotfiles, apply them, upgrade mise tools
+    ssh-setup      add an SSH host and its key interactively
 
   EDITORS
     co             open VS Code here

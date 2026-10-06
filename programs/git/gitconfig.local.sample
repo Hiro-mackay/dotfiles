@@ -1,24 +1,28 @@
-# Machine-local git settings: accounts and anything specific to this machine.
-# Never commit the copy. On a personal machine, copying is all it takes:
+# Optional machine-local git settings, for a machine that needs more than the base
+# account in programs/git (another account, signing keys, ...). Copy, then keep only
+# what this machine needs; never commit the copy:
 #
 #   cp ~/.dotfiles/programs/git/gitconfig.local.sample ~/.gitconfig.local
-
-[user]
-	name = mackay
-	email = 43330841+Hiro-mackay@users.noreply.github.com
-
-# --- Optional examples -------------------------------------------------------
-
-# Another account for the repositories under a directory. Put the account in its
-# own untracked file next to this one:
 #
-# [includeIf "gitdir:~/Repository/github.com/<org>/"]
+# Everything below is commented out, so an untouched copy changes nothing.
+
+# Another account for one organization's repositories, e.g. on a work machine.
+# Put the account in its own untracked file:
+#
+# [includeIf "gitdir/i:~/Repository/github.com/<org>/"]
 # 	path = ~/.gitconfig.<org>
 #
 # ~/.gitconfig.<org>:
 # [user]
 # 	name = <name>
 # 	email = <email>
+#
+# With a separate SSH key for that organization (Host github.com-<org> in
+# ~/.ssh/config). Kept here rather than in ~/.gitconfig.<org> so it applies to
+# `ghq get` too, before the repository directory exists:
+#
+# [url "git@github.com-<org>:<org>/"]
+# 	insteadOf = git@github.com:<org>/
 
 # Strings the dotfiles repo must never contain (its pre-commit hook rejects them),
 # e.g. a work email domain or an organization name. One pattern per line:
@@ -35,8 +39,3 @@
 # 	signingkey = ~/.ssh/id_ed25519.pub
 # [commit]
 # 	gpgsign = true
-
-# Use SSH instead of HTTPS for GitHub remotes:
-#
-# [url "git@github.com:"]
-# 	insteadOf = https://github.com/

@@ -1,11 +1,15 @@
-# Git settings that hold on every machine. Accounts (identity, which directory uses
-# which account) live only in the untracked ~/.gitconfig.local, copied from
-# ./gitconfig.local.sample and included last so it can override anything here.
+# Git settings and the base account, the same on every machine. An untracked
+# ~/.gitconfig.local, where it exists, adds machine-specific accounts and settings;
+# it is included last, so it can override anything here. See ./gitconfig.local.sample.
 { pkgs, ... }:
 {
   programs.git = {
     enable = true;
     settings = {
+      user = {
+        name = "mackay";
+        email = "43330841+Hiro-mackay@users.noreply.github.com";
+      };
       core = {
         editor = "vim";
         quotepath = false;

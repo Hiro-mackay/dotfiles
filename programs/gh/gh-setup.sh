@@ -42,10 +42,12 @@ sign_in() { # sign_in <login>: make that account active in gh, adding it if need
         gh auth refresh -h github.com -s workflow
 }
 use_token() { # use_token <config file> <login>: git gets that account's token from gh
+    # gh by the path it has now: in PATH from the profile, so it survives updates.
+    ghbin=$(command -v gh)
     git config --file "$1" --unset-all "$cred" 2>/dev/null || true
     git config --file "$1" --add "$cred" ''
     git config --file "$1" --add "$cred" \
-        "!f() { test \"\$1\" = get || exit 0; t=\$(gh auth token -h github.com -u $2) || { echo \"git: gh is not signed in as $2; run gh-setup\" >&2; exit 1; }; echo username=$2; echo password=\$t; }; f"
+        "!f() { test \"\$1\" = get || exit 0; t=\$($ghbin auth token -h github.com -u $2) || { echo \"git: gh is not signed in as $2; run gh-setup\" >&2; exit 1; }; echo username=$2; echo password=\$t; }; f"
 }
 
 # The base account, from the shared settings (--global skips the accounts file).
@@ -86,6 +88,10 @@ for o in $answer; do
     [ "$(lower "$o")" = "$o" ] || patterns="$patterns $(lower "$o")"
 done
 owners=${owners# }
+for p in $patterns; do
+    [ "$(lower "$p")" != "$(lower "$base")" ] ||
+        die "$p is the base account's own; its repositories stay with $base"
+done
 label=$(lower "${owners%% *}")
 [ "$label" != accounts ] || die "an owner named accounts would clash with ~/.gitconfig.accounts"
 file="$HOME/.gitconfig.$label"

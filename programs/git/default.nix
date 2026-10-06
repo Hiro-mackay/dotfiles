@@ -1,11 +1,18 @@
 # Git settings shared by every machine. Accounts live in ~/.gitconfig.accounts, a
 # writable file created from ./gitconfig.accounts on the first switch and edited per
 # machine afterwards; it is included last, so it can override anything here.
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   # The base GitHub account: git and gh use its token unless ~/.gitconfig.<owner>
   # (gh-setup) names another account for a repository's owner.
   baseLogin = "Hiro-mackay";
+  # By its profile path, which survives updates and needs no PATH (GUI apps).
+  gh = "${config.home.profileDirectory}/bin/gh";
 in
 {
   programs.git = {
@@ -32,7 +39,7 @@ in
       github.login = baseLogin;
       credential."https://github.com".helper = [
         ""
-        "!f() { test \"$1\" = get || exit 0; t=$(gh auth token -h github.com -u ${baseLogin}) || { echo \"git: gh is not signed in as ${baseLogin}; run gh-setup\" >&2; exit 1; }; echo username=${baseLogin}; echo password=$t; }; f"
+        "!f() { test \"$1\" = get || exit 0; t=$(${gh} auth token -h github.com -u ${baseLogin}) || { echo \"git: gh is not signed in as ${baseLogin}; run gh-setup\" >&2; exit 1; }; echo username=${baseLogin}; echo password=$t; }; f"
       ];
     };
 

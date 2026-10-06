@@ -2,12 +2,14 @@
 # gh, signed in as the account for the repository it acts on: the one named on the
 # command line (-R/--repo, a github.com URL, or `gh repo <cmd> owner/name`), else the
 # current repository. ~/.gitconfig.<owner> sets github.login for its owners'
-# repositories (gh-setup), the shared git settings for the rest. `gh auth` (git's
-# credential helper too), an explicit GH_TOKEN and GH_NO_AUTO_ACCOUNT (set by gh-setup
-# while it switches accounts) pass through.
+# repositories (gh-setup), the shared git settings for the rest. Passed through
+# untouched: `gh auth` (git's credential helper too), a token already given in
+# GH_TOKEN or GITHUB_TOKEN, a host other than github.com, and GH_NO_AUTO_ACCOUNT (set
+# by gh-setup while it switches accounts).
 gh=@gh@
 case "${1:-}" in auth) exec "$gh" "$@" ;; esac
-[ -z "${GH_TOKEN:-}${GH_NO_AUTO_ACCOUNT:-}" ] || exec "$gh" "$@"
+[ -z "${GH_TOKEN:-}${GITHUB_TOKEN:-}${GH_NO_AUTO_ACCOUNT:-}" ] || exec "$gh" "$@"
+case "${GH_HOST:-github.com}" in github.com) ;; *) exec "$gh" "$@" ;; esac
 
 target='' prev=''
 for a in "$@"; do
@@ -19,13 +21,21 @@ for a in "$@"; do
     esac
     prev=$a
 done
+# `gh repo <cmd> owner/name`: the first argument after <cmd> that is not a flag.
 if [ -z "$target" ] && [ "${1:-}" = repo ]; then
-    case "${3:-}" in */*) target=$3 ;; esac
+    i=0
+    for a in "$@"; do
+        i=$((i + 1))
+        [ "$i" -gt 2 ] || continue
+        case "$a" in -*) ;; */*) target=$a && break ;; esac
+    done
 fi
 
 account=''
 if [ -n "$target" ]; then
-    owner=${target#https://github.com/}
+    # [https://]github.com/OWNER/REPO, OWNER/REPO
+    owner=${target#https://}
+    owner=${owner#github.com/}
     owner=$(printf '%s' "${owner%%/*}" | tr '[:upper:]' '[:lower:]')
     file=$(git config --file "$HOME/.gitconfig.accounts" \
         --get "includeIf.hasconfig:remote.*.url:https://github.com/$owner/**.path" 2>/dev/null) &&

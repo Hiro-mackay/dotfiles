@@ -50,8 +50,11 @@ fi
 
 if [ "$OS" = Darwin ] && [ -f /etc/nix/nix.custom.conf ] && [ ! -L /etc/nix/nix.custom.conf ]; then
     # The installer writes this file and the determinate module manages it, so
-    # nix-darwin would stop with "Unexpected files in /etc". The running daemon keeps
-    # the cache settings, and determinateNix.customSettings writes them back.
+    # nix-darwin would stop with "Unexpected files in /etc". The file also holds the
+    # numtide cache settings, which stop applying once it moves, so build first while
+    # they apply (nothing gets compiled); determinateNix.customSettings writes them back.
+    log "Building the configuration"
+    nix build --impure --no-link "$DOTFILES#darwinConfigurations.default.system"
     log "Moving the installer's /etc/nix/nix.custom.conf aside for nix-darwin"
     sudo mv /etc/nix/nix.custom.conf /etc/nix/nix.custom.conf.before-nix-darwin
 fi

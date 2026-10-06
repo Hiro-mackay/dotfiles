@@ -11,9 +11,22 @@ OS="$(uname -s)"
 log() { printf '==> %s\n' "$*"; }
 
 if [ "$OS" = Darwin ] && ! xcode-select -p >/dev/null 2>&1; then
-    xcode-select --install || true
-    echo "error: install the Xcode Command Line Tools (dialog opened), then re-run" >&2
-    exit 1
+    log "Installing the Xcode Command Line Tools"
+    # softwareupdate lists the Command Line Tools only while this file exists (as
+    # Homebrew's installer does). Without a listing, fall back to the dialog and wait.
+    placeholder=/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+    touch "$placeholder"
+    label="$(softwareupdate -l 2>/dev/null | sed -n 's/^\* Label: \(Command Line Tools.*\)$/\1/p' | sort -V | tail -n 1)"
+    if [ -n "$label" ]; then
+        sudo softwareupdate -i "$label"
+        sudo xcode-select --switch /Library/Developer/CommandLineTools
+    fi
+    rm -f "$placeholder"
+    if ! xcode-select -p >/dev/null 2>&1; then
+        xcode-select --install || true
+        log "Finish the Command Line Tools dialog; waiting for it"
+        until xcode-select -p >/dev/null 2>&1; do sleep 5; done
+    fi
 fi
 
 if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then

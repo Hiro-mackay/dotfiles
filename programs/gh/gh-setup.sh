@@ -1,15 +1,15 @@
-# gh-setup: set up a GitHub account's SSH key and the git settings that use it.
+# gh-setup: set up one GitHub account on this machine, asking which one.
 #
-#   gh-setup              the base account: its key ~/.ssh/id_ed25519_github, once per machine
-#   gh-setup <owner>...   another account, for the repositories of these owners
-#
-# git picks the base account's key for every github.com remote (programs/git). Another
-# account gets a file named after its first owner, ~/.gitconfig.<owner>, holding its
-# identity and its key, included for its owners' remotes. Both switch together, so a commit and
-# the key that pushes it always belong to the same account.
+# The base account (the one in ~/.gitconfig.accounts) gets the key
+# ~/.ssh/id_ed25519_github, which git uses for every github.com remote (programs/git).
+# Another account gets ~/.gitconfig.<owner>, named after the first owner whose
+# repositories it serves, holding its identity and its key, and included for those
+# owners' remotes. Both switch together, so a commit and the key that pushes it always
+# belong to the same account.
 
 accounts="$HOME/.gitconfig.accounts"
 host=$(hostname -s)
+ssh_opts='-o IdentitiesOnly=yes -o AddKeysToAgent=yes -o IgnoreUnknown=UseKeychain -o UseKeychain=yes'
 
 die() {
     echo "error: $*" >&2
@@ -21,13 +21,20 @@ ask() { # ask <prompt> [default] -> answer on stdout, like ssh-keygen's prompts
     read -r reply || reply=
     printf '%s\n' "${reply:-${2:-}}"
 }
-login() { gh api user --jq .login 2>/dev/null; }
-sign_in() { # sign_in [login]: make that account active in gh, adding it if needed
-    if [ -n "${1:-}" ] && gh auth switch -h github.com -u "$1" >/dev/null 2>&1; then
-        return
+lower() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
+active() { gh api user --jq .login 2>/dev/null; }
+canonical() { # canonical <login>: as GitHub spells it, when gh can ask; else unchanged
+    if active >/dev/null; then
+        gh api "users/$1" --jq .login 2>/dev/null || die "no GitHub user or organization named $1"
+    else
+        printf '%s\n' "$1"
     fi
-    echo "Sign in to GitHub${1:+ as $1} in the browser" >&2
-    gh auth login -h github.com -p ssh --skip-ssh-key -w -s admin:public_key
+}
+sign_in() { # sign_in <login>: make that account active in gh, adding it if needed
+    gh auth switch -h github.com -u "$1" >/dev/null 2>&1 && return
+    echo "Sign in to GitHub as $1 in the browser" >&2
+    gh auth login -h github.com -p ssh --skip-ssh-key -w -s write:public_key
+    [ "$(lower "$(active)")" = "$(lower "$1")" ] || die "gh is signed in as $(active), not $1"
 }
 make_key() { # make_key <file> <login>
     [ -f "$1" ] && return
@@ -39,81 +46,100 @@ register() { # register <public key file>: add it to the active account unless i
     keys=$(gh api user/keys --jq '.[].key' 2>/dev/null || true)
     printf '%s\n' "$keys" | grep -qxF "$body" && return
     gh ssh-key add "$1" --title "$host" 2>/dev/null ||
-        { gh auth refresh -h github.com -s admin:public_key && gh ssh-key add "$1" --title "$host"; }
+        { gh auth refresh -h github.com -s write:public_key && gh ssh-key add "$1" --title "$host"; }
 }
 check() { # check <key> <login>: the key signs in to GitHub as that account
+    # shellcheck disable=SC2086 # $ssh_opts is a list of options
+    greeting=$(ssh -i "$1" $ssh_opts -o StrictHostKeyChecking=accept-new -T git@github.com 2>&1 || true)
     # ssh -T always exits 1 on GitHub; the greeting names the account.
-    greeting=$(ssh -i "$1" -o IdentitiesOnly=yes -T git@github.com 2>&1 || true)
-    if printf '%s\n' "$greeting" | grep -q "Hi $2!"; then
-        echo "OK: this key signs in to GitHub as $2" >&2
-    else
-        die "this key does not sign in to GitHub as $2; check the key on github.com/settings/keys"
-    fi
+    printf '%s\n' "$greeting" | grep -qi "Hi $2!" ||
+        die "this key does not sign in to GitHub as $2; check it at https://github.com/settings/keys"
+    echo "OK: this key signs in to GitHub as $2" >&2
 }
 
-if [ $# -eq 0 ]; then
-    title "GitHub: base account"
-    me=$(login) || { sign_in && me=$(login); } || die "could not sign in with gh"
-    key="$HOME/.ssh/id_ed25519_github"
-    make_key "$key" "$me"
-    register "$key.pub"
-    check "$key" "$me"
+# The base account: recorded in the accounts file, or read from its noreply email.
+base=$(git config --file "$accounts" github.login 2>/dev/null || true)
+[ -n "$base" ] || base=$(git config --file "$accounts" user.email 2>/dev/null |
+    sed -n 's/^[0-9]*+\(.*\)@users\.noreply\.github\.com$/\1/p' || true)
+
+title "GitHub account setup"
+acct=$(ask "the GitHub login of the account to set up" "$base")
+[ -n "$acct" ] || die "a GitHub login is required"
+acct=$(canonical "$acct")
+# With no base account known yet, this one becomes it once it works.
+[ -n "$base" ] || base=$acct
+# gh stays signed in to the base account afterwards, also when this stops early.
+trap 'gh auth switch -h github.com -u "$base" >/dev/null 2>&1 || true' EXIT
+
+if [ "$(lower "$acct")" = "$(lower "$base")" ]; then
+    echo "$acct is the base account: key ~/.ssh/id_ed25519_github, used for all of GitHub" >&2
+    sign_in "$acct"
+    make_key "$HOME/.ssh/id_ed25519_github" "$acct"
+    register "$HOME/.ssh/id_ed25519_github.pub"
+    check "$HOME/.ssh/id_ed25519_github" "$acct"
+    git config --file "$accounts" github.login >/dev/null 2>&1 ||
+        git config --file "$accounts" github.login "$acct"
     exit
 fi
 
-base=$(login) || die "set up the base account first: run gh-setup"
-# Owners as GitHub spells them; git matches URLs case-sensitively, GitHub does not.
-owners=''
-for o in "$@"; do
-    canonical=$(gh api "users/$o" --jq .login 2>/dev/null) || die "no GitHub user or organization named $o"
-    owners="$owners $canonical"
-    lower=$(printf '%s' "$canonical" | tr '[:upper:]' '[:lower:]')
-    [ "$lower" = "$canonical" ] || owners="$owners $lower"
+# Another account. Earlier answers for it are the defaults.
+file=''
+for f in "$HOME"/.gitconfig.*; do
+    [ "$(git config --file "$f" github.login 2>/dev/null)" = "$acct" ] && file=$f
 done
+prev() { [ -z "$file" ] || git config --file "$file" "$1" 2>/dev/null || true; }
+answer=$(ask "the users or organizations whose repositories it is for" "$(prev github.owners)")
+answer=${answer:-$acct}
+name=$(ask "the name for its commits" "$(prev user.name)")
+email=$(ask "the email for its commits" "$(prev user.email)")
+[ -n "$name" ] && [ -n "$email" ] || die "a name and an email are required"
 
-label=$(printf '%s' "${owners# }" | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]')
+# Owners as GitHub spells them, plus lowercase: git matches URLs case-sensitively.
+owners='' patterns=''
+for o in $answer; do
+    o=$(canonical "$o")
+    owners="$owners $o"
+    patterns="$patterns $o"
+    [ "$(lower "$o")" = "$o" ] || patterns="$patterns $(lower "$o")"
+done
+owners=${owners# }
+label=$(lower "${owners%% *}")
 [ "$label" != accounts ] || die "an owner named accounts would clash with ~/.gitconfig.accounts"
 file="$HOME/.gitconfig.$label"
 key="$HOME/.ssh/id_ed25519_github_$label"
+owner_of=$(git config --file "$file" github.login 2>/dev/null || true)
+[ -z "$owner_of" ] || [ "$owner_of" = "$acct" ] ||
+    die "$file already belongs to $owner_of; list a different owner first"
 # An owner already tied to another account would make the two fight over its repos.
-for owner in $owners; do
-    k="includeIf.hasconfig:remote.*.url:git@github.com:$owner/**.path"
-    other=$(git config --file "$accounts" --get "$k" 2>/dev/null || true)
+for p in $patterns; do
+    other=$(git config --file "$accounts" --get "includeIf.hasconfig:remote.*.url:git@github.com:$p/**.path" 2>/dev/null || true)
     # shellcheck disable=SC2088 # compared as written in the file, not expanded
     [ -z "$other" ] || [ "$other" = "~/.gitconfig.$label" ] ||
-        die "$owner already uses $other; remove its lines from $accounts first"
+        die "$p already uses $other; remove its lines from $accounts first"
 done
 
-# Every question first, then the sign-in, the key and the files.
-title "GitHub: another account for$owners (~/.gitconfig.$label)"
-acct=$(ask "the GitHub login of that account" "$(git config --file "$file" github.login || true)")
-[ -n "$acct" ] || die "a GitHub login is required"
-[ "$acct" != "$base" ] || die "that is the base account ($base); give the other one"
-name=$(ask "the name for its commits" "$(git config --file "$file" user.name || true)")
-email=$(ask "the email for its commits" "$(git config --file "$file" user.email || true)")
-[ -n "$name" ] && [ -n "$email" ] || die "a name and an email are required"
-
-# gh stays signed in to the base account afterwards, also when this stops early.
-trap 'gh auth switch -h github.com -u "$base" >/dev/null 2>&1 || true' EXIT
 sign_in "$acct"
-[ "$(login)" = "$acct" ] || die "gh is signed in as $(login), not $acct"
 make_key "$key" "$acct"
 register "$key.pub"
 
 git config --file "$file" github.login "$acct"
+git config --file "$file" github.owners "$owners"
 git config --file "$file" user.name "$name"
 git config --file "$file" user.email "$email"
-git config --file "$file" core.sshCommand \
-    "ssh -i ~/.ssh/id_ed25519_github_$label -o IdentitiesOnly=yes -o AddKeysToAgent=yes -o IgnoreUnknown=UseKeychain -o UseKeychain=yes"
-
+git config --file "$file" core.sshCommand "ssh -i ~/.ssh/id_ed25519_github_$label $ssh_opts"
 touch "$accounts"
-for owner in $owners; do
-    for url in "git@github.com:$owner/**" "ssh://git@github.com/$owner/**" "https://github.com/$owner/**"; do
+for p in $patterns; do
+    # HTTPS remotes would push with gh's token for the base account; send them over SSH.
+    git config --file "$file" --get-all "url.git@github.com:$p/.insteadOf" >/dev/null ||
+        git config --file "$file" --add "url.git@github.com:$p/.insteadOf" "https://github.com/$p/"
+    for url in "git@github.com:$p/**" "ssh://git@github.com/$p/**" "https://github.com/$p/**"; do
         k="includeIf.hasconfig:remote.*.url:$url.path"
         # shellcheck disable=SC2088 # git expands ~ in include paths
         git config --file "$accounts" --get "$k" >/dev/null ||
             git config --file "$accounts" "$k" "~/.gitconfig.$label"
     done
 done
-echo "Repositories of$owners now use $acct ($email) and its key" >&2
+echo "Repositories of $owners now use $acct ($email) and its key, ~/.gitconfig.$label" >&2
 check "$key" "$acct"
+echo "If an organization uses SAML single sign-on, authorize this key for it:" \
+    "https://github.com/settings/keys > Configure SSO" >&2

@@ -24,8 +24,8 @@ it again is safe.
      Accessibility, then choose Reload Config in Hammerspoon's menu.
    - Open Docker Desktop once and run `sbx login`.
    - Import `programs/bettertouchtool/Default.bttpreset` in BetterTouchTool.
-3. Linux only: log in again so the `docker` group applies. To push from a server,
-   connect with `ssh -A`.
+3. Linux only: log in again so the `docker` group applies. Each server gets its own
+   GitHub key from install, so pushing works without your Mac connected.
 
 ## Everyday use
 
@@ -41,26 +41,25 @@ from this repo.
 
 ## Git accounts
 
-The base account and its key (`~/.ssh/id_ed25519_github`) work for every GitHub
-repository; install sets them up. Another account is tied to the owners of its
-repositories, with its identity and its key switching together, so a commit and the
-push never mix accounts. Install offers it; to add it later:
+Install sets up GitHub with `gh-setup`, and you can run it again any time to add an
+account. It asks which account to set up; Enter takes the base account (the one in
+`~/.gitconfig.accounts`), whose key `~/.ssh/id_ed25519_github` serves every GitHub
+repository. For another account it also asks the users or organizations whose
+repositories it is for, and the name and email for its commits. It signs in to the
+account in the browser, creates its key and registers it with GitHub.
 
-```sh
-gh-setup <owner>...    # e.g. gh-setup my-org
-```
-
-It asks for that account's GitHub login and the name and email for its commits, signs
-in to it in the browser, creates and registers its key, and writes (named after the
-first owner):
+Another account lives in one file named after its first owner, holding its identity
+and its key together, so a commit and the push never mix accounts:
 
 ```
 ~/.gitconfig.accounts    the base account, and which owners use which other account
-~/.gitconfig.<owner>     one other account: [user] and its key (core.sshCommand)
+~/.gitconfig.<owner>     one other account: [user], its key, HTTPS remotes sent over SSH
 ```
 
-It matches remotes of those owners in any directory, also while cloning. Check inside a
-repository with `git config --show-origin user.email`.
+It matches those owners' remotes in any directory, also while cloning. A repository
+with remotes of both kinds (a personal fork of an organization's repository) takes
+the other account for all of them. Check inside a repository with
+`git config --show-origin user.email`.
 
 ## SSH
 

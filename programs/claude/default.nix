@@ -21,8 +21,10 @@ in
     context = builtins.readFile ../agents/AGENTS.md + "\n" + builtins.readFile ./CLAUDE.md;
 
     # One directory link per skill (an attrset, not a path) so tool-owned entries such
-    # as skills/synced keep living next to them.
-    skills = lib.mapAttrs (name: _: skills + "/${name}") (builtins.readDir skills);
+    # as skills/synced keep living next to them. critique is for Codex only.
+    skills = lib.mapAttrs (name: _: skills + "/${name}") (
+      removeAttrs (builtins.readDir skills) [ "critique" ]
+    );
 
     # Marketplace plugins pinned through flake inputs, loaded as personal plugins.
     plugins = {

@@ -58,7 +58,7 @@ if [ -z "$user" ]; then
     esac
 fi
 port=${port:-22}
-key=${key:-$HOME/.ssh/$alias}
+key=${key:-$HOME/.ssh/id_ed25519_$alias}
 
 show() {
     printf '\nHost %s\n  HostName %s\n  User %s\n' "$alias" "$hostname" "$user" >&2

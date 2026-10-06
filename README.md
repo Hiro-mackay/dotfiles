@@ -63,7 +63,7 @@ ssh-setup <host>    # e.g. ssh-setup github.com-work
 ```
 
 It fills in the rest from the name (`github.com-work` → server `github.com`, user
-`git`, key `~/.ssh/github.com-work`) and shows the block; press Enter to write it, or
+`git`, key `~/.ssh/id_ed25519_github.com-work`) and shows the block; press Enter to write it, or
 `e` to edit. It creates the key if missing (you choose the passphrase), prints the
 public key, and for GitHub offers to add it to the account gh is signed in to. Options
 set values up front: `-H` server, `-u` user, `-p` port, `-i` key file, `-A` agent

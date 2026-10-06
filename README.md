@@ -12,9 +12,8 @@ curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.s
 
 Then:
 
-- Git: the base account comes with the config. Only a machine that needs more
-  (another account, signing) gets an untracked `~/.gitconfig.local`; see
-  `programs/git/gitconfig.local.sample`.
+- Git: the first switch creates `~/.gitconfig.accounts` with the base account.
+  For another account, edit it (examples inside) and add `~/.gitconfig.local`.
 - Sign in: `gh auth login`, `claude`, `codex`.
 - macOS: run `sbx login`, allow Hammerspoon and Warp under Accessibility, open
   Docker Desktop once, and import `programs/bettertouchtool/Default.bttpreset`.

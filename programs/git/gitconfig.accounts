@@ -1,0 +1,35 @@
+# Git accounts on this machine. The dotfiles switch creates this file once, if it is
+# missing; after that it is yours to edit and is never overwritten or tracked.
+
+# Base account
+[user]
+	name = mackay
+	email = 43330841+Hiro-mackay@users.noreply.github.com
+
+# Another account for one organization's repositories (e.g. on a work machine):
+# uncomment, replace <org>, and put that account's [user] in ~/.gitconfig.local.
+#
+# [includeIf "gitdir/i:~/Repository/github.com/<org>/"]
+# 	path = ~/.gitconfig.local
+#
+# With its own SSH key (Host github.com-<org> in ~/.ssh/config). Unconditional, so it
+# also applies when cloning over SSH (`ghq get -p`), before the directory exists:
+#
+# [url "git@github.com-<org>:<org>/"]
+# 	insteadOf = git@github.com:<org>/
+
+# Strings the dotfiles repo must never contain (its pre-commit hook rejects them),
+# e.g. a work email domain or an organization name:
+#
+# [secrets]
+# 	patterns = <org-name>
+# 	patterns = @<work-domain>
+
+# Sign commits with an SSH key:
+#
+# [gpg]
+# 	format = ssh
+# [user]
+# 	signingkey = ~/.ssh/id_ed25519.pub
+# [commit]
+# 	gpgsign = true

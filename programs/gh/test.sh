@@ -29,8 +29,7 @@ case "$*" in
     acme) echo Acme ;; acme-labs) echo acme-labs ;; hiro-mackay) echo Hiro-mackay ;; work-me) echo work-me ;; *) exit 1 ;;
     esac ;;
 "api user/orgs --jq "*) [ "$cur" = work-me ] && echo "acme, acme-labs" ;;
-"api user --jq .name // .login") echo "$cur" ;;
-"api user --jq "*noreply*) echo "7+$cur@users.noreply.github.com" ;;
+"api user --jq "*@tsv*) printf '%s\t%s\n' "$cur" "7+$cur@users.noreply.github.com" ;;
 "api -i user") echo "X-Oauth-Scopes: gist, read:org, repo, workflow" ;;
 "auth switch -h github.com -u "*) for u in "$@"; do :; done; grep -qx "$u" $st/accts && echo "$u" >$st/active ;;
 "auth login"*) cp $st/next $st/active && cat $st/next >>$st/accts ;;
@@ -43,7 +42,10 @@ chmod +x "$T/bin/gh"
 sed "s|@gh@|$T/bin/gh|" "$here/gh-wrapper.sh" >"$T/bin/ghw"
 chmod +x "$T/bin/ghw"
 # The installed git settings, with git's credential helper calling the fake gh.
-sed "s|[^ \"(]*/bin/gh auth token|$T/bin/gh auth token|g" "$real_config" >"$T/home/.config/git/config"
+helper=$(git config --file "$real_config" --get-all credential.https://github.com.helper | tail -n 1)
+sed "s|[^ (]*/bin/gh auth token|$T/bin/gh auth token|" "$helper" >"$T/bin/git-credential-gh-account"
+chmod +x "$T/bin/git-credential-gh-account"
+sed "s|$helper|$T/bin/git-credential-gh-account|" "$real_config" >"$T/home/.config/git/config"
 : >"$T/home/.gitconfig.accounts"
 
 export HOME="$T/home" GH_FAKE="$T" PATH="$T/bin:$PATH" GIT_TERMINAL_PROMPT=0 GIT_SSL_NO_VERIFY=1
@@ -91,14 +93,16 @@ class H(http.server.BaseHTTPRequestHandler):
 s = http.server.HTTPServer(('127.0.0.1', 443), H)
 c = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER); c.load_cert_chain('$T/cert.pem', '$T/key.pem')
 s.socket = c.wrap_socket(s.socket, server_side=True)
+open('$T/ready', 'w').close()
 s.serve_forever()
 EOF
 $SUDO python3 "$T/server.py" &
 server=$!
-sleep 1
+until [ -e "$T/ready" ]; do sleep 0.1; done
 sent() { # sent <clone url>: the account git sends while cloning it
     : >"$T/auth"
-    git clone -q "$1" "$T/clone/$(printf '%s' "$1" | tr ':/' '__')" 2>/dev/null || true
+    git clone -q "$1" "$T/clone/$(printf '%s' "$1" | tr ':/' '__')" 2>"$T/clone.err" || true
+    [ -s "$T/auth" ] || sed 's/^/    | /' "$T/clone.err" >&2
     cut -d ' ' -f 2 "$T/auth" | sort -u
 }
 check "clone https acme" work-me "$(sent https://github.com/acme/a)"
@@ -121,6 +125,10 @@ check "gh repo clone work outside" "as work-me" "$(cd "$T" && ghw repo clone --u
 check "gh --body URL ignored" "as Hiro-mackay" "$(cd "$T/r/own" && ghw pr create --body https://github.com/acme/x/issues/1)"
 check "gh --template ignored" "as Hiro-mackay" "$(cd "$T" && ghw repo create --template acme/t me/n)"
 check "gh with GITHUB_TOKEN untouched" "as " "$(cd "$T/r/work" && GITHUB_TOKEN=x ghw pr list)"
+mkdir -p "$HOME/.config/gh"
+printf 'github.com:\n    user: Hiro-mackay\n' >"$HOME/.config/gh/hosts.yml"
+check "gh uses the active account as is" "as " "$(cd "$T/r/own" && ghw pr list)"
+rm "$HOME/.config/gh/hosts.yml"
 sed -i.bak '/^work-me$/d' "$T/accts"
 check "gh refuses a signed-out account" 1 "$(cd "$T/r/work" && ghw pr list 2>&1 | grep -c 'run gh-setup')"
 

@@ -72,10 +72,11 @@ fi
 # Interactive, so only with a terminal (stdin is the curl pipe); gh-setup repeats it.
 if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
     PATH="/etc/profiles/per-user/$(id -un)/bin:$HOME/.nix-profile/bin:$PATH"
-    gh-setup </dev/tty || log "Run 'gh-setup' to retry"
-    while printf '\nAnother GitHub account? [y/N]: ' &&
-        read -r answer </dev/tty && case "$answer" in [yY]*) true ;; *) false ;; esac; do
+    while :; do
         gh-setup </dev/tty || log "Run 'gh-setup' to retry"
+        printf '\nAnother GitHub account? [y/N]: '
+        read -r answer </dev/tty || answer=
+        case "$answer" in [yY]*) ;; *) break ;; esac
     done
 fi
 

@@ -1,8 +1,8 @@
 #!/bin/sh
 # gh, signed in as the account for the repository it acts on: the one named on the
 # command line (-R/--repo, a github.com URL, or `gh repo <cmd> owner/name`), else the
-# current repository. ~/.gitconfig.<owner> sets github.login for its owners'
-# repositories (gh-setup), the shared git settings for the rest. Passed through
+# current repository. git's settings name it: github.login, which ~/.gitconfig.<owner>
+# sets for its owners' repositories (gh-setup) and programs/git for the rest. Passed through
 # untouched: `gh auth` (git's credential helper too), a token already given in
 # GH_TOKEN or GITHUB_TOKEN, a host other than github.com, and GH_NO_AUTO_ACCOUNT (set
 # by gh-setup while it switches accounts).
@@ -37,19 +37,25 @@ if [ -z "$target" ] && [ "${1:-}" = repo ]; then
     done
 fi
 
-account=''
 if [ -n "$target" ]; then
-    # [https://]github.com/OWNER/REPO, OWNER/REPO
+    # [https://]github.com/OWNER/REPO or OWNER/REPO. git itself matches the owner
+    # against the account conditions, outside any repository so its remotes stay out.
     owner=${target#https://}
     owner=${owner#github.com/}
     owner=$(printf '%s' "${owner%%/*}" | tr '[:upper:]' '[:lower:]')
-    file=$(git config --file "$HOME/.gitconfig.accounts" \
-        --get "includeIf.hasconfig:remote.*.url:https://github.com/$owner/**.path" 2>/dev/null) &&
-        account=$(git config --file "$HOME/${file#\~/}" github.login 2>/dev/null)
-    # An owner without an account of its own belongs to the base account.
-    [ -n "$account" ] || account=$(git config --global github.login 2>/dev/null)
+    account=$(cd / && git -c "remote.gh-target.url=https://github.com/$owner/x" config github.login) ||
+        exec "$gh" "$@"
+else
+    account=$(git config github.login) || exec "$gh" "$@"
 fi
-[ -n "$account" ] || account=$(git config --get github.login 2>/dev/null) || exec "$gh" "$@"
+
+# Already the active account: no token to look up.
+hosts=${GH_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/gh}/hosts.yml
+if [ -r "$hosts" ]; then
+    while IFS= read -r line; do
+        case "$line" in "    user: $account") exec "$gh" "$@" ;; esac
+    done <"$hosts"
+fi
 token=$("$gh" auth token -h github.com -u "$account" 2>/dev/null) || {
     echo "gh: not signed in as $account, the account for this repository; run gh-setup" >&2
     exit 1

@@ -2,18 +2,29 @@
 # ~/.gitconfig.accounts, a writable file created from ./gitconfig.accounts on the first
 # switch, holds which owners use which other account (gh-setup). It is included after
 # the settings here, so an account there overrides the base account.
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
   # The base GitHub account: git and gh use its token unless ~/.gitconfig.<owner>
   # (gh-setup) names another account for a repository's owner.
   baseLogin = "Hiro-mackay";
-  # By its profile path, which survives updates and needs no PATH (GUI apps).
-  gh = "${config.home.profileDirectory}/bin/gh";
+  # git's credential helper for github.com: the token of the account in
+  # credential.username, which ~/.gitconfig.<owner> sets for its owners' repositories.
+  credentialHelper = pkgs.writeShellApplication {
+    name = "git-credential-gh-account";
+    text = ''
+      [ "''${1:-}" = get ] || exit 0
+      user=""
+      while IFS="=" read -r key value && [ -n "$key" ]; do
+        [ "$key" != username ] || user=$value
+      done
+      [ -n "$user" ] || exit 0
+      if ! token=$(${pkgs.gh}/bin/gh auth token -h github.com -u "$user"); then
+        echo "git: gh is not signed in as $user; run gh-setup" >&2
+        exit 1
+      fi
+      printf 'username=%s\npassword=%s\n' "$user" "$token"
+    '';
+  };
 in
 {
   programs.git = {
@@ -42,10 +53,13 @@ in
         "ssh://git@github.com/"
       ];
       github.login = baseLogin;
-      credential."https://github.com".helper = [
-        ""
-        "!f() { test \"$1\" = get || exit 0; t=$(${gh} auth token -h github.com -u ${baseLogin}) || { echo \"git: gh is not signed in as ${baseLogin}; run gh-setup\" >&2; exit 1; }; echo username=${baseLogin}; echo password=$t; }; f"
-      ];
+      credential."https://github.com" = {
+        helper = [
+          ""
+          "${credentialHelper}/bin/git-credential-gh-account"
+        ];
+        username = baseLogin;
+      };
     };
 
     ignores = [
@@ -67,9 +81,9 @@ in
           contents.core.hooksPath = "programs/git/hooks";
         })
         [
-          "https://github.com/Hiro-mackay/dotfiles*"
-          "git@github.com:Hiro-mackay/dotfiles*"
-          "ssh://git@github.com/Hiro-mackay/dotfiles*"
+          "https://github.com/${baseLogin}/dotfiles*"
+          "git@github.com:${baseLogin}/dotfiles*"
+          "ssh://git@github.com/${baseLogin}/dotfiles*"
         ];
   };
 

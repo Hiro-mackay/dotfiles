@@ -3,14 +3,15 @@
 # git and gh both use gh's token, over HTTPS (programs/git rewrites SSH URLs). The base
 # account (github.login in programs/git) serves every GitHub repository. Another
 # account gets ~/.gitconfig.<owner>, named after the first owner whose repositories it
-# serves, holding its identity and its credential, and included for those owners'
-# remotes. Both switch together, so a commit and the push always belong to the same
+# serves, holding its identity and its login (for git's credential helper), and
+# included for those owners' remotes. Both switch together, so a commit and the push always belong to the same
 # account; gh follows the same choice (gh-wrapper.sh).
 
 # Switch gh's accounts by hand here, not by the current repository (gh-wrapper.sh).
 export GH_NO_AUTO_ACCOUNT=1
 accounts="$HOME/.gitconfig.accounts"
-cred='credential.https://github.com.helper'
+# The URL forms a remote can name GitHub with; each owner gets a condition per form.
+forms='https://github.com/ git@github.com: ssh://git@github.com/'
 
 die() {
     echo "error: $*" >&2
@@ -24,8 +25,9 @@ ask() { # ask <label> [default] -> answer on stdout; Enter takes the default
 }
 lower() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 active() { gh api user --jq .login 2>/dev/null; }
+signed_in=$(active || true)
 canonical() { # canonical <login>: as GitHub spells it, when gh can ask; else unchanged
-    if active >/dev/null; then
+    if [ -n "$signed_in" ]; then
         gh api "users/$1" --jq .login 2>/dev/null || die "no GitHub user or organization named $1"
     else
         printf '%s\n' "$1"
@@ -39,20 +41,12 @@ sign_in() { # sign_in <login>: make that account active in gh, adding it if need
         gh auth login -h github.com -p ssh --skip-ssh-key -w -s workflow
         gh config set -h github.com git_protocol https
     fi
-    [ "$(lower "$(active)")" = "$(lower "$1")" ] || die "gh is signed in as $(active), not $1"
+    signed_in=$(active || true)
+    [ "$(lower "$signed_in")" = "$(lower "$1")" ] || die "gh is signed in as $signed_in, not $1"
     # Pushing changes under .github/workflows needs the workflow scope.
     gh api -i user 2>/dev/null | grep -i '^x-oauth-scopes:' | grep -q workflow ||
         gh auth refresh -h github.com -s workflow
 }
-use_token() { # use_token <config file> <login>: git gets that account's token from gh
-    # gh by the path it has now: in PATH from the profile, so it survives updates.
-    ghbin=$(command -v gh)
-    git config --file "$1" --unset-all "$cred" 2>/dev/null || true
-    git config --file "$1" --add "$cred" ''
-    git config --file "$1" --add "$cred" \
-        "!f() { test \"\$1\" = get || exit 0; t=\$($ghbin auth token -h github.com -u $2) || { echo \"git: gh is not signed in as $2; run gh-setup\" >&2; exit 1; }; echo username=$2; echo password=\$t; }; f"
-}
-
 # The base account, from the shared settings (--global skips the accounts file).
 base=$(git config --global github.login 2>/dev/null) || die "no github.login in the git settings"
 
@@ -71,7 +65,7 @@ fi
 
 # Another account: sign in first, so its organizations and profile can be offered.
 sign_in "$acct"
-acct=$(active)
+acct=$signed_in
 file=''
 for f in "$HOME"/.gitconfig.*; do
     [ "$(git config --file "$f" github.login 2>/dev/null)" = "$acct" ] && file=$f
@@ -83,8 +77,9 @@ earlier=''
 for o in $(prev github.owners); do [ "$(lower "$o")" = "$(lower "$acct")" ] || earlier="$earlier $o"; done
 answer=$(ask "Organizations" "${earlier# }")
 # Defaults: the earlier answers, else its GitHub profile name and noreply address.
-profile_name=$(gh api user --jq '.name // .login')
-noreply=$(gh api user --jq '"\(.id)+\(.login)@users.noreply.github.com"')
+IFS='	' read -r profile_name noreply <<EOF
+$(gh api user --jq '[.name // .login, "\(.id)+\(.login)@users.noreply.github.com"] | @tsv')
+EOF
 pn=$(prev user.name) pe=$(prev user.email)
 name=$(ask "Commit name" "${pn:-$profile_name}")
 email=$(ask "Commit email" "${pe:-$noreply}")
@@ -94,17 +89,15 @@ email=$(ask "Commit email" "${pe:-$noreply}")
 # The file is named after the first organization given, or the account itself.
 owners='' patterns=''
 for o in $answer $acct; do
-    o=$(canonical "$o")
+    [ "$o" = "$acct" ] || o=$(canonical "$o")
+    [ "$(lower "$o")" != "$(lower "$base")" ] ||
+        die "$o is the base account's own; its repositories stay with $base"
     case " $owners " in *" $o "*) continue ;; esac
     owners="$owners $o"
     patterns="$patterns $o"
     [ "$(lower "$o")" = "$o" ] || patterns="$patterns $(lower "$o")"
 done
 owners=${owners# }
-for p in $patterns; do
-    [ "$(lower "$p")" != "$(lower "$base")" ] ||
-        die "$p is the base account's own; its repositories stay with $base"
-done
 # An account set up before keeps its file; a new one is named after its first owner.
 if [ -n "$file" ]; then label=${file#"$HOME/.gitconfig."}; else label=$(lower "${owners%% *}"); fi
 [ "$label" != accounts ] || die "an owner named accounts would clash with ~/.gitconfig.accounts"
@@ -124,28 +117,19 @@ git config --file "$file" github.login "$acct"
 git config --file "$file" github.owners "$owners"
 git config --file "$file" user.name "$name"
 git config --file "$file" user.email "$email"
-use_token "$file" "$acct"
+git config --file "$file" credential.https://github.com.username "$acct"
 touch "$accounts"
-# Owners dropped from this account since the last run lose their conditions.
-# Only conditions in the form written below; hand-written ones stay.
-{ git config --file "$accounts" --get-regexp \
-    '^includeif\.hasconfig:remote\.\*\.url:(https://github\.com/|git@github\.com:|ssh://git@github\.com/)[^/]*/\*\*\.path$' 2>/dev/null || true; } |
+# This account's conditions are rewritten from scratch, so dropped owners go away.
+# Only the form written here is touched; hand-written conditions stay.
+{ git config --file "$accounts" --get-regexp '^includeif\.hasconfig:remote\.\*\.url:.*/\*\*\.path$' 2>/dev/null || true; } |
     while read -r k v; do
         # shellcheck disable=SC2088 # compared as written in the file, not expanded
-        [ "$v" = "~/.gitconfig.$label" ] || continue
-        o=${k#includeif.hasconfig:remote.*.url:}
-        o=${o#https://github.com/}
-        o=${o#git@github.com:}
-        o=${o#ssh://git@github.com/}
-        o=${o%%/*}
-        case " $patterns " in *" $o "*) ;; *) git config --file "$accounts" --unset-all "$k" ;; esac
+        [ "$v" != "~/.gitconfig.$label" ] || git config --file "$accounts" --unset-all "$k"
     done
 for p in $patterns; do
-    for url in "https://github.com/$p/**" "git@github.com:$p/**" "ssh://git@github.com/$p/**"; do
-        k="includeIf.hasconfig:remote.*.url:$url.path"
+    for form in $forms; do
         # shellcheck disable=SC2088 # git expands ~ in include paths
-        git config --file "$accounts" --get "$k" >/dev/null ||
-            git config --file "$accounts" "$k" "~/.gitconfig.$label"
+        git config --file "$accounts" "includeIf.hasconfig:remote.*.url:$form$p/**.path" "~/.gitconfig.$label"
     done
 done
 echo "Done: $acct for $owners (~/.gitconfig.$label)" >&2

@@ -13,8 +13,7 @@ It installs the Xcode Command Line Tools (macOS) and Nix, clones this repo to
 `~/.dotfiles`, and applies the configuration. It asks for your password when it
 needs sudo, and on macOS it offers a restart at the end, which some settings need.
 At the end it sets up GitHub: it signs you in with gh and asks whether this machine
-needs other accounts. Running
-it again is safe.
+needs other accounts. Running it again is safe.
 
 ## After installing
 

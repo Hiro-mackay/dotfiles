@@ -19,10 +19,6 @@ enabled = true
 [plugins."warp@codex-warp"]
 enabled = true
 
-# Resolved through PATH (mise shims).
-[mcp_servers.codebase-memory-mcp]
-command = "codebase-memory-mcp"
-
 [tui]
 # Notifications come from the Warp plugin (warp@codex-warp), not the TUI.
 notifications = false

@@ -4,6 +4,7 @@
 # against accidents, not against a determined agent: the file is a symlink in the
 # user's home that a plain rm can replace.
 {
+  config,
   lib,
   pkgs,
   inputs,
@@ -36,7 +37,8 @@ in
       warp = "${inputs.claude-code-warp}/plugins/warp";
     };
 
-    mcpServers.codebase-memory-mcp.command = "codebase-memory-mcp";
+    # By absolute path, as in programs/codex: apps started by launchd lack the mise shims.
+    mcpServers.codebase-memory-mcp.command = "${config.xdg.dataHome}/mise/shims/codebase-memory-mcp";
 
     settings = settings // {
       permissions = settings.permissions // {

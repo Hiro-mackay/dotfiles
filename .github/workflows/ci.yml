@@ -70,6 +70,8 @@ jobs:
           # Declared Codex settings merged into the user's writable config.
           test ! -L "$HOME/.codex/config.toml"
           grep -q codebase-memory-mcp "$HOME/.codex/config.toml"
+          # MCP servers are registered by the mise shim's absolute path.
+          test -x "$HOME/.local/share/mise/shims/codebase-memory-mcp"
           # bash as the login shell gets the same PATH and variables.
           bash -lc 'command -v claude codex mise && test -n "$DOTFILES_DIR"'
           # This repo runs its pre-commit hook (matched by remote URL), which takes only

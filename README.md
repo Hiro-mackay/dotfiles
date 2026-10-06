@@ -54,7 +54,7 @@ after the first organization, holding its identity and its credential together, 
 commit and the push never mix accounts:
 
 ```
-~/.gitconfig.accounts    the base account's name and email, and which owners use which other account
+~/.gitconfig.accounts    which owners use which other account
 ~/.gitconfig.<owner>     one other account: [user] and the token git uses
 ```
 

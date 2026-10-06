@@ -14,6 +14,10 @@ case "${GH_HOST:-github.com}" in github.com) ;; *) exec "$gh" "$@" ;; esac
 target='' prev=''
 for a in "$@"; do
     case "$prev" in -R | --repo) target=$a ;; esac
+    # Values of text and template flags are not the repository to act on.
+    case "$prev" in -b | --body | -t | --title | -m | --message | -n | --notes | --template)
+        prev='' && continue ;;
+    esac
     case "$a" in
     --repo=*) target=${a#--repo=} ;;
     -R?*) target=${a#-R} ;;
@@ -23,10 +27,12 @@ for a in "$@"; do
 done
 # `gh repo <cmd> owner/name`: the first argument after <cmd> that is not a flag.
 if [ -z "$target" ] && [ "${1:-}" = repo ]; then
-    i=0
+    i=0 prev=''
     for a in "$@"; do
         i=$((i + 1))
+        p=$prev prev=$a
         [ "$i" -gt 2 ] || continue
+        case "$p" in --template) continue ;; esac
         case "$a" in -*) ;; */*) target=$a && break ;; esac
     done
 fi

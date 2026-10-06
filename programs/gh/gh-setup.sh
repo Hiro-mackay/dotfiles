@@ -34,7 +34,10 @@ canonical() { # canonical <login>: as GitHub spells it, when gh can ask; else un
 sign_in() { # sign_in <login>: make that account active in gh, adding it if needed
     if ! gh auth switch -h github.com -u "$1" >/dev/null 2>&1; then
         echo "Signing in as $1 in the browser..." >&2
-        gh auth login -h github.com -p https --skip-ssh-key -w -s workflow
+        # With https, gh would offer to set itself up as git's credential helper and
+        # override the per-account ones; ssh skips that, then the protocol goes back.
+        gh auth login -h github.com -p ssh --skip-ssh-key -w -s workflow
+        gh config set -h github.com git_protocol https
     fi
     [ "$(lower "$(active)")" = "$(lower "$1")" ] || die "gh is signed in as $(active), not $1"
     # Pushing changes under .github/workflows needs the workflow scope.
@@ -68,6 +71,7 @@ fi
 
 # Another account: sign in first, so its organizations and profile can be offered.
 sign_in "$acct"
+acct=$(active)
 file=''
 for f in "$HOME"/.gitconfig.*; do
     [ "$(git config --file "$f" github.login 2>/dev/null)" = "$acct" ] && file=$f
@@ -101,7 +105,8 @@ for p in $patterns; do
     [ "$(lower "$p")" != "$(lower "$base")" ] ||
         die "$p is the base account's own; its repositories stay with $base"
 done
-label=$(lower "${owners%% *}")
+# An account set up before keeps its file; a new one is named after its first owner.
+if [ -n "$file" ]; then label=${file#"$HOME/.gitconfig."}; else label=$(lower "${owners%% *}"); fi
 [ "$label" != accounts ] || die "an owner named accounts would clash with ~/.gitconfig.accounts"
 file="$HOME/.gitconfig.$label"
 owner_of=$(git config --file "$file" github.login 2>/dev/null || true)
@@ -121,6 +126,18 @@ git config --file "$file" user.name "$name"
 git config --file "$file" user.email "$email"
 use_token "$file" "$acct"
 touch "$accounts"
+# Owners dropped from this account since the last run lose their conditions.
+{ git config --file "$accounts" --get-regexp '^includeif\..*\.path$' 2>/dev/null || true; } |
+    while read -r k v; do
+        # shellcheck disable=SC2088 # compared as written in the file, not expanded
+        [ "$v" = "~/.gitconfig.$label" ] || continue
+        o=${k#includeif.hasconfig:remote.*.url:}
+        o=${o#https://github.com/}
+        o=${o#git@github.com:}
+        o=${o#ssh://git@github.com/}
+        o=${o%%/*}
+        case " $patterns " in *" $o "*) ;; *) git config --file "$accounts" --unset "$k" ;; esac
+    done
 for p in $patterns; do
     for url in "https://github.com/$p/**" "git@github.com:$p/**" "ssh://git@github.com/$p/**"; do
         k="includeIf.hasconfig:remote.*.url:$url.path"

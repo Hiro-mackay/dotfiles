@@ -1,7 +1,7 @@
-# Git settings shared by every machine. ~/.gitconfig.accounts, a writable file created
-# from ./gitconfig.accounts on the first switch, holds the base account's name and
-# email and which owners use which other account (gh-setup). It is included after the
-# settings here, so an account there overrides the base account's login and credential.
+# Git settings shared by every machine, the base GitHub account included.
+# ~/.gitconfig.accounts, a writable file created from ./gitconfig.accounts on the first
+# switch, holds which owners use which other account (gh-setup). It is included after
+# the settings here, so an account there overrides the base account.
 {
   config,
   lib,
@@ -22,6 +22,10 @@ in
       core = {
         editor = "vim";
         quotepath = false;
+      };
+      user = {
+        name = "mackay";
+        email = "43330841+${baseLogin}@users.noreply.github.com";
       };
       init.defaultBranch = "main";
       fetch.prune = true;

@@ -48,8 +48,10 @@ chmod +x "$T/bin/git-credential-gh-account"
 sed "s|$helper|$T/bin/git-credential-gh-account|" "$real_config" >"$T/home/.config/git/config"
 : >"$T/home/.gitconfig.accounts"
 
-export HOME="$T/home" GH_FAKE="$T" PATH="$T/bin:$PATH" GIT_TERMINAL_PROMPT=0 GIT_SSL_NO_VERIFY=1
-unset GH_TOKEN GITHUB_TOKEN GH_HOST
+# XDG_CONFIG_HOME too: git and gh read their settings there (CI runners set it).
+export HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" GH_FAKE="$T" PATH="$T/bin:$PATH" \
+    GIT_TERMINAL_PROMPT=0 GIT_SSL_NO_VERIFY=1
+unset GH_TOKEN GITHUB_TOKEN GH_HOST GH_CONFIG_DIR
 : >"$T/accts"
 
 echo Hiro-mackay >"$T/next"

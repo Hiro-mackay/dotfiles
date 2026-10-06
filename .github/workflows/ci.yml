@@ -76,6 +76,9 @@ jobs:
       - name: install.sh
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          # gopls is compiled from Go sources (~40 s); that it compiles is upstream's
+          # concern, not this repo's. The other tools still install.
+          MISE_DISABLE_TOOLS: go:golang.org/x/tools/gopls
         run: |
           ln -s "$GITHUB_WORKSPACE" "$HOME/.dotfiles"
           sh install.sh

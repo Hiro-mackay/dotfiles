@@ -28,7 +28,7 @@ while getopts 'u:p:i:Ah' opt; do
 done
 shift $((OPTIND - 1))
 alias=${1:-} hostname=${2:-}
-[ -n "$alias" ] || alias=$(ask "Host name, used as 'ssh <name>' (e.g. github-work)" "")
+[ -n "$alias" ] || alias=$(ask "Host name, used as 'ssh <name>' (e.g. devbox)" "")
 [ -n "$alias" ] || usage
 
 config="$HOME/.ssh/config"
@@ -41,14 +41,9 @@ if grep -qiE "^[[:space:]]*Host([[:space:]].*)?[[:space:]]$alias([[:space:]]|$)"
     exit 1
 fi
 
-[ -n "$hostname" ] || hostname=$(ask "Server address (e.g. github.com)" "")
+[ -n "$hostname" ] || hostname=$(ask "Server address (e.g. 10.0.0.5)" "")
 [ -n "$hostname" ] || usage
-if [ -z "$user" ]; then
-    case "$hostname" in
-    github.com | gitlab.com | bitbucket.org) user=git ;;
-    *) user=$(id -un) ;;
-    esac
-fi
+user=${user:-$(id -un)}
 port=${port:-22}
 key=${key:-$HOME/.ssh/id_ed25519_$alias}
 
@@ -94,9 +89,4 @@ if command -v pbcopy >/dev/null 2>&1; then
     pbcopy <"$key.pub"
     echo "(public key copied to the clipboard)" >&2
 fi
-
-# Git hosts answer `ssh -T` with a greeting; other servers would open a shell.
-case "$hostname" in
-github.com | gitlab.com | bitbucket.org) ssh -T "$alias" || true ;;
-*) echo "Connect with: ssh $alias" >&2 ;;
-esac
+echo "Connect with: ssh $alias" >&2

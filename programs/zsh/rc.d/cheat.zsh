@@ -207,7 +207,7 @@ SHEET
   DOTFILES
     dotup          pull dotfiles, apply them, upgrade mise tools
     ssh-setup      add an SSH host and its key interactively
-    gh-account     set up a GitHub account's key (owners for another account)
+    gh-setup       set up a GitHub account's key (owners for another account)
 
   EDITORS
     co             open VS Code here

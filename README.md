@@ -33,6 +33,7 @@ it again is safe.
 |---|---|
 | Get the latest config and tool versions | `dotup` |
 | Apply your own edits in `~/.dotfiles` | `nix run ~/.dotfiles#switch` |
+| Run the whole install again, GitHub setup included | `sh ~/.dotfiles/install.sh` |
 
 Each tool's settings are in `programs/<tool>/`. Edit them there and apply them. The
 settings screens of Claude Code and VS Code cannot save, because their files come
@@ -46,7 +47,7 @@ repositories, with its identity and its key switching together, so a commit and 
 push never mix accounts. Install offers it; to add it later:
 
 ```sh
-gh-account <owner>...    # e.g. gh-account my-org
+gh-setup <owner>...    # e.g. gh-setup my-org
 ```
 
 It asks for that account's GitHub login and the name and email for its commits, signs

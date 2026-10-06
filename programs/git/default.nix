@@ -28,7 +28,7 @@
     ];
 
     # The base account's key for GitHub, even while cloning. It comes before the
-    # accounts file, so another account there (gh-account) overrides it.
+    # accounts file, so another account there (gh-setup) overrides it.
     includes =
       map
         (url: {

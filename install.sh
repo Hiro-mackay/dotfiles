@@ -69,20 +69,20 @@ if [ "$OS" = Linux ] && [ "$(basename "${SHELL:-}")" != zsh ]; then
     printf '  command -v zsh | sudo tee -a /etc/shells && chsh -s "$(command -v zsh)"\n'
 fi
 # GitHub: the base account's key, then any other accounts this machine needs.
-# Interactive, so only with a terminal (stdin is the curl pipe); gh-account repeats it.
+# Interactive, so only with a terminal (stdin is the curl pipe); gh-setup repeats it.
 if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
     PATH="/etc/profiles/per-user/$(id -un)/bin:$HOME/.nix-profile/bin:$PATH"
     printf '\n\033[1m==== GitHub accounts: answer a few questions ====\033[0m\n'
-    if ! gh-account </dev/tty; then
-        log "Run 'gh-account' to retry"
+    if ! gh-setup </dev/tty; then
+        log "Run 'gh-setup' to retry"
     else
         while printf '\nSet up another GitHub account, e.g. for work? [y/N]: ' &&
             read -r answer </dev/tty && case "$answer" in [yY]*) true ;; *) false ;; esac; do
             printf 'Enter the users or organizations whose repositories use it: '
             read -r owners </dev/tty || owners=
             # shellcheck disable=SC2086 # one argument per owner
-            if [ -z "$owners" ] || ! gh-account $owners </dev/tty; then
-                log "Run 'gh-account <owner>...' to retry"
+            if [ -z "$owners" ] || ! gh-setup $owners </dev/tty; then
+                log "Run 'gh-setup <owner>...' to retry"
             fi
         done
     fi

@@ -8,11 +8,11 @@
     };
   };
 
-  # gh-account: a GitHub account's SSH key and the git settings that use it.
+  # gh-setup: a GitHub account's SSH key and the git settings that use it.
   home.packages = [
     (pkgs.writeShellApplication {
-      name = "gh-account";
-      text = builtins.readFile ./gh-account.sh;
+      name = "gh-setup";
+      text = builtins.readFile ./gh-setup.sh;
     })
   ];
 }

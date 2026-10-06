@@ -6,7 +6,7 @@
 	name = mackay
 	email = 43330841+Hiro-mackay@users.noreply.github.com
 
-# Another GitHub account: run `gh-account <owner>...`. It puts that account's [user] and
+# Another GitHub account: run `gh-setup <owner>...`. It puts that account's [user] and
 # SSH key in ~/.gitconfig.<owner> and adds conditions like these below, one per URL form
 # (git@github.com:, ssh://git@github.com/, https://github.com/), so the identity and
 # the key switch together for that owner's repositories:

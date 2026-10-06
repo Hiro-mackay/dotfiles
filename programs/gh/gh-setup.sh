@@ -1,7 +1,7 @@
-# gh-account: set up a GitHub account's SSH key and the git settings that use it.
+# gh-setup: set up a GitHub account's SSH key and the git settings that use it.
 #
-#   gh-account              the base account: its key ~/.ssh/id_ed25519_github, once per machine
-#   gh-account <owner>...   another account, for the repositories of these owners
+#   gh-setup              the base account: its key ~/.ssh/id_ed25519_github, once per machine
+#   gh-setup <owner>...   another account, for the repositories of these owners
 #
 # git picks the base account's key for every github.com remote (programs/git). Another
 # account gets a file named after its first owner, ~/.gitconfig.<owner>, holding its
@@ -61,7 +61,7 @@ if [ $# -eq 0 ]; then
     exit
 fi
 
-base=$(login) || die "set up the base account first: run gh-account"
+base=$(login) || die "set up the base account first: run gh-setup"
 # Owners as GitHub spells them; git matches URLs case-sensitively, GitHub does not.
 owners=''
 for o in "$@"; do

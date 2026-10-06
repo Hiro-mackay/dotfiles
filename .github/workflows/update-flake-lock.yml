@@ -24,7 +24,10 @@ jobs:
       candidate: ${{ steps.prepare.outputs.candidate }}
       waiting: ${{ steps.prepare.outputs.waiting }}
     steps:
+      # main, not the branch a manual run was started from.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
       - id: prepare
         run: |
           git fetch -q origin flake-update/pending 2>/dev/null || exit 0
@@ -64,7 +67,10 @@ jobs:
 
   next:
     needs: [prepare, promote]
-    if: always() && needs.prepare.result == 'success' && needs.prepare.outputs.waiting != 'true'
+    # A candidate that failed CI keeps its pending branch, so next week retries it.
+    if: >-
+      always() && needs.prepare.result == 'success' && needs.prepare.outputs.waiting != 'true' &&
+      (needs.prepare.outputs.candidate == '' || needs.promote.result == 'success')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -74,7 +80,10 @@ jobs:
           ref: main
           # Nix runs next; keep the write token out of its reach until the push.
           persist-credentials: false
+      # Without this the action writes the job token into nix.conf, within Nix's reach.
       - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
+        with:
+          github-token: ""
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -85,7 +94,10 @@ jobs:
           TOKEN: ${{ github.token }}
         run: |
           remote="https://x-access-token:$TOKEN@github.com/$GITHUB_REPOSITORY"
-          git push -q "$remote" --delete flake-update/pending "$CANDIDATE" 2>/dev/null || true
+          # One ref per push: a push deleting a missing ref fails as a whole.
+          for ref in flake-update/pending "$CANDIDATE"; do
+            git push -q "$remote" --delete "$ref" 2>/dev/null || true
+          done
           if [ "$(git rev-parse HEAD)" != "$(cat "$RUNNER_TEMP/before")" ]; then
             git push -q "$remote" HEAD:refs/heads/flake-update/pending
           fi
@@ -105,6 +117,7 @@ jobs:
           ref: main
       - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
         with:
+          github-token: ""
           extra-conf: |
             extra-substituters = https://cache.numtide.com
             extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=

@@ -33,16 +33,32 @@ if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     log "Installing Determinate Nix"
     # The numtide binary cache serves Codex prebuilt; without it Nix compiles Codex from
     # source. On macOS nix-darwin keeps it in determinateNix.customSettings afterwards.
+    # A container without systemd cannot run the Nix daemon, so Nix runs as this user.
+    plan=''
+    [ "$OS" = Linux ] && [ ! -d /run/systemd/system ] && plan='linux --init none'
+    # shellcheck disable=SC2086 # $plan is empty or two words
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
-        sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com
+        sh -s -- install $plan --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com
 extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    [ -z "$plan" ] || sudo chown -R "$(id -u):$(id -g)" /nix
 fi
 # shellcheck disable=SC1091
 . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 
 [ -d "$DOTFILES/.git" ] || nix run nixpkgs#git -- clone https://github.com/Hiro-mackay/dotfiles.git "$DOTFILES"
 
-if [ "$OS" = Linux ] && ! command -v docker >/dev/null 2>&1; then
+# Minimal images (containers) lack these: mise's prebuilt Node needs libatomic, and the
+# system shell needs the en_US.UTF-8 locale that the configuration sets.
+if [ "$OS" = Linux ] && command -v apt-get >/dev/null 2>&1 &&
+    ! { ldconfig -p | grep -q libatomic.so.1 && locale -a | grep -qi '^en_US.utf-\{0,1\}8$'; }; then
+    log "Installing libatomic1 and the en_US.UTF-8 locale"
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq libatomic1 locales
+    sudo locale-gen en_US.UTF-8
+fi
+
+in_container() { [ -f /.dockerenv ] || [ -f /run/.containerenv ]; }
+if [ "$OS" = Linux ] && ! in_container && ! command -v docker >/dev/null 2>&1; then
     log "Installing Docker Engine"
     curl -fsSL https://get.docker.com | sudo sh
     sudo usermod -aG docker "$(id -un)"

@@ -12,7 +12,9 @@ curl -fsSL https://raw.githubusercontent.com/Hiro-mackay/dotfiles/main/install.s
 It installs the Xcode Command Line Tools (macOS) and Nix, clones this repo to
 `~/.dotfiles`, and applies the configuration. It asks for your password when it
 needs sudo, and on macOS it offers a restart at the end, which some settings need.
-Running it again is safe.
+Running it again is safe. It also works inside a Linux container where you have sudo
+(for example a sandbox you reach with `ssh-setup -c`); without systemd, Nix runs as
+your user.
 
 ## After installing
 

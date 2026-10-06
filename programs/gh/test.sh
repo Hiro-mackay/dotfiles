@@ -26,9 +26,11 @@ case "$*" in
 "api user --jq .login") if [ -n "${GH_TOKEN:-}" ]; then echo "${GH_TOKEN#token-}"; else [ -n "$cur" ] && echo "$cur"; fi ;;
 "api users/"*" --jq .login")
     case "$(echo "${2#users/}" | tr A-Z a-z)" in
-    acme) echo Acme ;; acme-labs) echo acme-labs ;; hiro-mackay) echo Hiro-mackay ;; work-me) echo work-me ;; *) exit 1 ;;
+    acme) echo Acme ;; acme-labs) echo acme-labs ;; hiro-mackay) echo Hiro-mackay ;; work-me) echo work-me ;;
+    ssoorg) echo "HTTP 403: Resource protected by organization SAML enforcement" >&2 && exit 1 ;;
+    *) echo "HTTP 404: Not Found" >&2 && exit 1 ;;
     esac ;;
-"api user/orgs --jq "*) [ "$cur" = work-me ] && echo "acme, acme-labs" ;;
+"api user/orgs --jq "*) [ "$cur" = work-me ] && printf 'Acme\nacme-labs\nSsoOrg\n' ;;
 "api user --jq "*@tsv*) printf '%s\t%s\n' "$cur" "7+$cur@users.noreply.github.com" ;;
 "api -i user") echo "X-Oauth-Scopes: gist, read:org, repo, workflow" ;;
 "auth switch -h github.com -u "*) for u in "$@"; do :; done; grep -qx "$u" $st/accts && echo "$u" >$st/active ;;
@@ -70,6 +72,10 @@ printf 'work-me\nacme\n\n\n' | "$setup" >/dev/null 2>&1
 check "file kept on rerun" "" "$(ls "$HOME/.gitconfig.acme" 2>/dev/null)"
 check "dropped owner's conditions removed" 0 "$(grep -c 'acme-labs/' "$HOME/.gitconfig.accounts")"
 check "hand-written condition kept" 1 "$(grep -c 'gitdir:~/work/' "$HOME/.gitconfig.accounts")"
+printf 'work-me\nacme ssoorg\n\n\n' | "$setup" >/dev/null 2>&1
+check "an organization refusing the lookup, spelled as a member" 1 "$(grep -c 'https://github.com/SsoOrg/' "$HOME/.gitconfig.accounts")"
+check "a misspelled owner is refused" 1 "$(printf 'work-me\nnosuchorg\n\n\n' | "$setup" 2>&1 | grep -c 'no GitHub user or organization named nosuchorg')"
+printf 'work-me\nacme\n\n\n' | "$setup" >/dev/null 2>&1
 check "base login refused as an owner" 1 "$(printf 'work-me\nHiro-mackay\n\n\n' | "$setup" 2>&1 | grep -c "base account's own")"
 
 # A fake github.com that records the account in each request's credentials.

@@ -27,9 +27,17 @@ lower() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 active() { gh api user --jq .login 2>/dev/null; }
 signed_in=$(active || true)
 canonical() { # canonical <login>: as GitHub spells it, when gh can ask; else unchanged
-    if [ -n "$signed_in" ]; then
-        gh api "users/$1" --jq .login 2>/dev/null || die "no GitHub user or organization named $1"
+    # The account's own organizations first: an organization with SAML SSO or an
+    # OAuth app policy can refuse the lookup below.
+    for k in ${known:-}; do
+        [ "$(lower "$k")" != "$(lower "$1")" ] || { printf '%s\n' "$k" && return; }
+    done
+    [ -n "$signed_in" ] || { printf '%s\n' "$1" && return; }
+    if out=$(gh api "users/$1" --jq .login 2>&1); then
+        printf '%s\n' "$out"
     else
+        case "$out" in *"HTTP 404"*) die "no GitHub user or organization named $1" ;; esac
+        echo "warning: GitHub did not confirm $1 ($out); using it as typed" >&2
         printf '%s\n' "$1"
     fi
 }
@@ -71,7 +79,8 @@ for f in "$HOME"/.gitconfig.*; do
     [ "$(git config --file "$f" github.login 2>/dev/null)" = "$acct" ] && file=$f
 done
 prev() { [ -z "$file" ] || git config --file "$file" "$1" 2>/dev/null || true; }
-orgs=$(gh api user/orgs --jq '[.[].login] | join(", ")' 2>/dev/null || true)
+known=$(gh api user/orgs --jq '.[].login' 2>/dev/null | tr '\n' ' ' || true)
+orgs=$(printf '%s' "$known" | sed 's/ *$//; s/ /, /g')
 echo "  member of: ${orgs:-none}" >&2
 earlier=''
 for o in $(prev github.owners); do [ "$(lower "$o")" = "$(lower "$acct")" ] || earlier="$earlier $o"; done

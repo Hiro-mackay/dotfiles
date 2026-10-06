@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
   # gh that uses the GitHub account set for the current repository (gh-wrapper.sh).
   gh = pkgs.symlinkJoin {
@@ -19,11 +19,15 @@ in
     package = gh;
     # git's credential helper is set per account in programs/git and gh-setup.
     gitCredentialHelper.enable = false;
-    settings = {
-      git_protocol = "https";
-      aliases.co = "pr checkout";
-    };
   };
+
+  # gh writes config.yml itself (on login, for instance), so it stays a regular file;
+  # each switch sets these values in it instead of linking a read-only copy.
+  xdg.configFile."gh/config.yml".enable = false;
+  home.activation.ghConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run ${pkgs.gh}/bin/gh config set git_protocol https
+    run ${pkgs.gh}/bin/gh alias set --clobber co 'pr checkout' >/dev/null
+  '';
 
   # gh-setup: sign in to a GitHub account and tie it to its owners' repositories.
   home.packages = [

@@ -27,7 +27,9 @@ in
       orientation = "left";
       magnification = false;
       show-process-indicators = true;
+      # Finder and the Trash stay: macOS keeps them in the Dock regardless.
       persistent-apps = [ ];
+      persistent-others = [ ];
       show-recents = false;
       wvous-bl-corner = 10;
       wvous-br-corner = 5;

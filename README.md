@@ -68,9 +68,9 @@ the key if missing (you choose the passphrase), prints the public key, and for G
 offers to add it to the account gh is signed in to. Options set values up front:
 `-u` user, `-p` port, `-i` key file, `-A` agent forwarding.
 
-For a local container that gets recreated, add `-c`: the server defaults to
-`localhost`, the host key (new on every rebuild) is not stored, and your agent is
-forwarded so git works inside, e.g. `ssh-setup -c -p 2222 -u dev sandbox`.
+For a local container with sshd on a published port, e.g.
+`ssh-setup -p 2222 -u dev sandbox 127.0.0.1`. Create the key before the container
+copies your public keys into its `authorized_keys`.
 
 Git URLs name `github.com`, so point them at your host in `~/.gitconfig.accounts`
 (the `url ... insteadOf` examples there): all of GitHub for the base account's host,

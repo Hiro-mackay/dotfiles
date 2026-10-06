@@ -3,7 +3,9 @@ name: ci
 on:
   push:
     branches: [main]
+    paths-ignore: ["**/README.md", "README.md", "docs/**"]
   pull_request:
+    paths-ignore: ["**/README.md", "README.md", "docs/**"]
   workflow_dispatch:
   # Called by update-flake-lock.yml to check its branch before it reaches main.
   workflow_call:
@@ -14,6 +16,11 @@ on:
 
 permissions:
   contents: read
+
+# A new push to a pull request replaces the run still going for the older one.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -27,7 +34,32 @@ jobs:
       - run: nix flake check --all-systems --no-build --impure
       - run: nix fmt -- --ci
 
+  changes:
+    # Whether the darwin build can be affected: on a pull request only Nix files,
+    # flake.lock and this workflow can break it (check already evaluates darwin).
+    runs-on: ubuntu-latest
+    outputs:
+      darwin: ${{ steps.diff.outputs.darwin }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 2
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          # A pull request checks out its merge commit: the first parent is the base.
+          if [ "$EVENT" != pull_request ] ||
+            git diff --name-only HEAD^1 HEAD | grep -qE '(\.nix|^flake\.lock|^\.github/workflows/ci\.yml)$'; then
+            echo darwin=true >>"$GITHUB_OUTPUT"
+          else
+            echo darwin=false >>"$GITHUB_OUTPUT"
+          fi
+
   darwin:
+    needs: changes
+    if: needs.changes.outputs.darwin == 'true'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

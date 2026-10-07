@@ -34,5 +34,8 @@ export NI_GLOBAL_AGENT="pnpm"
 dotup() {
   git -C "$DOTFILES_DIR" pull --ff-only && nix run "$DOTFILES_DIR#switch" || return
   if command -v brew >/dev/null; then brew upgrade || return; fi
-  mise upgrade --yes
+  # mise reads GitHub releases; without a token it shares 60 requests an hour with
+  # everyone behind the same IP. Use the base account's token, as switch does.
+  MISE_GITHUB_TOKEN=${MISE_GITHUB_TOKEN:-${GITHUB_TOKEN:-$(gh auth token -h github.com -u "$(git config --global github.login)" 2>/dev/null)}} \
+    mise upgrade --yes
 }

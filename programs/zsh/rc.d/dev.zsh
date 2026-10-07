@@ -40,7 +40,7 @@ dotup() {
   (
     cd || exit
     if [[ -z ${MISE_GITHUB_TOKEN:-}${GITHUB_TOKEN:-} ]] &&
-      token=$(gh auth token -h github.com -u "$(git config --global github.login)" 2>/dev/null); then
+      token=$(gh auth token -h github.com -u "$(cd / && git config github.login)" 2>/dev/null); then
       export MISE_GITHUB_TOKEN=$token
     fi
     mise install --yes && mise upgrade --yes

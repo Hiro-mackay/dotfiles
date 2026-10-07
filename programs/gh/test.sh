@@ -49,6 +49,9 @@ sed "s|[^ (]*/bin/gh auth token|$T/bin/gh auth token|" "$helper" >"$T/bin/git-cr
 chmod +x "$T/bin/git-credential-gh-account"
 sed "s|$helper|$T/bin/git-credential-gh-account|" "$real_config" >"$T/home/.config/git/config"
 : >"$T/home/.gitconfig.accounts"
+# An empty ~/.gitconfig hides the XDG settings from `git config --global`; reads must
+# not depend on it.
+: >"$T/home/.gitconfig"
 
 # XDG_CONFIG_HOME too: git and gh read their settings there (CI runners set it).
 export HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" GH_FAKE="$T" PATH="$T/bin:$PATH" \

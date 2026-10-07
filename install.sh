@@ -61,7 +61,8 @@ fi
 
 log "Applying the configuration"
 cd "$DOTFILES"
-nix run .#switch
+# --force: activate even when nothing changed, so a rerun repairs a half-applied setup.
+nix run .#switch -- --force
 
 if [ "$OS" = Linux ] && [ "$(basename "${SHELL:-}")" != zsh ]; then
     log "To make zsh the login shell:"

@@ -1,0 +1,19 @@
+# False positives in the weekly CVSS 9+ scan (update-flake-lock.yml), each checked
+# against NVD. A package here is matched by name and, where given, exact version, so a
+# new version is scanned again.
+
+["perl-5.42.3"]
+cve = ["CVE-2026-13221", "CVE-2026-8376"]
+comment = "Fixed in 5.42.3 itself (NVD text: 'before 5.42.3-RC1'); the NVD CPE range is broader than the text."
+
+["zlib"]
+cve = ["CVE-2026-27820"]
+comment = "The Ruby zlib gem (Zlib::GzipReader), not the C zlib."
+
+["shellcheck"]
+cve = ["CVE-2021-28794"]
+comment = "The unofficial ShellCheck extension for VS Code, not ShellCheck itself."
+
+["ShellCheck"]
+cve = ["CVE-2021-28794"]
+comment = "Same as shellcheck: the Haskell package name of ShellCheck."

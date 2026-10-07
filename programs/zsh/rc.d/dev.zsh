@@ -29,7 +29,10 @@ export NI_GLOBAL_AGENT="pnpm"
 # -----------------
 #  Dotfiles
 # -----------------
-# Pull this repo and apply it (Nix packages pinned in flake.lock, Homebrew), then upgrade mise tools.
+# Pull this repo and apply it (Nix packages pinned in flake.lock; activation only when
+# something changed), then upgrade Homebrew apps and mise tools.
 dotup() {
-  git -C "$DOTFILES_DIR" pull --ff-only && nix run "$DOTFILES_DIR#switch" && mise upgrade --yes
+  git -C "$DOTFILES_DIR" pull --ff-only && nix run "$DOTFILES_DIR#switch" || return
+  if command -v brew >/dev/null; then brew upgrade || return; fi
+  mise upgrade --yes
 }

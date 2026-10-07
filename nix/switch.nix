@@ -1,6 +1,7 @@
-# `nix run .#switch`: the single entry point on both macOS and Linux.
+# `nix run .#switch [-- --force]`: the single entry point on both macOS and Linux.
 # Applies the configuration with nh, then installs mise tools (a network step, kept
-# out of activation).
+# out of activation). On macOS an unchanged configuration is not activated again, so a
+# routine run asks for no sudo password; --force (install.sh) always activates.
 { pkgs, flake }:
 pkgs.writeShellApplication {
   name = "dotfiles-switch";
@@ -19,7 +20,22 @@ pkgs.writeShellApplication {
     # works before darwin-rebuild exists. --impure lets the flake read USER and HOME.
     # --no-nom: nix-output-monitor cannot parse Determinate Nix's JSON log format.
     if [ "$(uname -s)" = Darwin ]; then
-      nh darwin switch --no-nom "path:$src" -H default -- --impure
+      # Unchanged: the system built from this flake is the running one and every
+      # declared cask is installed (one that failed before still gets retried).
+      built=""
+      if [ "''${1:-}" != --force ]; then
+        built=$(nix build --impure --no-link --print-out-paths "path:$src#darwinConfigurations.default.system")
+        brewfile=$(grep -oE '/nix/store/[a-z0-9]{32}-Brewfile' "$built/activate" | head -n 1 || true)
+        if [ "$built" != "$(readlink /run/current-system 2>/dev/null)" ] ||
+          { [ -n "$brewfile" ] && ! HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --no-upgrade --file="$brewfile" >/dev/null 2>&1; }; then
+          built=""
+        fi
+      fi
+      if [ -n "$built" ]; then
+        echo "The configuration is unchanged; nothing to activate."
+      else
+        nh darwin switch --no-nom "path:$src" -H default -- --impure
+      fi
     else
       nh home switch --no-nom "path:$src" -c "$(uname -m)-linux" -b backup -- --impure
     fi

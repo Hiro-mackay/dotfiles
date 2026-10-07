@@ -10,7 +10,7 @@ pkgs.writeShellApplication {
     mise
     gh
   ];
-  text = ''
+  text = builtins.readFile ./log-window.sh + ''
     # The flake this command was built from (a worktree, a clone, or GitHub), so the
     # edits being applied are the ones the user is looking at. nh treats a bare store
     # path as a built configuration, hence the path: prefix.
@@ -20,7 +20,14 @@ pkgs.writeShellApplication {
     # works before darwin-rebuild exists. --impure lets the flake read USER and HOME.
     # --no-nom: nix-output-monitor cannot parse Determinate Nix's JSON log format.
     # --show-activation-logs: activation (Homebrew, defaults, home-manager) prints as
-    # it goes instead of sitting silent after "Activating configuration".
+    # it goes; log_window scrolls it in a few lines and keeps the full text in $log.
+    log=$(mktemp -t dotfiles-switch.XXXXXX)
+    failed() {
+      echo "error: applying the configuration failed; its last lines:" >&2
+      tail -n 30 "$log" >&2
+      echo "Full log: $log" >&2
+      exit 1
+    }
     if [ "$(uname -s)" = Darwin ]; then
       # Unchanged: the system built from this flake is the running one and every
       # declared cask is installed (one that failed before still gets retried).
@@ -36,10 +43,10 @@ pkgs.writeShellApplication {
       if [ -n "$built" ]; then
         echo "The configuration is unchanged; nothing to activate."
       else
-        nh darwin switch --no-nom --show-activation-logs "path:$src" -H default -- --impure
+        nh darwin switch --no-nom --show-activation-logs "path:$src" -H default -- --impure 2>&1 | log_window "$log" || failed
       fi
     else
-      nh home switch --no-nom --show-activation-logs "path:$src" -c "$(uname -m)-linux" -b backup -- --impure
+      nh home switch --no-nom --show-activation-logs "path:$src" -c "$(uname -m)-linux" -b backup -- --impure 2>&1 | log_window "$log" || failed
     fi
 
     # Unauthenticated GitHub API allows 60 requests/hour; mise cannot read gh's keychain token.

@@ -47,11 +47,6 @@ in
     };
     taps = [ "docker/tap" ];
     casks = managed;
-    # Only when Homebrew owns VS Code, so its `code` is on PATH for brew bundle.
-    # The list is written by the codeexport alias.
-    vscode = lib.optionals (lib.elem "visual-studio-code" managed) (
-      lib.filter (ext: ext != "") (lib.splitString "\n" (builtins.readFile ../programs/vscode/extensions))
-    );
   };
 
   # brew bundle runs before home-manager in activation, so one failed cask

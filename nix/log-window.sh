@@ -1,6 +1,7 @@
 # log_window <log file>: pass stdin through until "Activating configuration", then show
 # the rest in a few lines that scroll in place, like docker build, and erase them at the
-# end. Everything also goes to the log file. Off a terminal it only passes through.
+# end. Warnings and errors stay on screen above them. Everything also goes to the log
+# file. Off a terminal it only passes through.
 log_window() {
     local log=$1 rows=8 shown=0 active=0 line plain width
     local -a tail=()
@@ -20,6 +21,13 @@ log_window() {
         fi
         plain=${line//$'\e'\[*([0-9;])[A-Za-z]/}
         plain=${plain//$'\r'/}
+        case "$plain" in *[Ww]arning* | *[Ee]rror*)
+            # Above the window: clear it, print the line, and let it redraw below.
+            [ "$shown" = 0 ] || printf '\e[%dA\e[J' "$shown"
+            printf '%s\n' "$plain"
+            shown=0
+            ;;
+        esac
         tail+=("${plain:0:width}")
         [ "${#tail[@]}" -le "$rows" ] || tail=("${tail[@]:1}")
         [ "$shown" = 0 ] || printf '\e[%dA' "$shown"

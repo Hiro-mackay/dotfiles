@@ -55,8 +55,10 @@ sign_in() { # sign_in <login>: make that account active in gh, adding it if need
     gh api -i user 2>/dev/null | grep -i '^x-oauth-scopes:' | grep -q workflow ||
         gh auth refresh -h github.com -s workflow
 }
-# The base account, from the shared settings (--global skips the accounts file).
-base=$(git config --global github.login 2>/dev/null) || die "no github.login in the git settings"
+# The base account, from the shared settings (--global skips the accounts file), or
+# the built-in one before the first switch has written them.
+base=$(git config --global github.login 2>/dev/null || true)
+base=${base:-$base_default}
 
 title "GitHub account"
 acct=$(ask "Login" "$base")

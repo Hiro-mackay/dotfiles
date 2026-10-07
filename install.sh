@@ -42,6 +42,18 @@ fi
 
 [ -d "$DOTFILES/.git" ] || nix run nixpkgs#git -- clone https://github.com/Hiro-mackay/dotfiles.git "$DOTFILES"
 
+# GitHub: the base account first (Enter takes it), then any others this machine needs.
+# Before applying, so every question comes first and mise installs with a token.
+# Interactive, so only with a terminal (stdin is the curl pipe); gh-setup repeats it.
+if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
+    while :; do
+        nix run "$DOTFILES#gh-setup" </dev/tty || log "Run 'gh-setup' to retry"
+        printf '\nAnother GitHub account? [y/N]: '
+        read -r answer </dev/tty || answer=
+        case "$answer" in [yY]*) ;; *) break ;; esac
+    done
+fi
+
 if [ "$OS" = Linux ] && ! command -v docker >/dev/null 2>&1; then
     log "Installing Docker Engine"
     curl -fsSL https://get.docker.com | sudo sh
@@ -68,17 +80,6 @@ if [ "$OS" = Linux ] && [ "$(basename "${SHELL:-}")" != zsh ]; then
     log "To make zsh the login shell:"
     # shellcheck disable=SC2016 # printed literally for the user to run
     printf '  command -v zsh | sudo tee -a /etc/shells && chsh -s "$(command -v zsh)"\n'
-fi
-# GitHub: the base account first (Enter takes it), then any others this machine needs.
-# Interactive, so only with a terminal (stdin is the curl pipe); gh-setup repeats it.
-if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
-    PATH="/etc/profiles/per-user/$(id -un)/bin:$HOME/.nix-profile/bin:$PATH"
-    while :; do
-        gh-setup </dev/tty || log "Run 'gh-setup' to retry"
-        printf '\nAnother GitHub account? [y/N]: '
-        read -r answer </dev/tty || answer=
-        case "$answer" in [yY]*) ;; *) break ;; esac
-    done
 fi
 
 log "Done. Open a new terminal. Remaining steps: docs/cookbook.md, After installing."

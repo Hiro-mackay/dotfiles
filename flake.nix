@@ -109,12 +109,29 @@
 
       homeConfigurations = lib.genAttrs linuxSystems mkHome;
 
-      packages = forAllSystems (system: {
-        switch = import ./nix/switch.nix {
+      packages = forAllSystems (
+        system:
+        let
           pkgs = nixpkgs.legacyPackages.${system};
-          flake = self.outPath;
-        };
-      });
+        in
+        {
+          switch = import ./nix/switch.nix {
+            inherit pkgs;
+            flake = self.outPath;
+          };
+          # For install.sh, before the configuration (and so gh and git) is applied.
+          gh-setup = import ./programs/gh/gh-setup.nix {
+            inherit pkgs;
+            runtimeInputs = with pkgs; [
+              gh
+              git
+              coreutils
+              gnugrep
+              gnused
+            ];
+          };
+        }
+      );
 
       # Evaluating these catches module errors in every configuration.
       checks = forAllSystems (

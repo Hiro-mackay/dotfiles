@@ -6,7 +6,7 @@
 let
   # The base GitHub account: git and gh use its token unless ~/.gitconfig.<owner>
   # (gh-setup) names another account for a repository's owner.
-  baseLogin = "Hiro-mackay";
+  baseLogin = import ./base-login.nix;
   # git's credential helper for github.com: the token of the account in
   # credential.username, which ~/.gitconfig.<owner> sets for its owners' repositories.
   credentialHelper = pkgs.writeShellApplication {

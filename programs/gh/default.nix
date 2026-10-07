@@ -30,10 +30,5 @@ in
   '';
 
   # gh-setup: sign in to a GitHub account and tie it to its owners' repositories.
-  home.packages = [
-    (pkgs.writeShellApplication {
-      name = "gh-setup";
-      text = builtins.readFile ./gh-setup.sh;
-    })
-  ];
+  home.packages = [ (import ./gh-setup.nix { inherit pkgs; }) ];
 }

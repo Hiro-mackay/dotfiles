@@ -125,7 +125,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           system="$(nix build --impure --no-link --print-out-paths .#darwinConfigurations.default.system)"
-          nix run nixpkgs#vulnix -- --closure --json "$system" >vulnix.json || true
+          # .github/vulnix-whitelist.toml lists the findings already checked as false.
+          # vulnix exits 2 when it finds something; any other failure (a broken whitelist)
+          # must fail the run rather than read as "nothing found".
+          rc=0
+          nix run nixpkgs#vulnix -- --closure --json --whitelist .github/vulnix-whitelist.toml "$system" >vulnix.json || rc=$?
+          [ "$rc" = 0 ] || [ "$rc" = 2 ] || { echo "vulnix failed with exit code $rc" >&2; exit 1; }
           # Fail loudly (GitHub mails failed runs) if vulnix broke or its format changed.
           jq -e 'length == 0 or any(.[]; has("cvssv3_basescore"))' vulnix.json >/dev/null
           jq -r '.[] | . as $p | (.cvssv3_basescore // {}) | to_entries[] | select(.value >= 9)

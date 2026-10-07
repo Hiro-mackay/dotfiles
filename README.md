@@ -30,7 +30,7 @@ needs other accounts. Running it again is safe.
 
 | To | Run |
 |---|---|
-| Get the latest config and tool versions | `dotup` |
+| Get the latest config and tool versions | `dotup` (asks for sudo only when the macOS configuration changed) |
 | Apply your own edits in `~/.dotfiles` | `nix run ~/.dotfiles#switch` |
 | Run the whole install again, GitHub setup included | `sh ~/.dotfiles/install.sh` |
 

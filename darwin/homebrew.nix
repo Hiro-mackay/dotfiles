@@ -38,8 +38,10 @@ in
   homebrew = {
     enable = true;
     onActivation = {
-      autoUpdate = true;
-      upgrade = true;
+      # Activation installs and removes declared apps; dotup upgrades them, so a
+      # routine run neither waits on brew update nor needs activation at all.
+      autoUpdate = false;
+      upgrade = false;
       # "none" until the first switch is verified; then "zap" removes undeclared apps.
       cleanup = "none";
     };

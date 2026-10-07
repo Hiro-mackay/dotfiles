@@ -1,7 +1,8 @@
 # `nix run .#switch [-- --force]`: the single entry point on both macOS and Linux.
 # Applies the configuration with nh. mise tools are installed by the callers (install.sh,
-# dotup), after GitHub sign-in, so they can use a token. On macOS an unchanged configuration is not activated again, so a
-# routine run asks for no sudo password; --force (install.sh) always activates.
+# dotup), after GitHub sign-in, so they can use a token. On macOS an unchanged
+# configuration is not activated again, so a routine run asks for no sudo password;
+# --force (install.sh) always activates.
 { pkgs, flake }:
 pkgs.writeShellApplication {
   name = "dotfiles-switch";

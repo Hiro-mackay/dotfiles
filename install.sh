@@ -89,7 +89,7 @@ if [ -z "${MISE_GITHUB_TOKEN:-}${GITHUB_TOKEN:-}" ] &&
     export MISE_GITHUB_TOKEN="$token"
 fi
 mise install --yes || {
-    echo "error: mise install failed (see above); fix it, then run 'mise install'" >&2
+    echo "error: mise install failed (see above); fix it, then run 'mise install'. A GitHub API rate limit is fixed by signing in with gh-setup." >&2
     exit 1
 }
 

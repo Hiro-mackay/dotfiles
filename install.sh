@@ -88,7 +88,7 @@ if [ -z "${MISE_GITHUB_TOKEN:-}${GITHUB_TOKEN:-}" ] &&
     token=$(gh auth token -h github.com -u "$(git config --global github.login)" 2>/dev/null); then
     export MISE_GITHUB_TOKEN="$token"
 fi
-mise install --yes || {
+(cd && mise install --yes) || {
     echo "error: mise install failed (see above); fix it, then run 'mise install'. A GitHub API rate limit is fixed by signing in with gh-setup." >&2
     exit 1
 }

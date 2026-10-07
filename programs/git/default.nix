@@ -89,20 +89,6 @@ in
 
   home.packages = [ pkgs.git-secrets ];
 
-  # ~/.gitconfig is read after everything here and would override it, the accounts
-  # included. Without it, `git config --global` fails on the read-only settings instead
-  # of quietly writing there (e.g. an onboarding guide setting a work email for every
-  # repository). An empty one goes; one with content is reported, not touched.
-  home.activation.gitconfigHome = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ -f "$HOME/.gitconfig" ] && [ ! -L "$HOME/.gitconfig" ]; then
-      if [ ! -s "$HOME/.gitconfig" ]; then
-        run rm "$HOME/.gitconfig"
-      else
-        warnEcho "~/.gitconfig overrides the git settings from the dotfiles, accounts included; move what it needs to ~/.gitconfig.accounts, then remove it"
-      fi
-    fi
-  '';
-
   # Created only when missing, so edits survive later switches.
   home.activation.gitconfigAccounts = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "$HOME/.gitconfig.accounts" ]; then

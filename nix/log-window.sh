@@ -21,7 +21,7 @@ log_window() {
         fi
         plain=${line//$'\e'\[*([0-9;])[A-Za-z]/}
         plain=${plain//$'\r'/}
-        case "$plain" in *[Ww]arning* | *[Ee]rror*)
+        case "$plain" in *[Ww]arning:* | *[Ee]rror:*)
             # Above the window: clear it, print the line, and let it redraw below.
             [ "$shown" = 0 ] || printf '\e[%dA\e[J' "$shown"
             printf '%s\n' "$plain"

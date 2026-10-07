@@ -37,6 +37,11 @@ In those owners' repositories, git commits and pushes, and gh runs, as that acco
 elsewhere as the base one. `gh auth token` and `gh auth status` follow the same choice.
 Check with `git config --show-origin user.email` or `gh api user --jq .login`.
 
+Machine-only git settings go in `~/.gitconfig.accounts`. `~/.gitconfig` is not used: it
+would override all of the above, so `git config --global` fails on purpose (the settings
+are read-only), and the switch removes an empty `~/.gitconfig` and warns about one with
+content.
+
 Limits: a repository with remotes of both kinds takes the other account for all of them,
 and a `pushurl` is not looked at.
 

@@ -8,11 +8,11 @@ for ident in GIT_AUTHOR_IDENT GIT_COMMITTER_IDENT; do
     case "$(git var "$ident")" in
     *"@users.noreply.github.com> "*) ;;
     *)
-        echo "pre-commit: this repo takes commits only from a GitHub noreply address (see ~/.gitconfig.local)" >&2
+        echo "pre-commit: this repo takes commits only from a GitHub noreply address (another account: gh-setup)" >&2
         exit 1
         ;;
     esac
 done
 
-# Reject the strings listed as secrets.patterns in ~/.gitconfig.local.
+# Reject the strings listed as secrets.patterns in ~/.gitconfig.accounts.
 exec git secrets --pre_commit_hook -- "$@"

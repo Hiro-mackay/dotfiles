@@ -69,10 +69,10 @@ if [ "$OS" = Linux ] && [ "$(basename "${SHELL:-}")" != zsh ]; then
     # shellcheck disable=SC2016 # printed literally for the user to run
     printf '  command -v zsh | sudo tee -a /etc/shells && chsh -s "$(command -v zsh)"\n'
 fi
+PATH="/etc/profiles/per-user/$(id -un)/bin:$HOME/.nix-profile/bin:$PATH"
 # GitHub: the base account first (Enter takes it), then any others this machine needs.
 # Interactive, so only with a terminal (stdin is the curl pipe); gh-setup repeats it.
 if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
-    PATH="/etc/profiles/per-user/$(id -un)/bin:$HOME/.nix-profile/bin:$PATH"
     while :; do
         gh-setup </dev/tty || log "Run 'gh-setup' to retry"
         printf '\nAnother GitHub account? [y/N]: '
@@ -80,6 +80,18 @@ if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
         case "$answer" in [yY]*) ;; *) break ;; esac
     done
 fi
+
+# After GitHub sign-in, so mise reads GitHub releases with the base account's token
+# instead of the 60-an-hour limit shared by everyone behind the same IP.
+log "Installing tools with mise"
+if [ -z "${MISE_GITHUB_TOKEN:-}${GITHUB_TOKEN:-}" ] &&
+    token=$(gh auth token -h github.com -u "$(git config --global github.login)" 2>/dev/null); then
+    export MISE_GITHUB_TOKEN="$token"
+fi
+mise install --yes || {
+    echo "error: mise install failed (see above); fix it, then run 'mise install'" >&2
+    exit 1
+}
 
 log "Done. Open a new terminal. Remaining steps: docs/cookbook.md, After installing."
 

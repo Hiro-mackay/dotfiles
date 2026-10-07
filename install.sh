@@ -81,7 +81,7 @@ if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
     done
 fi
 
-log "Done. Open a new terminal. Remaining steps are in the README."
+log "Done. Open a new terminal. Remaining steps: docs/cookbook.md, After installing."
 
 # Trackpad, appearance and other macOS settings take effect only after a restart.
 # Ask first (work may be open) and restart the normal way, so apps can ask to save.

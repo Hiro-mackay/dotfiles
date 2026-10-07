@@ -27,6 +27,9 @@
       /nix/var/nix/profiles/default/bin/nix-env -p /nix/var/nix/profiles/system --delete-generations +3
       /nix/var/nix/profiles/default/bin/nix store gc
     '';
+    # Runs unattended, so keep what it did (and any error) where it can be read.
+    serviceConfig.StandardOutPath = "/var/log/prune-generations.log";
+    serviceConfig.StandardErrorPath = "/var/log/prune-generations.log";
     serviceConfig.StartCalendarInterval = [
       {
         Weekday = 1;

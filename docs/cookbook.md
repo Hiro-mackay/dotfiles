@@ -1,5 +1,12 @@
 # Cookbook
 
+## After installing
+
+Sign in to `claude` and `codex`. On macOS, also allow Hammerspoon and Warp under
+Accessibility, open Docker Desktop and run `sbx login`, and import
+`programs/bettertouchtool/Default.bttpreset` in BetterTouchTool. On Linux, log in again
+so the `docker` group applies.
+
 ## Update and apply
 
 | To | Run |
@@ -11,7 +18,6 @@
 
 Each tool's settings live in `programs/<tool>/`; edit them there and apply. The settings
 screens of Claude Code and VS Code cannot save, because their files come from this repo.
-On Linux, log in again after the first install so the `docker` group applies.
 
 ## GitHub accounts
 

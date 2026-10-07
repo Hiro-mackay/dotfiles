@@ -17,6 +17,28 @@
   # nix run nix-darwin#darwin-uninstaller
   system.tools.darwin-uninstaller.enable = false;
 
+  # Determinate Nix collects garbage on its own, but every old generation keeps its
+  # packages alive. Weekly, keep the current system generation and the two before
+  # (enough to roll back; older configurations come back from git), then collect.
+  # home-manager runs inside nix-darwin, so its configuration is part of each system
+  # generation and has none of its own. Only generations go: direnv's gcroots stay.
+  launchd.daemons.prune-generations = {
+    script = ''
+      /nix/var/nix/profiles/default/bin/nix-env -p /nix/var/nix/profiles/system --delete-generations +3
+      /nix/var/nix/profiles/default/bin/nix store gc
+    '';
+    # Runs unattended, so keep what it did (and any error) where it can be read.
+    serviceConfig.StandardOutPath = "/var/log/prune-generations.log";
+    serviceConfig.StandardErrorPath = "/var/log/prune-generations.log";
+    serviceConfig.StartCalendarInterval = [
+      {
+        Weekday = 1;
+        Hour = 12;
+        Minute = 0;
+      }
+    ];
+  };
+
   nixpkgs.hostPlatform = "aarch64-darwin";
   system.stateVersion = 7;
   system.primaryUser = username;

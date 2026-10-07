@@ -1,15 +1,12 @@
 # `nix run .#switch [-- --force]`: the single entry point on both macOS and Linux.
-# Applies the configuration with nh, then installs mise tools (a network step, kept
-# out of activation). On macOS an unchanged configuration is not activated again, so a
-# routine run asks for no sudo password; --force (install.sh) always activates.
+# Applies the configuration with nh. mise tools are installed by the callers (install.sh,
+# dotup), after GitHub sign-in, so they can use a token. On macOS an unchanged
+# configuration is not activated again, so a routine run asks for no sudo password;
+# --force (install.sh) always activates.
 { pkgs, flake }:
 pkgs.writeShellApplication {
   name = "dotfiles-switch";
-  runtimeInputs = with pkgs; [
-    nh
-    mise
-    gh
-  ];
+  runtimeInputs = [ pkgs.nh ];
   text = builtins.readFile ./log-window.sh + ''
     # The flake this command was built from (a worktree, a clone, or GitHub), so the
     # edits being applied are the ones the user is looking at. nh treats a bare store
@@ -64,14 +61,5 @@ pkgs.writeShellApplication {
           echo "warning: VS Code extensions were not installed (code failed or took over 10 minutes); open VS Code once, then run dotup" >&2
       fi
     fi
-
-    # Unauthenticated GitHub API allows 60 requests/hour; mise cannot read gh's keychain token.
-    if [ -z "''${MISE_GITHUB_TOKEN:-}" ] && [ -z "''${GITHUB_TOKEN:-}" ]; then
-      if token="$(gh auth token 2>/dev/null)"; then
-        export MISE_GITHUB_TOKEN="$token"
-      fi
-    fi
-    # Last step: a failure leaves the applied configuration in place but fails the run.
-    mise install --yes || { echo "error: mise install failed (see above); fix it, then run 'mise install'. A GitHub API rate limit is fixed by 'gh auth login'." >&2; exit 1; }
   '';
 }

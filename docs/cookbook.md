@@ -12,7 +12,7 @@ so the `docker` group applies.
 | To | Run |
 |---|---|
 | Get the latest config and tools | `dotup` (sudo only when the macOS configuration changed) |
-| Apply your own edits in `~/.dotfiles` | `nix run ~/.dotfiles#switch` |
+| Apply your own edits in `~/.dotfiles` | `nix run ~/.dotfiles#switch`, then `mise install` if you changed tools |
 | Run the whole install again | `sh ~/.dotfiles/install.sh` |
 | List the shell shortcuts | `cheat` (topics: `git`, `docker`, `fzf`, `nav`, `util`, `dev`) |
 

@@ -19,6 +19,8 @@ pkgs.writeShellApplication {
     # nh builds as the invoking user and elevates only the activation step, so this
     # works before darwin-rebuild exists. --impure lets the flake read USER and HOME.
     # --no-nom: nix-output-monitor cannot parse Determinate Nix's JSON log format.
+    # --show-activation-logs: activation (Homebrew, defaults, home-manager) prints as
+    # it goes instead of sitting silent after "Activating configuration".
     if [ "$(uname -s)" = Darwin ]; then
       # Unchanged: the system built from this flake is the running one and every
       # declared cask is installed (one that failed before still gets retried).
@@ -34,10 +36,10 @@ pkgs.writeShellApplication {
       if [ -n "$built" ]; then
         echo "The configuration is unchanged; nothing to activate."
       else
-        nh darwin switch --no-nom "path:$src" -H default -- --impure
+        nh darwin switch --no-nom --show-activation-logs "path:$src" -H default -- --impure
       fi
     else
-      nh home switch --no-nom "path:$src" -c "$(uname -m)-linux" -b backup -- --impure
+      nh home switch --no-nom --show-activation-logs "path:$src" -c "$(uname -m)-linux" -b backup -- --impure
     fi
 
     # Unauthenticated GitHub API allows 60 requests/hour; mise cannot read gh's keychain token.

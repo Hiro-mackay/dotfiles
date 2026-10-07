@@ -42,7 +42,8 @@ in
       # routine run neither waits on brew update nor needs activation at all.
       autoUpdate = false;
       upgrade = false;
-      # "none" until the first switch is verified; then "zap" removes undeclared apps.
+      # "none": "zap" would remove every app and formula not listed here, on every Mac
+      # (work ones included). A Mac is tidied once by hand: brew bundle cleanup.
       cleanup = "none";
     };
     taps = [ "docker/tap" ];

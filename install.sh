@@ -85,7 +85,7 @@ fi
 # instead of the 60-an-hour limit shared by everyone behind the same IP.
 log "Installing tools with mise"
 if [ -z "${MISE_GITHUB_TOKEN:-}${GITHUB_TOKEN:-}" ] &&
-    token=$(gh auth token -h github.com -u "$(git config --global github.login)" 2>/dev/null); then
+    token=$(gh auth token -h github.com -u "$(cd / && git config github.login)" 2>/dev/null); then
     export MISE_GITHUB_TOKEN="$token"
 fi
 (cd && mise install --yes) || {

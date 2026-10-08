@@ -50,6 +50,9 @@ let
   '';
 in
 {
+  # The same rclone the capture hook runs, so `rclone config` sets up its remote.
+  home.packages = [ pkgs.rclone ];
+
   launchd.agents.vault-observe = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
     enable = true;
     config = {

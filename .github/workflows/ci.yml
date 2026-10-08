@@ -133,5 +133,7 @@ jobs:
           '
           # Accounts: gh-setup, git's credentials and the gh wrapper, against a fake GitHub.
           sh "$HOME/.dotfiles/programs/gh/test.sh"
+          # Conversations and memory reach the vault: the capture hook's own self-test.
+          "$(jq -r '.hooks.SessionEnd[0].hooks[0].command' "$HOME/.claude/settings.json" | cut -d' ' -f1)" self-test
           # The repo stays untouched: nothing is generated or linked into it.
           test -z "$(git -C "$HOME/.dotfiles" status --porcelain)"

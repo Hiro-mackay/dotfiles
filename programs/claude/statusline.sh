@@ -15,8 +15,15 @@ color_used() {
   else printf '%b' "$GREEN"; fi
 }
 
+# repeat CHAR N times; tr is byte-based on GNU (Linux) and mangles multibyte chars
+repeat() {
+  local out="" i
+  for ((i = 0; i < $2; i++)); do out+=$1; done
+  printf '%s' "$out"
+}
+
 FILLED=$((PCT / 10))
-BAR=$(printf "%${FILLED}s" | tr ' ' '█')$(printf "%$((10 - FILLED))s" | tr ' ' '░')
+BAR="$(repeat █ "$FILLED")$(repeat ░ $((10 - FILLED)))"
 LINE=$(printf "${DIM}%s${RESET} %b%s %d%%${RESET} ${DIM}\$%.2f${RESET}" \
               "$MODEL" "$(color_used "$PCT")" "$BAR" "$PCT" "$COST")
 
@@ -31,7 +38,7 @@ battery() {
   resets=$(echo "$input" | jq -r ".rate_limits.$key.resets_at // empty")
   [ -n "$resets" ] && resets=" ${DIM}$(date -r "$resets" +%m/%d\ %H:%M 2>/dev/null || date -d "@$resets" +%m/%d\ %H:%M)${RESET}"
   printf " ${DIM}|${RESET} %s %b[%s%s] %d%%${RESET}%b" "$label" "$(color_used "$used")" \
-    "$(printf "%${cells}s" | tr ' ' '▮')" "$(printf "%$((5 - cells))s" | tr ' ' '▯')" "$left" "$resets"
+    "$(repeat ▮ "$cells")" "$(repeat ▯ $((5 - cells)))" "$left" "$resets"
 }
 
 echo -e "${LINE}$(battery 5h five_hour)$(battery 7d seven_day)"

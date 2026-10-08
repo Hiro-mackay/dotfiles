@@ -64,6 +64,20 @@ It creates the key if missing and prints the public key. Options: `-u` user, `-p
 the GitHub token of the account this repository uses. Set `$SBX_TEMPLATE` to pass a
 template.
 
+## Vault
+
+Claude Code's hooks copy conversations and memory into the vault's `.depth/`
+(`programs/claude/vault-capture.py`). Conversations sync through object storage, not
+git. On each personal device, once:
+
+1. In `rclone config`, create an S3 remote for the Cloudflare R2 bucket, then a crypt
+   remote named `vault-depth` on top of it. Use the same crypt passwords on every
+   device. Leave this out on the work Mac: its conversations stay there.
+2. On the Mac that runs the observer each morning: `mkdir -p ~/.config/vault && touch ~/.config/vault/observer`.
+
+Each device writes only files named after its host; set `VAULT_HOST` if two hosts
+share a name. Problems show at the next session start.
+
 ## Pinned versions and security reports
 
 Every Monday CI updates `flake.lock`; the update waits a week on the

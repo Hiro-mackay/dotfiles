@@ -50,4 +50,12 @@ in
     };
     mutableSettings = true;
   };
+
+  # Declared settings only (no keys Codex writes itself), for other environments such as
+  # containers. Matches home-manager's merge input only while plugins, marketplaces and MCP
+  # servers are written in `settings` directly above; moving them to the dedicated
+  # programs.codex options would make home-manager add keys here that this file misses.
+  home.file.".codex/declared/config.toml".source =
+    (pkgs.formats.toml { }).generate "codex-declared-config.toml"
+      config.programs.codex.settings;
 }

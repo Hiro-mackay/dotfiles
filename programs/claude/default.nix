@@ -18,6 +18,7 @@ let
 
   # Copies conversations and memory into the vault's .depth/ (see vault-capture.py).
   capture = pkgs.writeShellScript "vault-capture" ''
+    export VAULT_RCLONE=${pkgs.rclone}/bin/rclone
     exec ${pkgs.python3}/bin/python3 ${./vault-capture.py} "$@"
   '';
   hook = arg: [

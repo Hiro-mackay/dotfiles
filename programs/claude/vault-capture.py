@@ -3,7 +3,9 @@
 Run by the SessionEnd and SessionStart hooks; no model is involved.
 
 - Conversations of interactive sessions become one JSON line per event,
-  appended to .depth/conversations/YYYY/MM/DD_<host>.jsonl.
+  appended to .depth/conversations/YYYY/MM/DD_<host>.jsonl. These files live
+  in object storage, not git: each device uploads its own and downloads the
+  others' through rclone (remote $VAULT_REMOTE, default vault-depth:).
 - Every project's auto memory and every agent memory are mirrored to
   .depth/memory/<host>/.
 
@@ -23,6 +25,7 @@ import os
 import re
 import shutil
 import socket
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -226,7 +229,28 @@ def mirror(claude: Path, vault: Path, host: str) -> None:
                 shutil.rmtree(d)
 
 
-def run(mode: str, claude: Path, vault: Path, state_dir: Path, host: str) -> str:
+def sync(mode: str, vault: Path, host: str, rclone: str | None, remote: str, problems: list[str]) -> None:
+    """Each file has one writer and only grows, so a copy each way never conflicts."""
+    if not rclone:
+        problems.append("rclone not found; conversations stay on this device")
+        return
+    if remote.endswith(":"):
+        names = subprocess.run([rclone, "listremotes"], capture_output=True, text=True).stdout.split()
+        if remote not in names:
+            problems.append(f"rclone remote {remote} is not set up; conversations stay on this device")
+            return
+    local, dest, own = str(vault / ".depth" / "conversations"), remote + "conversations", f"**/*_{host}.jsonl"
+    steps = [["copy", local, dest, "--include", own]]
+    if mode == "start":
+        steps.append(["copy", dest, local, "--exclude", own])
+    for args in steps:
+        r = subprocess.run([rclone, *args, "--contimeout", "10s", "--timeout", "60s"], capture_output=True, text=True)
+        if r.returncode:
+            problems.append(f"rclone {args[0]} failed: {(r.stderr.strip().splitlines() or ['?'])[-1]}")
+
+
+def run(mode: str, claude: Path, vault: Path, state_dir: Path, host: str,
+        rclone: str | None = None, remote: str = "") -> str:
     """Capture and mirror; on start, return the problems to report."""
     if not vault.is_dir():
         return ""
@@ -240,6 +264,8 @@ def run(mode: str, claude: Path, vault: Path, state_dir: Path, host: str) -> str
         try:
             capture(claude, vault, state, host, problems)
             mirror(claude, vault, host)
+            if remote:
+                sync(mode, vault, host, rclone, remote, problems)
         except Exception as e:  # noqa: BLE001 — a hook must not break the session
             problems.append(f"{type(e).__name__}: {e}")
         state_file.write_text(json.dumps(state))
@@ -324,6 +350,24 @@ def self_test() -> None:
     assert "no entrypoint" in run("start", claude, vault, state, "h")
     assert run("start", claude, vault, state, "h") == ""
     assert run("end", claude, tmp / "missing", state, "h") == ""
+
+    rclone = os.environ.get("VAULT_RCLONE") or shutil.which("rclone")
+    if rclone:
+        os.environ["RCLONE_CONFIG"] = str(tmp / "rclone.conf")
+        remote = tmp / "remote"
+        assert "not set up" in run("start", claude, vault, state, "h", rclone, "nowhere:")
+        run("end", claude, vault, state, "h", rclone, f"{remote}/")
+        uploaded = remote / "conversations" / "2026" / "10" / files[0].name
+        assert uploaded.read_text() == files[0].read_text()
+        other = remote / "conversations" / "2026" / "10" / "08_g.jsonl"
+        other.write_text("{}\n")
+        uploaded.write_text("stale\n")
+        assert run("start", claude, vault, state, "h", rclone, f"{remote}/") == ""
+        assert (out / "08_g.jsonl").read_text() == "{}\n"
+        assert files[0].read_text().splitlines() == again
+        assert uploaded.read_text() == files[0].read_text()
+    else:
+        print("vault-capture: rclone not found, storage sync not tested")
     shutil.rmtree(tmp)
     print("vault-capture: self-test passed")
 
@@ -342,7 +386,9 @@ def main() -> None:
         Path(os.environ.get("CLAUDE_CONFIG_DIR") or home / ".claude"),
         Path(os.environ.get("VAULT_DIR") or home / "Repository/github.com/Hiro-mackay/vault"),
         Path(os.environ.get("XDG_STATE_HOME") or home / ".local/state") / "vault-capture",
-        socket.gethostname().split(".")[0].lower(),
+        os.environ.get("VAULT_HOST") or socket.gethostname().split(".")[0].lower(),
+        os.environ.get("VAULT_RCLONE") or shutil.which("rclone"),
+        os.environ.get("VAULT_REMOTE", "vault-depth:"),
     )
     if report:
         print("vault-capture reported problems since the last session:\n" + report)

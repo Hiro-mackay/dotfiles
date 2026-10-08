@@ -33,7 +33,20 @@ in
 
     # Marketplace plugins pinned through flake inputs, loaded as personal plugins.
     plugins = {
-      ponytail = inputs.ponytail;
+      # home-manager's mkPluginEntry symlinks each top-level source entry into the
+      # plugin store path individually, so hooks/ stays a symlink to the flake
+      # input's own store path. ponytail's manifest points "hooks" at an explicit
+      # file (./hooks/claude-codex-hooks.json); Claude Code resolves that through
+      # the symlink and rejects it as outside the plugin directory. codex and warp
+      # don't hit this because they rely on the default hooks/hooks.json location
+      # instead of naming a path. Copy the source and rename the hooks file to the
+      # default so ponytail resolves the same way.
+      ponytail = pkgs.runCommand "ponytail-plugin" { nativeBuildInputs = [ pkgs.jq ]; } ''
+        cp -r ${inputs.ponytail} $out
+        chmod -R u+w $out
+        mv $out/hooks/claude-codex-hooks.json $out/hooks/hooks.json
+        jq 'del(.hooks)' ${inputs.ponytail}/.claude-plugin/plugin.json > $out/.claude-plugin/plugin.json
+      '';
       codex = "${inputs.codex-plugin-cc}/plugins/codex";
       # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
       warp = "${inputs.claude-code-warp}/plugins/warp";

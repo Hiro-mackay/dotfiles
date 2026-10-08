@@ -56,5 +56,6 @@ in
   # servers are written in `settings` directly above; moving them to the dedicated
   # programs.codex options would make home-manager add keys here that this file misses.
   home.file.".codex/declared/config.toml".source =
-    (pkgs.formats.toml { }).generate "codex-declared-config.toml" config.programs.codex.settings;
+    (pkgs.formats.toml { }).generate "codex-declared-config.toml"
+      config.programs.codex.settings;
 }

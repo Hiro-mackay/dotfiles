@@ -32,21 +32,35 @@ let
     }
   ];
 
-  # Runs the vault's observer agent over yesterday's conversations. Only on a Mac
-  # that has the marker file: on the work Mac, Claude Code may run only in its
-  # sandbox, never on the host.
+  # Runs the vault's observer agent over the conversations of the days since its last
+  # run (up to two weeks back), after pulling the other devices' conversations, and
+  # mirrors its memory into the vault right after. Only on a Mac that has the marker
+  # file: on the work Mac, Claude Code may run only in its sandbox, never on the host.
+  # The prompt goes in on stdin because --add-dir takes every argument after it.
   observe = pkgs.writeShellScript "vault-observe" ''
     vault="''${VAULT_DIR:-$HOME/Repository/github.com/Hiro-mackay/vault}"
     [ -f "${config.xdg.configHome}/vault/observer" ] && [ -d "$vault/.depth/conversations" ] || exit 0
     state="${config.xdg.stateHome}/vault-capture"
     mkdir -p "$state" "$HOME/.claude/agent-memory"
-    day=$(/bin/date -v-1d +%Y/%m/%d)
     cd "$vault" || exit 0
-    ${claude}/bin/claude -p --agent observer --permission-mode acceptEdits \
-      --add-dir "$HOME/.claude/agent-memory" \
-      "Read .depth/conversations/''${day}_*.jsonl and update your memory." \
-      >>"$state/observer.log" 2>&1 ||
-      echo "$(/bin/date +%FT%T) observer exited with $?" >>"$state/errors.log"
+    ${capture} pull >>"$state/observer.log" 2>&1
+    last=$(cat "$state/observer-last" 2>/dev/null)
+    files=""
+    for i in $(seq 14 -1 1); do
+      day=$(/bin/date -v-''${i}d +%Y/%m/%d)
+      [ -n "$last" ] && [ ! "$day" \> "$last" ] && continue
+      for f in .depth/conversations/''${day}_*.jsonl; do
+        [ -f "$f" ] && files="$files $f"
+      done
+    done
+    if [ -n "$files" ]; then
+      echo "Read these conversation records and update your memory:$files" |
+        ${claude}/bin/claude -p --agent observer --permission-mode acceptEdits \
+          --add-dir "$HOME/.claude/agent-memory" >>"$state/observer.log" 2>&1 ||
+        { rc=$?; echo "$(/bin/date +%FT%T) observer exited with $rc" >>"$state/errors.log"; exit 0; }
+      ${capture} end >>"$state/observer.log" 2>&1
+    fi
+    /bin/date -v-1d +%Y/%m/%d >"$state/observer-last"
   '';
 in
 {

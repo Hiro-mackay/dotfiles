@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-# Focus the tab labelled "shell", creating it on first use.
-set -euo pipefail
-id=$(herdr tab list | jq -r '.result.tabs[] | select(.label == "shell") | .tab_id' | head -n1)
-if [[ -n $id ]]; then
-  herdr tab focus "$id" >/dev/null
-else
-  herdr tab create --label shell --focus >/dev/null
-fi

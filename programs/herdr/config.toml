@@ -2,6 +2,9 @@
 # ~/.dotfiles, so script paths go through $HOME/.dotfiles rather than the store.
 # Nobody presses F12: Ghostty turns ⌘-keys into F12 + key (programs/ghostty/config).
 
+# herdr saves the onboarding choice into this file, which is read-only here.
+onboarding = false
+
 [keys]
 prefix = "f12"
 focus_agent = "prefix+1..9"

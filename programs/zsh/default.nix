@@ -131,4 +131,7 @@ in
     enable = true;
     enableZshIntegration = false;
   };
+  # A plain file rather than programs.starship.settings: the kingston sandbox links it
+  # from ~/.dotfiles, as it cannot read home-manager's output.
+  xdg.configFile."starship.toml".source = ./starship.toml;
 }

@@ -1,34 +1,42 @@
 # Read on the Mac through home-manager and, by a sandbox, straight from
 # ~/.dotfiles, so script paths go through $HOME/.dotfiles rather than the store.
-# Nobody presses F12: Ghostty turns ⌘-keys into F12 + key (programs/ghostty/config).
+# Ghostty turns ⌘-keys into Alt-keys (programs/ghostty/config), bound here directly:
+# a prefix sent in the same write as its key loses the key. The prefix moves to F12,
+# out of the way of Ctrl-B in shells and Claude Code.
 
 # herdr saves the onboarding choice into this file, which is read-only here.
 onboarding = false
 
 [keys]
 prefix = "f12"
-focus_agent = "prefix+1..9"
-switch_tab = "prefix+alt+1..9"
-next_agent = "prefix+period"
-previous_agent = "prefix+comma"
-last_pane = "prefix+i"
+switch_tab = "alt+1..9"
+next_agent = "alt+j"
+previous_agent = "alt+k"
+last_pane = "alt+semicolon"
+next_workspace = "alt+w"
+previous_workspace = "alt+q"
+open_notification_target = "alt+o"
+split_vertical = "alt+v"
+close_pane = "alt+x"
+focus_pane_left = "alt+h"
+focus_pane_right = "alt+l"
 
 [[keys.command]]
-key = "prefix+a"
+key = "alt+n"
 type = "popup"
 command = "$HOME/.dotfiles/programs/herdr/bin/herdr-new-claude"
-description = "new claude session"
+description = "new claude"
 width = "70%"
 height = 5
 
 [[keys.command]]
-key = "prefix+t"
+key = "alt+t"
 type = "shell"
-command = "$HOME/.dotfiles/programs/herdr/bin/herdr-shell-tab"
-description = "focus shell tab"
+command = "$HOME/.dotfiles/programs/herdr/bin/herdr-new-shell"
+description = "new shell"
 
 [[keys.command]]
-key = "prefix+backtick"
+key = "alt+s"
 type = "popup"
 command = "exec \"${SHELL:-sh}\""
 description = "scratch shell"
@@ -36,7 +44,7 @@ width = "80%"
 height = "80%"
 
 [[keys.command]]
-key = "prefix+d"
+key = "alt+y"
 type = "popup"
 command = "cd \"${HERDR_ACTIVE_PANE_CWD:-$HOME}\" && lazygit"
 description = "lazygit"
@@ -44,8 +52,14 @@ width = "90%"
 height = "90%"
 
 [ui]
-# "priority" reorders rows by state, which would move what ⌘1..9 points at.
+prompt_new_tab_name = false
+confirm_close = false
+# "priority" reorders rows by state, so ⌘⇧↑ and ⌘⇧↓ would walk a list that moves.
 agent_panel_sort = "spaces"
 
 [ui.toast]
 delivery = "system"
+
+# Claude titles its terminal after the conversation; $dir comes from herdr-new-claude.
+[ui.sidebar.agents]
+rows = [["state_icon", "terminal_title_stripped"], ["$dir"]]

@@ -1,0 +1,24 @@
+# Warp-like: one line of context above an empty input line. Shared by the Mac
+# (home-manager) and the kingston sandbox (which links it from ~/.dotfiles).
+add_newline = false
+format = "$directory$git_branch$git_status$status$cmd_duration$line_break"
+
+[directory]
+truncate_to_repo = true
+truncation_length = 4
+style = "blue"
+
+[git_branch]
+format = "[$branch]($style) "
+style = "purple"
+
+[git_status]
+style = "yellow"
+
+[status]
+disabled = false
+format = "[✗ $status]($style) "
+
+[cmd_duration]
+format = "[$duration]($style) "
+style = "dimmed white"

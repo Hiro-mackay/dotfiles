@@ -61,6 +61,9 @@ agent_panel_sort = "spaces"
 [ui.toast]
 delivery = "system"
 
+[ui.sound]
+enabled = false
+
 # Claude titles its terminal after the conversation; $dir comes from herdr-new-claude.
 [ui.sidebar.agents]
 rows = [["state_icon", "terminal_title_stripped"], ["$dir"]]

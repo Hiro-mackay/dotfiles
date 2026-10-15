@@ -1,20 +1,23 @@
 # Read on the Mac through home-manager and, by a sandbox, straight from
 # ~/.dotfiles, so script paths go through $HOME/.dotfiles rather than the store.
-# Nobody presses F12: Ghostty turns ⌘-keys into F12 + key (programs/ghostty/config).
+# Ghostty turns ⌘-keys into Alt-keys (programs/ghostty/config), bound here directly:
+# a prefix sent in the same write as its key loses the key. The prefix moves to F12,
+# out of the way of Ctrl-B in shells and Claude Code.
 
 # herdr saves the onboarding choice into this file, which is read-only here.
 onboarding = false
 
 [keys]
 prefix = "f12"
-focus_agent = "prefix+1..9"
-switch_tab = "prefix+alt+1..9"
-next_agent = "prefix+period"
-previous_agent = "prefix+comma"
-last_pane = "prefix+i"
+focus_agent = "alt+1..9"
+next_agent = "alt+period"
+previous_agent = "alt+comma"
+last_pane = "alt+semicolon"
+goto = "alt+g"
+open_notification_target = "alt+o"
 
 [[keys.command]]
-key = "prefix+a"
+key = "alt+n"
 type = "popup"
 command = "$HOME/.dotfiles/programs/herdr/bin/herdr-new-claude"
 description = "new claude session"
@@ -22,13 +25,13 @@ width = "70%"
 height = 5
 
 [[keys.command]]
-key = "prefix+t"
+key = "alt+t"
 type = "shell"
 command = "$HOME/.dotfiles/programs/herdr/bin/herdr-shell-tab"
 description = "focus shell tab"
 
 [[keys.command]]
-key = "prefix+backtick"
+key = "alt+backtick"
 type = "popup"
 command = "exec \"${SHELL:-sh}\""
 description = "scratch shell"
@@ -36,7 +39,7 @@ width = "80%"
 height = "80%"
 
 [[keys.command]]
-key = "prefix+d"
+key = "alt+d"
 type = "popup"
 command = "cd \"${HERDR_ACTIVE_PANE_CWD:-$HOME}\" && lazygit"
 description = "lazygit"

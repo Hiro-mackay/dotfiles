@@ -1,6 +1,8 @@
 # ⌘-keys drive herdr (programs/herdr): each sends the Alt-key that herdr binds to the
 # action, as ESC + key, the encoding every terminal parser reads as one Alt-key.
 keybind = super+n=text:\x1bn
+keybind = super+p=text:\x1bp
+keybind = super+b=text:\x1bb
 keybind = super+t=text:\x1bt
 keybind = super+o=text:\x1bo
 keybind = super+d=text:\x1bv
@@ -24,6 +26,9 @@ keybind = super+digit_7=text:\x1b7
 keybind = super+digit_8=text:\x1b8
 keybind = super+digit_9=text:\x1b9
 
+# `claude attach` never asks for the kitty keyboard protocol, so Shift+Enter would
+# arrive as a plain Enter and submit; LF is the newline key Claude Code reads.
+keybind = shift+enter=text:\n
 
 # Look: a near-neutral, faintly cool gray ramp carries the hierarchy by lightness;
 # hue is kept for meaning only. Colors are set in OKLCH at one lightness and chroma

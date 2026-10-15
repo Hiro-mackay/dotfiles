@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Open a tab in the workspace labelled $1, creating the workspace on first use,
-# focus it and print its pane ID. $2 is the tab's directory, $3 an optional label.
+# focus it and print its pane ID. $2 is the tab's directory, $3 an optional label;
+# --no-focus as $4 leaves the focus where it is.
 set -euo pipefail
-ws_label=$1 cwd=$2 tab_label=${3:-}
+ws_label=$1 cwd=$2 tab_label=${3:-} focus=${4:---focus}
 ws=$(herdr workspace list | jq -r --arg l "$ws_label" 'first(.result.workspaces[] | select(.label == $l) | .workspace_id) // empty')
 if [[ -z $ws ]]; then
-  out=$(herdr workspace create --label "$ws_label" --cwd "$cwd" --focus)
+  out=$(herdr workspace create --label "$ws_label" --cwd "$cwd" "$focus")
   [[ -z $tab_label ]] || herdr tab rename "$(jq -r '.result.tab.tab_id' <<<"$out")" "$tab_label" >/dev/null
 else
-  args=(--workspace "$ws" --cwd "$cwd" --focus)
+  args=(--workspace "$ws" --cwd "$cwd" "$focus")
   [[ -z $tab_label ]] || args+=(--label "$tab_label")
   out=$(herdr tab create "${args[@]}")
 fi

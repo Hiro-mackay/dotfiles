@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Open the background Claude session $1 in a new tab of the "claude" workspace and
+# print the pane ID. Pass --no-focus as $2 to open it behind the current tab.
+set -euo pipefail
+id=$1 focus=${2:---focus}
+here=$(dirname "$0")
+s=$(claude agents --json --all | jq -c --arg i "$id" 'first(.[] | select(.id == $i)) // empty')
+[[ -n $s ]] || { echo "no Claude session $id" >&2; exit 1; }
+cwd=$(jq -r '.cwd // empty' <<<"$s") name=$(jq -r '.name // empty' <<<"$s")
+repo=${cwd%%/.claude/worktrees/*}
+pane=$("$here/herdr-workspace-tab" claude "${cwd:-$HOME}" "${name:0:24}" "$focus")
+# Tagged before the tab starts, so herdr-claude-sync never opens the session twice.
+herdr pane report-metadata "$pane" --source herdr-claude-tab --token "session=$id" --token "dir=${repo##*/}" >/dev/null
+herdr pane run "$pane" "HERDR_AGENT=claude ${HERDR_CLAUDE_DETACH_AFTER:+HERDR_CLAUDE_DETACH_AFTER=$HERDR_CLAUDE_DETACH_AFTER }exec $here/herdr-claude-tab $id" >/dev/null
+printf '%s\n' "$pane"

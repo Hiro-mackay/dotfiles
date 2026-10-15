@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# ⌘W: in a Claude session tab, detach from the session (herdr-claude-tab) and leave it
+# to Claude; anywhere else, close the pane.
+set -euo pipefail
+pane=${HERDR_ACTIVE_PANE_ID:?}
+if herdr agent list | jq -e --arg p "$pane" 'any(.result.agents[]; .pane_id == $p and .tokens.session)' >/dev/null; then
+  touch "${TMPDIR:-/tmp}/herdr-claude-tab.$pane.detach"
+else
+  herdr pane close "$pane" >/dev/null
+fi

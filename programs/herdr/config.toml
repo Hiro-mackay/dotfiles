@@ -16,8 +16,8 @@ last_pane = "alt+semicolon"
 next_workspace = "alt+w"
 previous_workspace = "alt+q"
 open_notification_target = "alt+o"
+toggle_sidebar = "alt+b"
 split_vertical = "alt+v"
-close_pane = "alt+x"
 focus_pane_left = "alt+h"
 focus_pane_right = "alt+l"
 
@@ -28,6 +28,20 @@ command = "$HOME/.dotfiles/programs/herdr/bin/herdr-new-claude"
 description = "new claude"
 width = "70%"
 height = 5
+
+[[keys.command]]
+key = "alt+p"
+type = "popup"
+command = "$HOME/.dotfiles/programs/herdr/bin/herdr-claude-pick"
+description = "claude sessions"
+width = "90%"
+height = "70%"
+
+[[keys.command]]
+key = "alt+x"
+type = "shell"
+command = "$HOME/.dotfiles/programs/herdr/bin/herdr-close"
+description = "close pane, or detach from a Claude session"
 
 [[keys.command]]
 key = "alt+t"
@@ -54,8 +68,8 @@ height = "90%"
 [ui]
 prompt_new_tab_name = false
 confirm_close = false
-# "priority" reorders rows by state, so ⌘⇧↑ and ⌘⇧↓ would walk a list that moves.
-agent_panel_sort = "spaces"
+# What needs you first, as ⌘P groups them; ⌘⇧↓ walks the same order.
+agent_panel_sort = "priority"
 
 [ui.toast]
 delivery = "system"

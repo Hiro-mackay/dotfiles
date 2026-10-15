@@ -205,7 +205,8 @@ SHEET
     k              kubectl
 
   DOTFILES
-    dotup          pull dotfiles, apply them, upgrade mise tools
+    dotup          pull dotfiles, apply them, upgrade brew and mise tools
+    dotup -nu      same, without the upgrades (--no-upgrade)
     ssh-setup      add an SSH host and its key interactively
     gh-setup       set up a GitHub account (asks which one)
 

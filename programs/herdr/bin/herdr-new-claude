@@ -24,6 +24,6 @@ cd "$cwd" || fail "cannot enter $cwd"
 args=()
 [[ -z $prompt ]] || args+=("$prompt")
 out=$(claude --bg ${args[@]+"${args[@]}"} 2>&1) || fail "claude --bg failed: $out"
-id=$(sed -n 's/^backgrounded · \([0-9a-f]*\) · .*/\1/p' <<<"$out")
+id=$(sed -n 's/^backgrounded · \([0-9a-f]*\).*/\1/p' <<<"$out")
 [[ -n $id ]] || fail "claude --bg printed no session id: $out"
 "$(dirname "$0")/herdr-claude-open" "$id" >/dev/null || fail "opening a tab for $id failed"

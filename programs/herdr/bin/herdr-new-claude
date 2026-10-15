@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Prompt for a task and start Claude on it in a new tab. "name: task" starts it in
+# the directory mapped to name in ~/.config/herdr/claude-dirs (name=path per line);
+# otherwise it starts in the focused pane's directory. "name:" alone starts Claude with no task.
+set -euo pipefail
+dirs_file=${XDG_CONFIG_HOME:-$HOME/.config}/herdr/claude-dirs
+log=${XDG_STATE_HOME:-$HOME/.local/state}/herdr/new-claude.log
+# The popup closes when this script exits, so hold it open long enough to read why.
+fail() {
+  printf '%s\n' "$1" >&2
+  read -r -s -n 1 -p '(press a key)' || true
+  exit 1
+}
+read -e -r -p 'new claude> ' input
+[[ -n $input ]] || exit 0
+cwd=${HERDR_ACTIVE_PANE_CWD:-$HOME} tag="" prompt=$input
+if [[ $input =~ ^([a-z0-9_-]+):[[:space:]]*(.*)$ && -r $dirs_file ]]; then
+  dir=$(awk -F= -v k="${BASH_REMATCH[1]}" '$1 == k { print substr($0, length(k) + 2); exit }' "$dirs_file")
+  if [[ -n $dir ]]; then
+    cwd=${dir/#\~/$HOME} tag="${BASH_REMATCH[1]}:" prompt=${BASH_REMATCH[2]}
+  fi
+fi
+mkdir -p "${log%/*}"
+# stderr goes straight to the popup; only stdout is the JSON reply.
+out=$(herdr tab create --cwd "$cwd" --label "$tag${prompt:0:20}" --focus) || fail "tab create failed"
+pane=$(jq -r '.result.root_pane.pane_id // empty' <<<"$out" 2>/dev/null) || true
+[[ -n $pane ]] || fail "tab create returned no pane: $out"
+# Detached: herdr closes the popup, and its processes, as soon as this script exits.
+# macOS has no setsid; nohup keeps the hangup from reaching the job there.
+start=(herdr agent start "c$(date +%H%M%S)" --kind claude --pane "$pane")
+[[ -z $prompt ]] || start+=(-- "$prompt")
+if command -v setsid >/dev/null; then
+  setsid -f "${start[@]}" >>"$log" 2>&1
+else
+  nohup "${start[@]}" >>"$log" 2>&1 &
+fi

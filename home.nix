@@ -19,6 +19,8 @@
     ./programs/codex
     ./programs/vscode
     ./programs/hammerspoon
+    ./programs/ghostty
+    ./programs/herdr
   ];
 
   # No option manuals (home-manager-help, man home-configuration.nix): they slow

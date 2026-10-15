@@ -1,0 +1,48 @@
+# Read on the Mac through home-manager and, by a sandbox, straight from
+# ~/.dotfiles, so script paths go through $HOME/.dotfiles rather than the store.
+# Nobody presses F12: Ghostty turns ⌘-keys into F12 + key (programs/ghostty/config).
+
+[keys]
+prefix = "f12"
+focus_agent = "prefix+1..9"
+switch_tab = "prefix+alt+1..9"
+next_agent = "prefix+period"
+previous_agent = "prefix+comma"
+last_pane = "prefix+i"
+
+[[keys.command]]
+key = "prefix+a"
+type = "popup"
+command = "$HOME/.dotfiles/programs/herdr/bin/herdr-new-claude"
+description = "new claude session"
+width = "70%"
+height = 5
+
+[[keys.command]]
+key = "prefix+t"
+type = "shell"
+command = "$HOME/.dotfiles/programs/herdr/bin/herdr-shell-tab"
+description = "focus shell tab"
+
+[[keys.command]]
+key = "prefix+backtick"
+type = "popup"
+command = "exec \"${SHELL:-sh}\""
+description = "scratch shell"
+width = "80%"
+height = "80%"
+
+[[keys.command]]
+key = "prefix+d"
+type = "popup"
+command = "cd \"${HERDR_ACTIVE_PANE_CWD:-$HOME}\" && lazygit"
+description = "lazygit"
+width = "90%"
+height = "90%"
+
+[ui]
+# "priority" reorders rows by state, which would move what ⌘1..9 points at.
+agent_panel_sort = "spaces"
+
+[ui.toast]
+delivery = "system"

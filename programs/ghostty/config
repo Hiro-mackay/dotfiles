@@ -1,0 +1,20 @@
+# ⌘-keys drive herdr (programs/herdr): each sends herdr's prefix, F12, then the
+# action's key, so nothing has to be typed after a prefix by hand.
+keybind = super+n=text:\x1b[24~a
+keybind = super+t=text:\x1b[24~t
+keybind = super+o=text:\x1b[24~o
+keybind = super+g=text:\x1b[24~g
+keybind = super+d=text:\x1b[24~d
+keybind = super+grave_accent=text:\x1b[24~`
+keybind = super+bracket_right=text:\x1b[24~.
+keybind = super+bracket_left=text:\x1b[24~,
+keybind = super+semicolon=text:\x1b[24~i
+keybind = super+digit_1=text:\x1b[24~1
+keybind = super+digit_2=text:\x1b[24~2
+keybind = super+digit_3=text:\x1b[24~3
+keybind = super+digit_4=text:\x1b[24~4
+keybind = super+digit_5=text:\x1b[24~5
+keybind = super+digit_6=text:\x1b[24~6
+keybind = super+digit_7=text:\x1b[24~7
+keybind = super+digit_8=text:\x1b[24~8
+keybind = super+digit_9=text:\x1b[24~9

@@ -31,7 +31,7 @@ reset_terminal() {
 drain_input() { while read -r -s -t 0.05 -n 256 _; do :; done; }
 
 idle_screen() {
-  local rows cols hint='idle · press enter to resume'
+  local rows cols hint='idle · press enter to resume · ⌘W twice to delete'
   rows=$(tput lines 2>/dev/null || echo 24) cols=$(tput cols 2>/dev/null || echo 80)
   clear
   printf '\033[%d;1H' $((rows / 2 - 1))

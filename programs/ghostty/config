@@ -23,3 +23,7 @@ keybind = super+digit_6=text:\x1b6
 keybind = super+digit_7=text:\x1b7
 keybind = super+digit_8=text:\x1b8
 keybind = super+digit_9=text:\x1b9
+
+# `claude attach` never asks for the kitty keyboard protocol, so Shift+Enter would
+# arrive as a plain Enter and submit; LF is the newline key Claude Code reads.
+keybind = shift+enter=text:\n

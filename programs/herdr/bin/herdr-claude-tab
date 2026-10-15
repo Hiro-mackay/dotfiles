@@ -35,8 +35,8 @@ idle_screen() {
   rows=$(tput lines 2>/dev/null || echo 24) cols=$(tput cols 2>/dev/null || echo 80)
   clear
   printf '\033[%d;1H' $((rows / 2 - 1))
-  printf '%*s\033[38;2;205;214;244m%s\033[0m\n\n' $(((cols - ${#1}) / 2)) '' "$1"
-  printf '%*s\033[38;2;108;112;134m%s\033[0m\n' $(((cols - ${#hint}) / 2)) '' "$hint"
+  printf '%*s\033[38;2;255;255;255m%s\033[0m\n\n' $(((cols - ${#1}) / 2)) '' "$1"
+  printf '%*s\033[38;2;142;142;142m%s\033[0m\n' $(((cols - ${#hint}) / 2)) '' "$hint"
 }
 
 # Runs beside the attached client and ends it when the session may sleep.

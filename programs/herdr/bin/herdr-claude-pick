@@ -8,7 +8,7 @@ mark=${TMPDIR:-/tmp}/herdr-claude-pick.rm
 note=${TMPDIR:-/tmp}/herdr-claude-pick.note
 cursor=${TMPDIR:-/tmp}/herdr-claude-pick.cursor
 c() { printf '\033[38;2;%sm%s\033[0m' "$1" "$2"; }
-dim=108\;112\;134
+dim=142\;142\;142
 
 if command -v tac >/dev/null; then reverse=(tac); else reverse=(tail -r); fi
 
@@ -35,15 +35,15 @@ case ${1:-} in
     done | sort -t $'\x1f' -k1,1n -s |
     while IFS=$'\x1f' read -r rank st id sid cwd name; do
       case $st in
-        blocked) icon=$(c 249\;226\;175 ◐) group='Needs input' ;;
-        working) icon=$(c 166\;227\;161 ●) group=Working ;;
-        failed) icon=$(c 243\;139\;168 ✗) group=Completed ;;
+        blocked) icon=$(c 254\;253\;194 ◐) group='Needs input' ;;
+        working) icon=$(c 180\;250\;114 ●) group=Working ;;
+        failed) icon=$(c 255\;130\;114 ✗) group=Completed ;;
         sleeping) icon=$(c "$dim" ∙) group=Completed ;;
         *) icon=✻ group=Completed ;;
       esac
       if [[ $group != "${last:-}" ]]; then
         [[ -z ${last:-} ]] || printf -- '-\t \n'
-        printf -- '-\t %s\n' "$(c 166\;173\;200 "$group")"
+        printf -- '-\t %s\n' "$(c "$dim" "$group")"
       fi
       last=$group
       reply=$(last_reply "$sid" "$cwd")
@@ -53,7 +53,7 @@ case ${1:-} in
       ((pad > 0)) || pad=1
       repo=${cwd%%/.claude/worktrees/*}
       repo=${repo##*/}
-      printf '%s\t %s %s%*s%s  %s\n' "$id" "$icon" "$name" "$pad" '' "$(c 166\;173\;200 "$(printf '%-16s' "$repo")")" "$(c "$dim" "$summary")"
+      printf '%s\t %s %s%*s%s  %s\n' "$id" "$icon" "$name" "$pad" '' "$(c 189\;189\;189 "$(printf '%-16s' "$repo")")" "$(c "$dim" "$summary")"
     done
   exit ;;
 --rm)
@@ -82,7 +82,7 @@ esac
 rm -f "$mark" "$note" "$cursor"
 picked=$("$self" --list | fzf --ansi --delimiter '\t' --with-nth 2 --no-sort --layout reverse \
   --prompt '› ' --pointer '▌' --info inline-right --no-scrollbar --highlight-line --header "$("$self" --header)" \
-  --color 'fg:#cdd6f4,fg+:#cdd6f4,bg+:#313244,hl:#cba6f7,hl+:#cba6f7,prompt:#cba6f7,pointer:#cba6f7,header:#6c7086,info:#6c7086,border:#45475a,gutter:-1' \
+  --color 'fg:#ffffff,fg+:#ffffff,bg+:#1f1f1f,hl:#00c2ff,hl+:#00c2ff,prompt:#00c2ff,pointer:#00c2ff,header:#8e8e8e,info:#8e8e8e,border:#1f1f1f,gutter:-1' \
   --bind 'load:pos(2)' \
   --bind "focus:transform($self --skip {n} {1})" \
   --bind 'enter:transform:[[ {1} == - ]] || echo accept' \

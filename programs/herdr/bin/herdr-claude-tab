@@ -60,6 +60,8 @@ set_title() { printf '\033]2;%s\007' "$(jq -r '.name // .id' <<<"$1")"; }
 # Attaching wakes a sleeping session, so only a deleted one ends the loop here.
 while s=$(session) && [[ -n $s ]]; do
   set_title "$s"
+  # A ⌘W pressed while already detached must not detach the next attach.
+  rm -f "$detach_flag"
   watch_attached $$ &
   watcher=$!
   claude attach "$id"

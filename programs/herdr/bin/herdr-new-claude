@@ -5,33 +5,25 @@
 # alone starts Claude with no task.
 set -euo pipefail
 dirs_file=${XDG_CONFIG_HOME:-$HOME/.config}/herdr/claude-dirs
-log=${XDG_STATE_HOME:-$HOME/.local/state}/herdr/new-claude.log
 # The popup closes when this script exits, so hold it open long enough to read why.
 fail() {
   printf '%s\n' "$1" >&2
   read -r -s -n 1 -p '(press a key)' || true
   exit 1
 }
-read -e -r -p 'claude > ' input
+read -e -r -p 'claude › ' input
 [[ -n $input ]] || exit 0
-cwd=${HERDR_ACTIVE_PANE_CWD:-$HOME} tag="" prompt=$input
+cwd=${HERDR_ACTIVE_PANE_CWD:-$HOME} prompt=$input
 if [[ $input =~ ^([a-z0-9_-]+):[[:space:]]*(.*)$ && -r $dirs_file ]]; then
   dir=$(awk -F= -v k="${BASH_REMATCH[1]}" '$1 == k { print substr($0, length(k) + 2); exit }' "$dirs_file")
   if [[ -n $dir ]]; then
-    cwd=${dir/#\~/$HOME} tag="${BASH_REMATCH[1]}:" prompt=${BASH_REMATCH[2]}
+    cwd=${dir/#\~/$HOME} prompt=${BASH_REMATCH[2]}
   fi
 fi
-mkdir -p "${log%/*}"
-# stderr goes straight to the popup.
-pane=$("$(dirname "$0")/herdr-workspace-tab" claude "$cwd" "$tag${prompt:0:20}") || fail "opening a tab failed"
-[[ -n $pane ]] || fail "opening a tab returned no pane"
-herdr pane report-metadata "$pane" --source herdr-new-claude --token "dir=${cwd##*/}" >/dev/null 2>&1 || true
-# Detached: herdr closes the popup, and its processes, as soon as this script exits.
-# macOS has no setsid; nohup keeps the hangup from reaching the job there.
-start=(herdr agent start "c$(date +%H%M%S)" --kind claude --pane "$pane")
-[[ -z $prompt ]] || start+=(-- "$prompt")
-if command -v setsid >/dev/null; then
-  setsid -f "${start[@]}" >>"$log" 2>&1
-else
-  nohup "${start[@]}" >>"$log" 2>&1 &
-fi
+cd "$cwd" || fail "cannot enter $cwd"
+args=()
+[[ -z $prompt ]] || args+=("$prompt")
+out=$(claude --bg ${args[@]+"${args[@]}"} 2>&1) || fail "claude --bg failed: $out"
+id=$(sed -n 's/^backgrounded · \([0-9a-f]*\).*/\1/p' <<<"$out")
+[[ -n $id ]] || fail "claude --bg printed no session id: $out"
+"$(dirname "$0")/herdr-claude-open" "$id" >/dev/null || fail "opening a tab for $id failed"

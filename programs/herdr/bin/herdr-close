@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# ⌘W: in a Claude session tab, detach from the session (herdr-claude-tab) and leave it
+# to Claude; pressed again within two seconds, delete the session, as Ctrl+X twice
+# does in agent view. Anywhere else, close the pane.
+set -euo pipefail
+pane=${HERDR_ACTIVE_PANE_ID:?}
+mark=${TMPDIR:-/tmp}/herdr-close.$pane
+id=$(herdr agent list | jq -r --arg p "$pane" 'first(.result.agents[] | select(.pane_id == $p) | .tokens.session // empty) // empty')
+if [[ -z $id ]]; then
+  herdr pane close "$pane" >/dev/null
+elif [[ -f $mark && $(($(date +%s) - $(stat -c %Y "$mark" 2>/dev/null || stat -f %m "$mark"))) -le 2 ]]; then
+  rm -f "$mark"
+  out=$(claude rm "$id" 2>&1) || herdr notification show "not deleted" --body "$out" >/dev/null
+else
+  touch "$mark" "${TMPDIR:-/tmp}/herdr-claude-tab.$pane.detach"
+  herdr notification show "press ⌘W again to delete" --body "$(claude agents --json --all | jq -r --arg i "$id" 'first(.[] | select(.id == $i) | .name // .id) // $i')" >/dev/null
+fi

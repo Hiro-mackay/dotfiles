@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# Keep the background Claude session $1 in this pane for as long as its process runs.
+# It stays attached while Claude works, waits on you, or the pane is in view. Once it
+# is done (or failed) and the pane has been out of view for HERDR_CLAUDE_DETACH_AFTER
+# seconds, or ⌘W asks for it, it detaches so Claude can put the session to sleep, as
+# it does with sessions nobody has open. When the process is gone the tab closes.
+# Started with HERDR_AGENT=claude, so herdr still lists the pane as Claude while
+# detached.
+set -uo pipefail
+id=$1
+pane=${HERDR_PANE_ID:?}
+detach_after=${HERDR_CLAUDE_DETACH_AFTER:-1800}
+detach_flag=${TMPDIR:-/tmp}/herdr-claude-tab.$pane.detach
+
+session() { claude agents --json --all 2>/dev/null | jq -c --arg i "$id" 'first(.[] | select(.id == $i)) // empty'; }
+running() {
+  local pid
+  pid=$(jq -r '.pid // empty' <<<"$1")
+  [[ -n $pid ]] && kill -0 "$pid" 2>/dev/null
+}
+in_view() { herdr pane get "$pane" 2>/dev/null | jq -e '.result.pane.focused' >/dev/null; }
+state() { jq -r '.state // empty' <<<"$1"; }
+
+# A killed attach client leaves its terminal modes on (mouse reporting, bracketed
+# paste, the alternate screen, a hidden cursor); turn them off before drawing.
+reset_terminal() {
+  printf '\033[?1000l\033[?1002l\033[?1003l\033[?1006l\033[?1015l\033[?2004l\033[?1049l\033[<u\033[?25h'
+  stty sane 2>/dev/null
+}
+# Drop keys and mouse reports typed while idle, so they do not reach Claude.
+drain_input() { while read -r -s -t 0.05 -n 256 _; do :; done; }
+
+idle_screen() {
+  local rows cols hint='idle · press enter to resume'
+  rows=$(tput lines 2>/dev/null || echo 24) cols=$(tput cols 2>/dev/null || echo 80)
+  clear
+  printf '\033[%d;1H' $((rows / 2 - 1))
+  printf '%*s\033[38;2;255;255;255m%s\033[0m\n\n' $(((cols - ${#1}) / 2)) '' "$1"
+  printf '%*s\033[38;2;142;142;142m%s\033[0m\n' $(((cols - ${#hint}) / 2)) '' "$hint"
+}
+
+# Runs beside the attached client and ends it when the session may sleep.
+watch_attached() {
+  local away=0 s
+  while sleep 5; do
+    if in_view; then away=0; else away=$((away + 5)); fi
+    s=$(session)
+    if [[ -f $detach_flag ]] || { [[ $(state "$s") =~ ^(done|failed)$ ]] && ((away >= detach_after)); }; then
+      rm -f "$detach_flag"
+      pkill -TERM -P "$1" -f "claude attach $id"
+      return
+    fi
+  done
+}
+
+# Claude titles the terminal only now and then, and not at all while detached; the
+# sidebar shows this title, so start from the session's name.
+set_title() { printf '\033]2;%s\007' "$(jq -r '.name // .id' <<<"$1")"; }
+
+# Attaching wakes a sleeping session, so only a deleted one ends the loop here.
+while s=$(session) && [[ -n $s ]]; do
+  set_title "$s"
+  # A ⌘W pressed while already detached must not detach the next attach.
+  rm -f "$detach_flag"
+  watch_attached $$ &
+  watcher=$!
+  claude attach "$id"
+  kill "$watcher" 2>/dev/null
+  s=$(session)
+  [[ -n $s ]] && running "$s" || break
+  reset_terminal
+  set_title "$s"
+  idle_screen "$(jq -r '.name // .id' <<<"$s")"
+  printf '\033[?25l'
+  # Only Enter, or the session starting work from elsewhere, brings Claude back.
+  was=$(state "$s")
+  while :; do
+    if read -r -s -t 5 _; then break; fi
+    s=$(session)
+    [[ -n $s ]] && running "$s" || break 2
+    now=$(state "$s")
+    [[ $now != "$was" && $now =~ ^(working|blocked)$ ]] && break
+    was=$now
+  done
+  drain_input
+  printf '\033[?25h'
+  clear
+done
+herdr pane close "$pane" >/dev/null 2>&1

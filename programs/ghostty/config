@@ -1,6 +1,8 @@
 # ⌘-keys drive herdr (programs/herdr): each sends the Alt-key that herdr binds to the
 # action, as ESC + key, the encoding every terminal parser reads as one Alt-key.
 keybind = super+n=text:\x1bn
+keybind = super+p=text:\x1bp
+keybind = super+b=text:\x1bb
 keybind = super+t=text:\x1bt
 keybind = super+o=text:\x1bo
 keybind = super+d=text:\x1bv

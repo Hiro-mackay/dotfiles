@@ -13,7 +13,9 @@ Credentials are redacted on the way in, and over-long texts are cut down.
 Nothing happens when the vault is missing. Problems are kept in the state
 directory and reported by the next SessionStart; the hook always exits 0.
 
-  vault-capture end|start|self-test
+  vault-capture end|start|pull|self-test
+
+`pull` downloads like `start` but leaves the problems for the next session.
 """
 
 from __future__ import annotations
@@ -241,7 +243,7 @@ def sync(mode: str, vault: Path, host: str, rclone: str | None, remote: str, pro
             return
     local, dest, own = str(vault / ".depth" / "conversations"), remote + "conversations", f"**/*_{host}.jsonl"
     steps = [["copy", local, dest, "--include", own]]
-    if mode == "start":
+    if mode in ("start", "pull"):
         steps.append(["copy", dest, local, "--exclude", own])
     for args in steps:
         r = subprocess.run([rclone, *args, "--contimeout", "10s", "--timeout", "60s"], capture_output=True, text=True)
@@ -366,6 +368,11 @@ def self_test() -> None:
         assert (out / "08_g.jsonl").read_text() == "{}\n"
         assert files[0].read_text().splitlines() == again
         assert uploaded.read_text() == files[0].read_text()
+        (remote / "conversations" / "2026" / "10" / "09_g.jsonl").write_text("{}\n")
+        assert run("pull", claude, vault, state, "h", rclone, f"{remote}/") == ""
+        assert (out / "09_g.jsonl").is_file()
+        assert run("pull", claude, vault, state, "h", rclone, "nowhere:") == ""
+        assert "not set up" in run("start", claude, vault, state, "h")
     else:
         print("vault-capture: rclone not found, storage sync not tested")
     shutil.rmtree(tmp)
@@ -377,8 +384,8 @@ def main() -> None:
     if mode == "self-test":
         self_test()
         return
-    if mode not in ("end", "start"):
-        sys.exit("usage: vault-capture end|start|self-test")
+    if mode not in ("end", "start", "pull"):
+        sys.exit("usage: vault-capture end|start|pull|self-test")
     sys.stdin.read() if not sys.stdin.isatty() else None
     home = Path.home()
     report = run(

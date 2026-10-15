@@ -30,6 +30,11 @@ keybind = super+digit_9=text:\x1b9
 # arrive as a plain Enter and submit; LF is the newline key Claude Code reads.
 keybind = shift+enter=text:\n
 
+# ⌘T belongs to herdr, so a Ghostty tab of its own takes ⌘⇧T, Ghostty's undo by
+# default. Only the first surface runs herdr (local/host/ghostty-work.conf in
+# kingston-sandbox), so this tab is a shell on the Mac.
+keybind = super+shift+t=new_tab
+
 # Look: a near-neutral, faintly cool gray ramp carries the hierarchy by lightness;
 # hue is kept for meaning only. Colors are set in OKLCH at one lightness and chroma
 # so none glares (normal L 0.70 C 0.07, bright L 0.80 C 0.06), the same scale as

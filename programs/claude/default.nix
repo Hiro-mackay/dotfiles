@@ -48,10 +48,28 @@ let
       >>"$state/observer.log" 2>&1 ||
       echo "$(/bin/date +%FT%T) observer exited with $?" >>"$state/errors.log"
   '';
+
+  # Syncs the vault's main branch with the script the vault carries, so every device
+  # runs the same one. On the work Mac the vault lives in the sandbox, so this finds
+  # nothing on the host and exits.
+  vaultSync = pkgs.writeShellScript "vault-sync" ''
+    vault="''${VAULT_DIR:-$HOME/Repository/github.com/Hiro-mackay/vault}"
+    [ -f "$vault/.claude/scripts/sync.py" ] || exit 0
+    export PATH="${pkgs.git}/bin:$PATH"
+    exec ${pkgs.python3}/bin/python3 "$vault/.claude/scripts/sync.py"
+  '';
 in
 {
   # The same rclone the capture hook runs, so `rclone config` sets up its remote.
   home.packages = [ pkgs.rclone ];
+
+  launchd.agents.vault-sync = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+    enable = true;
+    config = {
+      ProgramArguments = [ "${vaultSync}" ];
+      StartInterval = 3 * 60 * 60;
+    };
+  };
 
   launchd.agents.vault-observe = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
     enable = true;

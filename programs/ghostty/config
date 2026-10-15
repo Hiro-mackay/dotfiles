@@ -29,3 +29,35 @@ keybind = super+digit_9=text:\x1b9
 # `claude attach` never asks for the kitty keyboard protocol, so Shift+Enter would
 # arrive as a plain Enter and submit; LF is the newline key Claude Code reads.
 keybind = shift+enter=text:\n
+
+# Look: a near-neutral, faintly cool gray ramp carries the hierarchy by lightness;
+# hue is kept for meaning only. Colors are set in OKLCH at one lightness and chroma
+# so none glares (normal L 0.70 C 0.07, bright L 0.80 C 0.06), the same scale as
+# programs/herdr/config.toml. 13pt at about Warp's 1.2 line height, with room from
+# the window edge.
+font-size = 13
+adjust-cell-height = 20%
+window-padding-x = 16
+window-padding-y = 12
+window-padding-balance = true
+background = #111315
+foreground = #d5d8db
+cursor-color = #7fb2d6
+selection-background = #2e3134
+selection-foreground = #eceff1
+palette = 0=#2e3134
+palette = 1=#c68e88
+palette = 2=#7fab88
+palette = 3=#b29b6c
+palette = 4=#7aa3c8
+palette = 5=#b291ba
+palette = 6=#67acb0
+palette = 7=#bbbec1
+palette = 8=#a2a5a8
+palette = 9=#e2afaa
+palette = 10=#a3c9aa
+palette = 11=#d0bb92
+palette = 12=#9ec3e2
+palette = 13=#cfb2d6
+palette = 14=#90cacd
+palette = 15=#eceff1

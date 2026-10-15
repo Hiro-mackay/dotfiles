@@ -66,6 +66,7 @@ width = "90%"
 height = "90%"
 
 [ui]
+accent = "#7fb2d6"
 prompt_new_tab_name = false
 confirm_close = false
 # What needs you first, as ⌘P groups them; ⌘⇧↓ walks the same order.
@@ -74,6 +75,32 @@ agent_panel_sort = "priority"
 [ui.toast]
 delivery = "system"
 
+[ui.sound]
+enabled = false
+
 # Claude titles its terminal after the conversation; $dir comes from herdr-new-claude.
 [ui.sidebar.agents]
 rows = [["state_icon", "terminal_title_stripped"], ["$dir"]]
+
+# The gray ramp and muted hues of programs/ghostty/config: panels take the terminal's
+# own background, surfaces step up in lightness, and hue marks only focus and state.
+[theme.custom]
+panel_bg = "reset"
+sidebar_bg = "#171a1c"
+surface_dim = "#171a1c"
+surface0 = "#202326"
+surface1 = "#2e3134"
+active_row_bg = "#202326"
+selection_bg = "#202326"
+overlay0 = "#d6d8db"
+overlay1 = "#d6d8db"
+text = "#e5e8ec"
+subtext0 = "#d6d8db"
+accent = "#7fb2d6"
+mauve = "#7fb2d6"
+blue = "#7aa3c8"
+teal = "#67acb0"
+green = "#89b992"
+yellow = "#c1a874"
+red = "#d69993"
+peach = "#e2afaa"

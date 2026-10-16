@@ -13,5 +13,4 @@ elif [[ -f $mark && $(($(date +%s) - $(stat -c %Y "$mark" 2>/dev/null || stat -f
   out=$(claude rm "$id" 2>&1) || herdr notification show "not deleted" --body "$out" >/dev/null
 else
   touch "$mark" "${TMPDIR:-/tmp}/herdr-claude-tab.$pane.detach"
-  herdr notification show "press ⌘W again to delete" --body "$(claude agents --json --all | jq -r --arg i "$id" 'first(.[] | select(.id == $i) | .name // .id) // $i')" >/dev/null
 fi

@@ -106,7 +106,13 @@ in
   };
 
   programs.zoxide.enable = true;
-  programs.direnv.enable = true;
+  programs.direnv = {
+    enable = true;
+    # direnv prints only logs matching log_filter, so "^$" hides "loading"/"export"
+    # lines while errors such as ".envrc is blocked" still show. As of direnv 2.37.1
+    # DIRENV_LOG_FORMAT="" falls back to the default and DIRENV_LOG_FILTER is ignored.
+    config.global.log_filter = "^$";
+  };
 
   # Shell integration is loaded by rc.d/plugins.zsh, which skips it inside Warp.
   programs.fzf = {

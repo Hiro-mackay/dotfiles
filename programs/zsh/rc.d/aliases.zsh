@@ -25,6 +25,7 @@ alias howlong='fc -lDt "%Y-%m-%d %H:%M:%S" -1'
 # -----------------
 alias ccode="claude --permission-mode auto"
 alias ccconf="cd $DOTFILES_DIR/programs/claude"
+alias vsync="python3 ~/Repository/github.com/Hiro-mackay/vault/.claude/scripts/sync.py"
 
 # -----------------
 #  Codex

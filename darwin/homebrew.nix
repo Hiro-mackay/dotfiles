@@ -10,6 +10,7 @@ let
     visual-studio-code = "Visual Studio Code.app";
     google-chrome = "Google Chrome.app";
     obsidian = "Obsidian.app";
+    ghostty = "Ghostty.app";
     appcleaner = "AppCleaner.app";
     chatgpt = "ChatGPT.app";
     claude = "Claude.app";
@@ -47,6 +48,9 @@ in
       cleanup = "none";
     };
     taps = [ "docker/tap" ];
+    # herdr from Homebrew rather than nixpkgs: the pinned nixpkgs lags its releases, and
+    # dotup upgrades formulae.
+    brews = [ "herdr" ];
     casks = managed;
   };
 

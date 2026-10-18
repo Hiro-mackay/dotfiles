@@ -16,9 +16,12 @@ let
   settings = builtins.fromJSON (builtins.readFile ./settings.json);
   claude = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
 
-  # Copies conversations and memory into the vault's .depth/ (see vault-capture.py).
+  # Copies conversations and memory into the vault's .depth/, then syncs the vault and
+  # runs the daily agents in a detached run (see vault-capture.py). git and claude come
+  # from Nix so the hook does not depend on the PATH of whatever started Claude Code.
   capture = pkgs.writeShellScript "vault-capture" ''
-    export VAULT_RCLONE=${pkgs.rclone}/bin/rclone
+    export VAULT_RCLONE=${pkgs.rclone}/bin/rclone VAULT_CLAUDE=${claude}/bin/claude
+    export PATH="${pkgs.git}/bin:$PATH"
     exec ${pkgs.python3}/bin/python3 ${./vault-capture.py} "$@"
   '';
   hook = arg: [
@@ -27,44 +30,16 @@ let
         {
           type = "command";
           command = "${capture} ${arg}";
+          # SessionEnd hooks share a 1.5 s budget unless an entry sets a longer timeout.
+          timeout = 30;
         }
       ];
     }
   ];
-
-  # Runs the vault's observer agent over yesterday's conversations. Only on a Mac
-  # that has the marker file: on the work Mac, Claude Code may run only in its
-  # sandbox, never on the host.
-  observe = pkgs.writeShellScript "vault-observe" ''
-    vault="''${VAULT_DIR:-$HOME/Repository/github.com/Hiro-mackay/vault}"
-    [ -f "${config.xdg.configHome}/vault/observer" ] && [ -d "$vault/.depth/conversations" ] || exit 0
-    state="${config.xdg.stateHome}/vault-capture"
-    mkdir -p "$state" "$HOME/.claude/agent-memory"
-    day=$(/bin/date -v-1d +%Y/%m/%d)
-    cd "$vault" || exit 0
-    ${claude}/bin/claude -p --agent observer --permission-mode acceptEdits \
-      --add-dir "$HOME/.claude/agent-memory" \
-      "Read .depth/conversations/''${day}_*.jsonl and update your memory." \
-      >>"$state/observer.log" 2>&1 ||
-      echo "$(/bin/date +%FT%T) observer exited with $?" >>"$state/errors.log"
-  '';
 in
 {
   # The same rclone the capture hook runs, so `rclone config` sets up its remote.
   home.packages = [ pkgs.rclone ];
-
-  launchd.agents.vault-observe = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
-    enable = true;
-    config = {
-      ProgramArguments = [ "${observe}" ];
-      StartCalendarInterval = [
-        {
-          Hour = 5;
-          Minute = 0;
-        }
-      ];
-    };
-  };
 
   programs.claude-code = {
     enable = true;

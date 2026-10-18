@@ -1,6 +1,8 @@
 """Copy Claude Code conversations and memory into the vault's .depth/.
 
-Run by the SessionEnd and SessionStart hooks; no model is involved.
+Run by the SessionEnd and SessionStart hooks. The hook itself only does the
+local work and then hands the rest to a detached run, so it never holds up
+the session:
 
 - Conversations of interactive sessions become one JSON line per event,
   appended to .depth/conversations/YYYY/MM/DD_<host>.jsonl. These files live
@@ -9,9 +11,18 @@ Run by the SessionEnd and SessionStart hooks; no model is involved.
 - Every project's auto memory and every agent memory are mirrored to
   .depth/memory/<host>/.
 
+- The detached run (after-start / after-end) uploads this device's
+  conversations and, after a start, downloads the others'; syncs the vault's
+  git branch with the vault's own .claude/scripts/sync.py; and, at the first
+  start of the day, runs the daily agents (see daily()).
+
 Credentials are redacted on the way in, and over-long texts are cut down.
 Nothing happens when the vault is missing. Problems are kept in the state
 directory and reported by the next SessionStart; the hook always exits 0.
+Claude Code sessions started by the daily agents carry VAULT_CAPTURE_CHILD,
+and their hooks do nothing. A device with $XDG_CONFIG_HOME/vault/work is the
+work Mac: nothing leaves it through object storage, and the daily agents do
+not run there yet.
 
   vault-capture end|start|self-test
 """
@@ -28,6 +39,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 VERSION = 1
@@ -35,6 +47,9 @@ MAX_TEXT = 10_000
 KEEP_HEAD = 5_000
 KEEP_TAIL = 2_000
 TOOL_ARG = 200
+REPLY_TAIL = 600
+MAX_DAYS = 14
+AGENT_TIMEOUT = 1800
 FIELDS = ("v", "ts", "sid", "id", "parent", "host", "cwd", "branch", "type", "name", "text", "q", "model")
 
 SECRETS = [
@@ -249,8 +264,7 @@ def sync(mode: str, vault: Path, host: str, rclone: str | None, remote: str, pro
             problems.append(f"rclone {args[0]} failed: {(r.stderr.strip().splitlines() or ['?'])[-1]}")
 
 
-def run(mode: str, claude: Path, vault: Path, state_dir: Path, host: str,
-        rclone: str | None = None, remote: str = "") -> str:
+def run(mode: str, claude: Path, vault: Path, state_dir: Path, host: str) -> str:
     """Capture and mirror; on start, return the problems to report."""
     if not vault.is_dir():
         return ""
@@ -264,20 +278,151 @@ def run(mode: str, claude: Path, vault: Path, state_dir: Path, host: str,
         try:
             capture(claude, vault, state, host, problems)
             mirror(claude, vault, host)
-            if remote:
-                sync(mode, vault, host, rclone, remote, problems)
         except Exception as e:  # noqa: BLE001 — a hook must not break the session
             problems.append(f"{type(e).__name__}: {e}")
         state_file.write_text(json.dumps(state))
-        if problems:
-            stamp = datetime.datetime.now().isoformat(timespec="seconds")
-            with errors.open("a") as f:
-                f.writelines(f"{stamp} {p}\n" for p in problems)
+        log_problems(state_dir, problems)
         if mode == "start" and errors.is_file() and errors.stat().st_size:
             report = errors.read_text()
             errors.write_text("")
             return report
     return ""
+
+
+def log_problems(state_dir: Path, problems: list[str]) -> None:
+    if problems:
+        stamp = datetime.datetime.now().isoformat(timespec="seconds")
+        with (state_dir / "errors.log").open("a") as f:
+            f.writelines(f"{stamp} {p}\n" for p in problems)
+
+
+def digest(files: list[Path]) -> str:
+    """The user's side of the records, each user line with the end of the reply it answers."""
+    out, prev = [], None
+    for path in files:
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            try:
+                e = json.loads(raw)
+            except ValueError:
+                continue
+            kind = e.get("type")
+            if kind == "claude":
+                prev = e.get("text")
+                continue
+            if kind not in ("user", "answer", "refusal", "command"):
+                continue
+            if kind == "user" and prev:
+                tail = prev.encode()[-REPLY_TAIL:].decode(errors="ignore")
+                out.append("  (直前の Claude の返答の末尾) " + tail.replace("\n", " "))
+                prev = None
+            head = f"[{(e.get('ts') or '')[:16]} {(e.get('sid') or '')[:8]} {e.get('cwd')}] {kind}"
+            if e.get("name"):
+                head += f" {e['name']}"
+            body = e.get("text") or ""
+            if e.get("q"):
+                body = f"Q: {e['q']} A: {body}"
+            out.append(f"{head}: {body}")
+    return "\n".join(out) + "\n" if out else ""
+
+
+def days_to_read(last: datetime.date | None, today: datetime.date) -> list[datetime.date]:
+    first = today - datetime.timedelta(days=MAX_DAYS)
+    if last and last + datetime.timedelta(days=1) > first:
+        first = last + datetime.timedelta(days=1)
+    return [first + datetime.timedelta(days=i) for i in range((today - first).days)]
+
+
+def agent(claude_bin: str, name: str, prompt: str, vault: Path, dirs: list[Path], log: Path) -> int:
+    # A session started from inside another one runs with auto memory off, so the
+    # parent session's variables are dropped.
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("CLAUDECODE", "CLAUDE_CODE_"))}
+    env["VAULT_CAPTURE_CHILD"] = "1"
+    args = [claude_bin, "-p", "--agent", name, "--permission-mode", "acceptEdits"]
+    for d in dirs:
+        args += ["--add-dir", str(d)]
+    with log.open("a") as f:
+        f.write(f"--- {datetime.datetime.now().isoformat(timespec='seconds')} {name}\n")
+        f.flush()
+        # The prompt goes in on stdin because --add-dir takes every argument after it.
+        return subprocess.run(args, input=prompt, cwd=vault, env=env, stdout=f, stderr=subprocess.STDOUT,
+                              text=True, timeout=AGENT_TIMEOUT).returncode
+
+
+def daily(claude: Path, vault: Path, state_dir: Path, host: str, claude_bin: str | None,
+          problems: list[str], today: datetime.date | None = None) -> None:
+    """Once a day per device: the observer and the minutes agent read this device's records.
+
+    They read the days after the last one read, up to yesterday, at most MAX_DAYS
+    back. A day counts as read only when both agents finished; a failed day is
+    read again at the next day's first start.
+    """
+    today = today or datetime.date.today()
+    ran, last_file = state_dir / "daily-ran", state_dir / "daily-last"
+    if ran.is_file() and ran.read_text().strip() == today.isoformat():
+        return
+    ran.write_text(today.isoformat())
+    if not claude_bin:
+        problems.append("claude not found; the daily agents did not run")
+        return
+    last = datetime.date.fromisoformat(last_file.read_text().strip()) if last_file.is_file() else None
+    conv = vault / ".depth" / "conversations"
+    files = [f for d in days_to_read(last, today)
+             if (f := conv / f"{d:%Y}" / f"{d:%m}" / f"{d:%d}_{host}.jsonl").is_file()]
+    text = digest(files)
+    yesterday = (today - datetime.timedelta(days=1)).isoformat()
+    if not text:
+        last_file.write_text(yesterday)
+        return
+    material = state_dir / "daily-input.txt"
+    material.write_text(text, encoding="utf-8")
+    log = state_dir / "daily.log"
+    prompt = f"Read {material} (this device's conversation records, {len(files)} day(s)) and do your job."
+    failed = [name for name, dirs in (("observer", [state_dir, claude / "agent-memory"]), ("minutes", [state_dir]))
+              if agent(claude_bin, name, prompt, vault, dirs, log)]
+    if failed:
+        problems.append(f"daily agents failed: {', '.join(failed)} (see {log})")
+    else:
+        last_file.write_text(yesterday)
+
+
+def git_sync(vault: Path, problems: list[str]) -> None:
+    script = vault / ".claude" / "scripts" / "sync.py"
+    if script.is_file():
+        r = subprocess.run([sys.executable, str(script), "run"], capture_output=True, text=True)
+        if r.returncode:
+            problems.append(f"git sync: {(r.stdout.strip() or r.stderr.strip() or '?').splitlines()[-1]}")
+
+
+def after(mode: str, claude: Path, vault: Path, state_dir: Path, host: str, rclone: str | None, remote: str,
+          claude_bin: str | None, work: bool) -> None:
+    """The slow half of a hook, run detached."""
+    if not vault.is_dir():
+        return
+    problems: list[str] = []
+    with (state_dir / "after.lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            if remote and not work:
+                sync(mode, vault, host, rclone, remote, problems)
+            git_sync(vault, problems)
+            if mode == "start" and not work:
+                daily(claude, vault, state_dir, host, claude_bin, problems)
+                with (state_dir / "lock").open("w") as main_lock:
+                    fcntl.flock(main_lock, fcntl.LOCK_EX)
+                    mirror(claude, vault, host)
+                git_sync(vault, problems)
+        except Exception as e:  # noqa: BLE001 — record and report next session
+            problems.append(f"{type(e).__name__}: {e}")
+    with (state_dir / "lock").open("w") as main_lock:
+        fcntl.flock(main_lock, fcntl.LOCK_EX)
+        log_problems(state_dir, problems)
+
+
+def detach(mode: str, state_dir: Path) -> None:
+    with (state_dir / "after.log").open("a") as log:
+        subprocess.Popen([sys.executable, os.path.abspath(__file__), f"after-{mode}"], stdin=subprocess.DEVNULL,
+                         stdout=log, stderr=subprocess.STDOUT, start_new_session=True,
+                         env=os.environ | {"VAULT_CAPTURE_CHILD": "1"})
 
 
 def self_test() -> None:
@@ -355,19 +500,80 @@ def self_test() -> None:
     if rclone:
         os.environ["RCLONE_CONFIG"] = str(tmp / "rclone.conf")
         remote = tmp / "remote"
-        assert "not set up" in run("start", claude, vault, state, "h", rclone, "nowhere:")
-        run("end", claude, vault, state, "h", rclone, f"{remote}/")
+        problems: list[str] = []
+        sync("start", vault, "h", rclone, "nowhere:", problems)
+        assert "not set up" in problems[0]
+        sync("end", vault, "h", rclone, f"{remote}/", problems)
         uploaded = remote / "conversations" / "2026" / "10" / files[0].name
         assert uploaded.read_text() == files[0].read_text()
         other = remote / "conversations" / "2026" / "10" / "08_g.jsonl"
         other.write_text("{}\n")
         uploaded.write_text("stale\n")
-        assert run("start", claude, vault, state, "h", rclone, f"{remote}/") == ""
+        sync("start", vault, "h", rclone, f"{remote}/", problems)
+        assert len(problems) == 1, problems
         assert (out / "08_g.jsonl").read_text() == "{}\n"
         assert files[0].read_text().splitlines() == again
         assert uploaded.read_text() == files[0].read_text()
+        (out / "08_g.jsonl").unlink()
     else:
         print("vault-capture: rclone not found, storage sync not tested")
+
+    # digest: the user's side, each user line with the end of the reply before it
+    text = digest([files[0]])
+    assert "user: hello" in text and "Q: M? A: x, y" in text and "command /ship: 42" in text
+    assert "(直前の Claude の返答の末尾) hi\n" in text and text.count("直前の Claude") == 1
+    assert "echo" not in text
+
+    d = datetime.date
+    assert len(days_to_read(None, d(2026, 10, 18))) == MAX_DAYS
+    assert days_to_read(d(2026, 10, 17), d(2026, 10, 18)) == []
+    assert days_to_read(d(2026, 10, 15), d(2026, 10, 18)) == [d(2026, 10, 16), d(2026, 10, 17)]
+
+    # daily: both agents get the material on stdin; a day counts as read only when both finish
+    calls = tmp / "calls"
+    fake = tmp / "fake-claude"
+    fake.write_text(f"#!/bin/sh\necho \"$* | $VAULT_CAPTURE_CHILD | $(cat)\" >> {calls}\nexit ${{FAKE_RC:-0}}\n")
+    fake.chmod(0o755)
+    os.environ["CLAUDECODE"] = "1"
+    problems = []
+    daily(claude, vault, state, "h", str(fake), problems, today=d(2026, 10, 9))
+    got_calls = calls.read_text().splitlines()
+    assert problems == [] and len(got_calls) == 2, (problems, got_calls)
+    assert "--agent observer" in got_calls[0] and "--agent minutes" in got_calls[1]
+    assert all("| 1 | Read " in c and "daily-input.txt" in c for c in got_calls)
+    assert "user: hello" in (state / "daily-input.txt").read_text()
+    assert (state / "daily-last").read_text() == "2026-10-08"
+    daily(claude, vault, state, "h", str(fake), problems, today=d(2026, 10, 9))
+    assert len(calls.read_text().splitlines()) == 2  # once a day
+    os.environ["FAKE_RC"] = "1"
+    (state / "daily-last").write_text("2026-10-01")
+    daily(claude, vault, state, "h", str(fake), problems, today=d(2026, 10, 10))
+    assert "observer, minutes" in problems[0] and (state / "daily-last").read_text() == "2026-10-01"
+    del os.environ["FAKE_RC"], os.environ["CLAUDECODE"]
+
+    # the hook detaches the slow half, and the child's hooks do nothing
+    script = vault / ".claude" / "scripts"
+    script.mkdir(parents=True)
+    marker = tmp / "synced"
+    (script / "sync.py").write_text(f"import time, pathlib\ntime.sleep(1)\npathlib.Path({str(marker)!r}).write_text('ok')\n")
+    env = os.environ | {"CLAUDE_CONFIG_DIR": str(claude), "VAULT_DIR": str(vault), "XDG_STATE_HOME": str(tmp),
+                        "XDG_CONFIG_HOME": str(tmp / "config"), "VAULT_HOST": "h", "VAULT_REMOTE": ""}
+    me = [sys.executable, os.path.abspath(__file__)]
+    t0 = time.monotonic()
+    subprocess.run(me + ["end"], input="{}", text=True, env=env, check=True)
+    assert time.monotonic() - t0 < 1 and not marker.exists()
+    for _ in range(50):
+        if marker.exists():
+            break
+        time.sleep(0.1)
+    assert marker.read_text() == "ok"
+    marker.unlink()
+    before = files[0].read_text()
+    with (proj / "s1.jsonl").open("a") as f:
+        f.write(line(14, **user("child", origin={"kind": "human"})) + "\n")
+    subprocess.run(me + ["end"], input="{}", text=True, env=env | {"VAULT_CAPTURE_CHILD": "1"}, check=True)
+    time.sleep(1.5)
+    assert files[0].read_text() == before and not marker.exists()
     shutil.rmtree(tmp)
     print("vault-capture: self-test passed")
 
@@ -377,19 +583,25 @@ def main() -> None:
     if mode == "self-test":
         self_test()
         return
-    if mode not in ("end", "start"):
+    if mode not in ("end", "start", "after-end", "after-start"):
         sys.exit("usage: vault-capture end|start|self-test")
     sys.stdin.read() if not sys.stdin.isatty() else None
+    if mode in ("end", "start") and os.environ.get("VAULT_CAPTURE_CHILD"):
+        return
     home = Path.home()
-    report = run(
-        mode,
-        Path(os.environ.get("CLAUDE_CONFIG_DIR") or home / ".claude"),
-        Path(os.environ.get("VAULT_DIR") or home / "Repository/github.com/Hiro-mackay/vault"),
-        Path(os.environ.get("XDG_STATE_HOME") or home / ".local/state") / "vault-capture",
-        os.environ.get("VAULT_HOST") or socket.gethostname().split(".")[0].lower(),
-        os.environ.get("VAULT_RCLONE") or shutil.which("rclone"),
-        os.environ.get("VAULT_REMOTE", "vault-depth:"),
-    )
+    claude = Path(os.environ.get("CLAUDE_CONFIG_DIR") or home / ".claude")
+    vault = Path(os.environ.get("VAULT_DIR") or home / "Repository/github.com/Hiro-mackay/vault")
+    state = Path(os.environ.get("XDG_STATE_HOME") or home / ".local/state") / "vault-capture"
+    host = os.environ.get("VAULT_HOST") or socket.gethostname().split(".")[0].lower()
+    if mode.startswith("after-"):
+        work = (Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config") / "vault" / "work").is_file()
+        after(mode.removeprefix("after-"), claude, vault, state, host,
+              os.environ.get("VAULT_RCLONE") or shutil.which("rclone"), os.environ.get("VAULT_REMOTE", "vault-depth:"),
+              os.environ.get("VAULT_CLAUDE") or shutil.which("claude"), work)
+        return
+    report = run(mode, claude, vault, state, host)
+    if vault.is_dir():
+        detach(mode, state)
     if report:
         print("vault-capture reported problems since the last session:\n" + report)
 

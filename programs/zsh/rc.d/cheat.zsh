@@ -123,8 +123,8 @@ SHEET
   Navigation Cheatsheet
   ──────────────────────────────────────────
   FIXED ALIASES
-    repo       ~/Repository/github.com
-    mackay     ~/Repository/github.com/Hiro-mackay
+    repo       $(ghq root)/github.com
+    mackay     $(ghq root)/github.com/Hiro-mackay
     dl / dt / doc   Downloads / Desktop / Documents
     dotfiles   ~/.dotfiles       dotconf  ~/.config
 

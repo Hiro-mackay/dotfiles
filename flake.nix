@@ -70,6 +70,20 @@
       username = builtins.getEnv "USER";
       homeDirectory = builtins.getEnv "HOME";
 
+      # The whole home-manager configuration as one module: this flake's machines use it,
+      # and so can another flake that builds on it (a container, say). Such a flake imports
+      # it and sets options.dotfiles (options.nix), or plainly overrides what is set with
+      # lib.mkDefault; the flake inputs come along, so it passes no specialArgs.
+      homeModule = {
+        imports = [
+          inputs.nix-index-database.homeModules.nix-index
+          ./options.nix
+          ./home.nix
+          ./linux.nix
+        ];
+        _module.args.inputs = inputs;
+      };
+
       darwin = nix-darwin.lib.darwinSystem {
         specialArgs = { inherit inputs username homeDirectory; };
         modules = [
@@ -82,8 +96,7 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               backupFileExtension = "backup";
-              extraSpecialArgs = { inherit inputs; };
-              users.${username}.imports = [ ./home.nix ];
+              users.${username}.imports = [ homeModule ];
             };
           }
         ];
@@ -93,10 +106,8 @@
         system:
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
-          extraSpecialArgs = { inherit inputs; };
           modules = [
-            ./home.nix
-            ./linux.nix
+            homeModule
             {
               home.username = username;
               home.homeDirectory = homeDirectory;
@@ -105,6 +116,8 @@
         };
     in
     {
+      homeModules.default = homeModule;
+
       darwinConfigurations.default = darwin;
 
       homeConfigurations = lib.genAttrs linuxSystems mkHome;

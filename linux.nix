@@ -1,6 +1,7 @@
-# Linux-only home-manager settings (non-NixOS dev servers and dev environments).
-{ pkgs, ... }:
-{
+# Linux-only home-manager settings (non-NixOS dev servers and dev environments). Part of
+# homeModules.default on every system, so it applies only on Linux.
+{ lib, pkgs, ... }:
+lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
   targets.genericLinux = {
     enable = true;
     # Headless servers: skip the GPU driver setup and its sudo prompt.

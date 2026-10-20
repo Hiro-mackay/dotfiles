@@ -30,7 +30,7 @@ in
     dotDir = "${config.xdg.configHome}/zsh";
 
     history = {
-      path = "${config.xdg.stateHome}/zsh/history";
+      path = lib.mkDefault "${config.xdg.stateHome}/zsh/history";
       size = 100000;
       save = 100000;
       share = true;
@@ -137,7 +137,6 @@ in
     enable = true;
     enableZshIntegration = false;
   };
-  # A plain file rather than programs.starship.settings: the kingston sandbox links it
-  # from ~/.dotfiles, as it cannot read home-manager's output.
+  # A plain file rather than programs.starship.settings, so it reads as starship's own docs.
   xdg.configFile."starship.toml".source = ./starship.toml;
 }

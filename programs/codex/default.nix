@@ -14,7 +14,8 @@ in
 {
   programs.codex = {
     enable = true;
-    package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+    # A machine that installs Codex some other way sets this to null.
+    package = lib.mkDefault inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
     context = ../agents/AGENTS.md;
     skills =
       lib.mapAttrs (name: _: ../agents/skills + "/${name}") (builtins.readDir ../agents/skills)

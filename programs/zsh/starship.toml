@@ -1,5 +1,4 @@
-# Warp-like: one line of context above an empty input line. Shared by the Mac
-# (home-manager) and the kingston sandbox (which links it from ~/.dotfiles).
+# Warp-like: one line of context above an empty input line.
 add_newline = false
 format = "$directory$git_branch$git_status$status$cmd_duration$line_break"
 

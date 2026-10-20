@@ -28,6 +28,8 @@ in
   programs.zsh = {
     enable = true;
     dotDir = "${config.xdg.configHome}/zsh";
+    # Explicit: zsh picks vi keys when EDITOR or VISUAL is vi-like, as on some Linux images.
+    defaultKeymap = "emacs";
 
     history = {
       path = lib.mkDefault "${config.xdg.stateHome}/zsh/history";
@@ -62,6 +64,8 @@ in
       "INC_APPEND_HISTORY"
       "HIST_VERIFY"
       "NO_NOMATCH"
+      # A pasted command with a trailing `# comment` runs instead of failing.
+      "INTERACTIVE_COMMENTS"
     ];
 
     # Rebuild the completion cache at most once a day. The (#q...) glob qualifier

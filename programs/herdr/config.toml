@@ -41,7 +41,7 @@ height = "70%"
 key = "alt+x"
 type = "shell"
 command = "$HOME/.dotfiles/programs/herdr/bin/herdr-close"
-description = "close pane, or detach from a Claude session"
+description = "close pane, or put a Claude session to sleep"
 
 [[keys.command]]
 key = "alt+t"

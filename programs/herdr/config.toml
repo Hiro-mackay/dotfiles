@@ -44,6 +44,12 @@ command = "$HOME/.dotfiles/programs/herdr/bin/herdr-close"
 description = "close pane, or put a Claude session to sleep"
 
 [[keys.command]]
+key = "shift+enter"
+type = "shell"
+command = "$HOME/.dotfiles/programs/herdr/bin/herdr-shift-enter"
+description = "newline in Claude"
+
+[[keys.command]]
 key = "alt+t"
 type = "shell"
 command = "$HOME/.dotfiles/programs/herdr/bin/herdr-new-shell"

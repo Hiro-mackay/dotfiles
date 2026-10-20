@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Shift+Enter: a newline for Claude, which reads LF (Ctrl+J) as one; `claude attach`
+# never asks for the kitty keyboard protocol, so Shift+Enter would reach it as Enter.
+# Other panes get Shift+Enter as herdr encodes it for them.
+set -euo pipefail
+pane=${HERDR_ACTIVE_PANE_ID:?}
+if herdr agent list | jq -e --arg p "$pane" 'any(.result.agents[]; .pane_id == $p and .agent == "claude")' >/dev/null; then
+  herdr pane send-text "$pane" $'\n' >/dev/null
+else
+  herdr pane send-keys "$pane" shift+enter >/dev/null
+fi

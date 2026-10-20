@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# ⌘P: list every Claude session as agent view does, grouped by what needs you first.
-# Enter goes to its tab, opening one (which wakes a sleeping session) when it has
-# none; Ctrl+X twice within two seconds deletes it, as in agent view.
+# ⌘P: start a Claude session, or list every one as agent view does, grouped by what
+# needs you first. A task typed at the "new" prompt starts a session (herdr-new-claude);
+# Enter on an empty prompt goes to the selected session's tab, opening one (which wakes
+# a sleeping session) when it has none. Ctrl+F switches the prompt to filtering the
+# list, and Ctrl+X deletes the selected session.
 set -euo pipefail
 self=$0 here=$(dirname "$0")
-mark=${TMPDIR:-/tmp}/herdr-claude-pick.rm
 note=${TMPDIR:-/tmp}/herdr-claude-pick.note
 cursor=${TMPDIR:-/tmp}/herdr-claude-pick.cursor
 c() { printf '\033[38;2;%sm%s\033[0m' "$1" "$2"; }
 dim=142\;142\;142
+new='new › ' find='find › '
 
 if command -v tac >/dev/null; then reverse=(tac); else reverse=(tail -r); fi
 
@@ -58,12 +60,20 @@ case ${1:-} in
   exit ;;
 --rm)
   [[ $2 != - ]] || exit 0
-  if [[ -f $mark && $(cat "$mark") == "$2" && $(($(date +%s) - $(stat -c %Y "$mark" 2>/dev/null || stat -f %m "$mark"))) -le 2 ]]; then
-    rm -f "$mark"
-    claude rm "$2" >"$note" 2>&1 || true
+  claude rm "$2" >"$note" 2>&1 || true
+  exit ;;
+--enter)
+  if [[ $FZF_PROMPT == "$new" && -n $2 ]]; then
+    printf 'become(exec %q {q})\n' "$here/herdr-new-claude"
+  elif [[ $3 != - ]]; then
+    echo accept
+  fi
+  exit ;;
+--find)
+  if [[ $FZF_PROMPT == "$new" ]]; then
+    echo "enable-search+change-prompt($find)"
   else
-    printf '%s' "$2" >"$mark"
-    echo 'press ^x again to delete' >"$note"
+    echo "clear-query+disable-search+change-prompt($new)+reload($self --list)"
   fi
   exit ;;
 --skip)
@@ -75,18 +85,21 @@ case ${1:-} in
   if (($2 == 0 || $2 > prev)); then echo down; else echo up; fi
   exit ;;
 --header)
-  printf ' %s\n ' "$(cat "$note" 2>/dev/null || echo 'enter open · ^x ^x delete')"
+  printf ' %s\n ' "$(cat "$note" 2>/dev/null || echo 'enter new or open · ^f find · ^x delete')"
   exit ;;
 esac
 
-rm -f "$mark" "$note" "$cursor"
+rm -f "$note" "$cursor"
 picked=$("$self" --list | fzf --ansi --delimiter '\t' --with-nth 2 --no-sort --layout reverse \
-  --prompt '› ' --pointer '▌' --info inline-right --no-scrollbar --highlight-line --header "$("$self" --header)" \
+  --disabled --prompt "$new" --pointer '▌' --info inline-right --no-scrollbar --highlight-line --header "$("$self" --header)" \
   --color 'fg:#ffffff,fg+:#ffffff,bg+:#1f1f1f,hl:#00c2ff,hl+:#00c2ff,prompt:#00c2ff,pointer:#00c2ff,header:#8e8e8e,info:#8e8e8e,border:#1f1f1f,gutter:-1' \
-  --bind 'load:pos(2)' \
+  --bind 'load:pos(2)+unbind(load)' \
   --bind "focus:transform($self --skip {n} {1})" \
-  --bind 'enter:transform:[[ {1} == - ]] || echo accept' \
+  --bind "enter:transform($self --enter {q} {1})" \
+  --bind "ctrl-f:transform($self --find)" \
   --bind "ctrl-x:execute-silent($self --rm {1})+reload($self --list)+transform-header($self --header)") || exit 0
+# Empty when herdr-new-claude took fzf's place.
+[[ -n $picked ]] || exit 0
 id=${picked%%$'\t'*}
 tab=$(herdr agent list | jq -r --arg i "$id" 'first(.result.agents[] | select(.tokens.session == $i) | .tab_id) // empty')
 if [[ -n $tab ]]; then

@@ -14,7 +14,8 @@ in
 {
   programs.codex = {
     enable = true;
-    package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+    # A machine that installs Codex some other way sets this to null.
+    package = lib.mkDefault inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
     context = ../agents/AGENTS.md;
     skills =
       lib.mapAttrs (name: _: ../agents/skills + "/${name}") (builtins.readDir ../agents/skills)
@@ -27,8 +28,9 @@ in
       cmd: "prefix_rule(pattern = ${builtins.toJSON cmd}, decision = \"forbidden\")\n"
     ) guardrails.commands;
     settings = lib.recursiveUpdate (builtins.fromTOML (builtins.readFile ./config.toml)) {
-      # The workspace sandbox, plus no reads of the guarded files.
-      default_permissions = "guarded";
+      # The workspace sandbox, plus no reads of the guarded files. A machine whose boundary
+      # is elsewhere (a container where Codex's own sandbox cannot start) sets another.
+      default_permissions = lib.mkDefault "guarded";
       permissions.guarded = {
         extends = ":workspace";
         filesystem = lib.genAttrs (map (path: "${config.home.homeDirectory}/${path}") guardrails.secrets) (

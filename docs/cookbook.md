@@ -58,6 +58,31 @@ It creates the key if missing and prints the public key. Options: `-u` user, `-p
 `-i` key file, `-A` agent forwarding. For a container with sshd on a published port:
 `ssh-setup -p 2222 -u dev sandbox 127.0.0.1`.
 
+## Use from another flake
+
+Another flake (a work container, say) can build on this configuration instead of copying
+it. It imports `homeModules.default` and sets only what differs:
+
+```nix
+home-manager.lib.homeManagerConfiguration {
+  pkgs = dotfiles.inputs.nixpkgs.legacyPackages.aarch64-linux;
+  modules = [
+    dotfiles.homeModules.default
+    {
+      home.username = "dev";
+      home.homeDirectory = "/home/dev";
+      dotfiles.github.login = "work-account";   # options.nix lists the rest
+      programs.nix-index.enable = false;        # values set with lib.mkDefault
+    }
+  ];
+}
+```
+
+`options.nix` holds what feeds several settings (the base GitHub account, git identity,
+repository root, the vault hooks); single settings a machine may change are set with
+`lib.mkDefault`, so a plain assignment overrides them. Keep machine-specific values in
+that other flake: this repository is public.
+
 ## Sandboxes
 
 `sbxc` runs Claude in an `sbx` sandbox named after the current directory and hands it

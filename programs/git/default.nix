@@ -1,12 +1,18 @@
-# Git settings shared by every machine, the base GitHub account included.
+# Git settings shared by every machine. The base GitHub account and identity come from
+# options.dotfiles (options.nix).
 # ~/.gitconfig.accounts, a writable file created from ./gitconfig.accounts on the first
 # switch, holds which owners use which other account (gh-setup). It is included after
 # the settings here, so an account there overrides the base account.
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  # The base GitHub account: git and gh use its token unless ~/.gitconfig.<owner>
-  # (gh-setup) names another account for a repository's owner.
-  baseLogin = "Hiro-mackay";
+  inherit (config.dotfiles) github git repoRoot;
+  # This repository's owner, for its pre-commit hook below (not the base account).
+  repoOwner = "Hiro-mackay";
   # git's credential helper for github.com: the token of the account in
   # credential.username, which ~/.gitconfig.<owner> sets for its owners' repositories.
   credentialHelper = pkgs.writeShellApplication {
@@ -34,10 +40,7 @@ in
         editor = "vim";
         quotepath = false;
       };
-      user = {
-        name = "mackay";
-        email = "43330841+${baseLogin}@users.noreply.github.com";
-      };
+      user = { inherit (git.user) name email; };
       init.defaultBranch = "main";
       fetch.prune = true;
       pull.rebase = true;
@@ -45,20 +48,20 @@ in
         default = "current";
         autoSetupRemote = true;
       };
-      ghq.root = "~/Repository";
+      ghq.root = repoRoot;
 
       # GitHub over HTTPS only, with gh's token for both git and gh (gh-wrapper.sh).
       url."https://github.com/".insteadOf = [
         "git@github.com:"
         "ssh://git@github.com/"
       ];
-      github.login = baseLogin;
+      github.login = github.login;
       credential."https://github.com" = {
         helper = [
           ""
           "${credentialHelper}/bin/git-credential-gh-account"
         ];
-        username = baseLogin;
+        username = github.login;
       };
     };
 
@@ -81,9 +84,9 @@ in
           contents.core.hooksPath = "programs/git/hooks";
         })
         [
-          "https://github.com/${baseLogin}/dotfiles*"
-          "git@github.com:${baseLogin}/dotfiles*"
-          "ssh://git@github.com/${baseLogin}/dotfiles*"
+          "https://github.com/${repoOwner}/dotfiles*"
+          "git@github.com:${repoOwner}/dotfiles*"
+          "ssh://git@github.com/${repoOwner}/dotfiles*"
         ];
   };
 

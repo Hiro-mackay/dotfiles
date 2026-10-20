@@ -45,8 +45,8 @@ alias sozsh="source $ZDOTDIR/.zshrc"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias doc="cd ~/Documents"
-alias repo="cd ~/Repository/github.com"
-alias mackay="cd ~/Repository/github.com/Hiro-mackay"
+alias repo='cd "$(ghq root)/github.com"'
+alias mackay='cd "$(ghq root)/github.com/Hiro-mackay"'
 g() {
   local root repo
   root=$(ghq root) || return

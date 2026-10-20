@@ -39,11 +39,12 @@ let
 in
 {
   # The same rclone the capture hook runs, so `rclone config` sets up its remote.
-  home.packages = [ pkgs.rclone ];
+  home.packages = lib.optional config.dotfiles.vault.enable pkgs.rclone;
 
   programs.claude-code = {
     enable = true;
-    package = claude;
+    # A machine that installs Claude Code some other way sets this to null.
+    package = lib.mkDefault claude;
 
     # Shared rules (agents/AGENTS.md) plus the Claude-only section.
     context = builtins.readFile ../agents/AGENTS.md + "\n" + builtins.readFile ./CLAUDE.md;
@@ -94,7 +95,7 @@ in
         type = "command";
         command = "${./statusline.sh}";
       };
-      hooks = {
+      hooks = lib.mkIf config.dotfiles.vault.enable {
         SessionEnd = hook "end";
         SessionStart = hook "start";
       };

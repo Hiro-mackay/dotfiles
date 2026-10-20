@@ -28,9 +28,11 @@ in
   programs.zsh = {
     enable = true;
     dotDir = "${config.xdg.configHome}/zsh";
+    # Explicit: zsh picks vi keys when EDITOR or VISUAL is vi-like, as on some Linux images.
+    defaultKeymap = "emacs";
 
     history = {
-      path = "${config.xdg.stateHome}/zsh/history";
+      path = lib.mkDefault "${config.xdg.stateHome}/zsh/history";
       size = 100000;
       save = 100000;
       share = true;
@@ -62,6 +64,8 @@ in
       "INC_APPEND_HISTORY"
       "HIST_VERIFY"
       "NO_NOMATCH"
+      # A pasted command with a trailing `# comment` runs instead of failing.
+      "INTERACTIVE_COMMENTS"
     ];
 
     # Rebuild the completion cache at most once a day. The (#q...) glob qualifier
@@ -137,7 +141,6 @@ in
     enable = true;
     enableZshIntegration = false;
   };
-  # A plain file rather than programs.starship.settings: the kingston sandbox links it
-  # from ~/.dotfiles, as it cannot read home-manager's output.
+  # A plain file rather than programs.starship.settings, so it reads as starship's own docs.
   xdg.configFile."starship.toml".source = ./starship.toml;
 }

@@ -1,15 +1,14 @@
-# home-manager entry, shared by macOS (inside nix-darwin) and Linux (standalone).
-# OS-wide differences live in darwin.nix / linux.nix; tool-level ones inside each
-# programs/<tool>/default.nix.
+# home-manager entry, shared by macOS (inside nix-darwin) and Linux (standalone), through
+# homeModules.default (flake.nix). OS-wide differences live in darwin.nix / linux.nix;
+# tool-level ones inside each programs/<tool>/default.nix; per-machine ones in options.nix.
 {
   config,
+  lib,
   pkgs,
-  inputs,
   ...
 }:
 {
   imports = [
-    inputs.nix-index-database.homeModules.nix-index
     ./programs/zsh
     ./programs/git
     ./programs/gh
@@ -48,8 +47,8 @@
   ];
 
   # comma (`, cmd`) and command-not-found with a prebuilt nix-index database.
-  programs.nix-index.enable = true;
-  programs.nix-index-database.comma.enable = true;
+  programs.nix-index.enable = lib.mkDefault true;
+  programs.nix-index-database.comma.enable = lib.mkDefault true;
 
   home.sessionVariables = {
     LANG = "en_US.UTF-8";

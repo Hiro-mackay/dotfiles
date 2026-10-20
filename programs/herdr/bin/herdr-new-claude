@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Prompt for a task and start Claude on it in a new tab of the "claude" workspace.
+# Prompt for a task, or take it as $1 (herdr-claude-pick), and start Claude on it in a
+# new tab of the "claude" workspace.
 # "name: task" starts it in the directory mapped to name in ~/.config/herdr/claude-dirs
 # (name=path per line); otherwise it starts in the focused pane's directory. "name:"
 # alone starts Claude with no task.
@@ -11,7 +12,7 @@ fail() {
   read -r -s -n 1 -p '(press a key)' || true
   exit 1
 }
-read -e -r -p 'claude › ' input
+if (($#)); then input=$1; else read -e -r -p 'claude › ' input; fi
 [[ -n $input ]] || exit 0
 cwd=${HERDR_ACTIVE_PANE_CWD:-$HOME} prompt=$input
 if [[ $input =~ ^([a-z0-9_-]+):[[:space:]]*(.*)$ && -r $dirs_file ]]; then

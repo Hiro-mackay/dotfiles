@@ -2,15 +2,15 @@
 # Keep the background Claude session $1 in this pane for as long as its process runs.
 # It stays attached while Claude works, waits on you, or the pane is in view. Once it
 # is done (or failed) and the pane has been out of view for HERDR_CLAUDE_DETACH_AFTER
-# seconds, or ⌘W asks for it, it detaches so Claude can put the session to sleep, as
-# it does with sessions nobody has open. When the process is gone the tab closes.
+# seconds, it detaches so Claude can put the session to sleep, as it does with
+# sessions nobody has open. When the process is gone (asleep, or stopped by ⌘W) the
+# tab closes.
 # Started with HERDR_AGENT=claude, so herdr still lists the pane as Claude while
 # detached.
 set -uo pipefail
 id=$1
 pane=${HERDR_PANE_ID:?}
 detach_after=${HERDR_CLAUDE_DETACH_AFTER:-1800}
-detach_flag=${TMPDIR:-/tmp}/herdr-claude-tab.$pane.detach
 
 session() { claude agents --json --all 2>/dev/null | jq -c --arg i "$id" 'first(.[] | select(.id == $i)) // empty'; }
 running() {
@@ -31,7 +31,7 @@ reset_terminal() {
 drain_input() { while read -r -s -t 0.05 -n 256 _; do :; done; }
 
 idle_screen() {
-  local rows cols hint='idle · press enter to resume · ⌘W twice to delete'
+  local rows cols hint='idle · press enter to resume · ⌘W to sleep'
   rows=$(tput lines 2>/dev/null || echo 24) cols=$(tput cols 2>/dev/null || echo 80)
   clear
   printf '\033[%d;1H' $((rows / 2 - 1))
@@ -45,8 +45,7 @@ watch_attached() {
   while sleep 5; do
     if in_view; then away=0; else away=$((away + 5)); fi
     s=$(session)
-    if [[ -f $detach_flag ]] || { [[ $(state "$s") =~ ^(done|failed)$ ]] && ((away >= detach_after)); }; then
-      rm -f "$detach_flag"
+    if [[ $(state "$s") =~ ^(done|failed)$ ]] && ((away >= detach_after)); then
       pkill -TERM -P "$1" -f "claude attach $id"
       return
     fi
@@ -60,8 +59,6 @@ set_title() { printf '\033]2;%s\007' "$(jq -r '.name // .id' <<<"$1")"; }
 # Attaching wakes a sleeping session, so only a deleted one ends the loop here.
 while s=$(session) && [[ -n $s ]]; do
   set_title "$s"
-  # A ⌘W pressed while already detached must not detach the next attach.
-  rm -f "$detach_flag"
   watch_attached $$ &
   watcher=$!
   claude attach "$id"

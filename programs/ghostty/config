@@ -26,11 +26,9 @@ keybind = super+digit_7=text:\x1b7
 keybind = super+digit_8=text:\x1b8
 keybind = super+digit_9=text:\x1b9
 
-# ⌘Enter sends a prompt as Meta+Enter. The sandbox's Claude binds Enter to a newline
-# (local/claude/keybindings.json in kingston-sandbox), so Enter and Shift+Enter stay
-# free for the Japanese input method to confirm text; a binding on them would fire
-# before the input method and drop the text being composed.
-keybind = super+enter=text:\x1b\r
+# Enter and Shift+Enter stay unbound for the Japanese input method to confirm text: a
+# binding on them fires before the input method and drops the text being composed.
+# herdr turns Shift+Enter into Claude's newline (programs/herdr/bin/herdr-shift-enter).
 
 # ⌘T belongs to herdr, so a Ghostty tab of its own takes ⌘⇧T, Ghostty's undo by
 # default. Only the first surface runs herdr (local/host/ghostty-work.conf in

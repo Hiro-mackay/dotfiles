@@ -1,5 +1,5 @@
-# Read on the Mac through home-manager and, by a sandbox, straight from
-# ~/.dotfiles, so script paths go through $HOME/.dotfiles rather than the store.
+# @bin@ is the store path of ./bin (default.nix), so a key runs the scripts of the same
+# switch as this file, wherever the repository is checked out.
 # Ghostty turns ⌘-keys into Alt-keys (programs/ghostty/config), bound here directly:
 # a prefix sent in the same write as its key loses the key. The prefix moves to F12,
 # out of the way of Ctrl-B in shells and Claude Code.
@@ -24,7 +24,7 @@ focus_pane_right = "alt+l"
 [[keys.command]]
 key = "alt+n"
 type = "popup"
-command = "$HOME/.dotfiles/programs/herdr/bin/herdr-new-claude"
+command = "@bin@/herdr-new-claude"
 description = "new claude"
 width = "70%"
 height = 5
@@ -32,7 +32,7 @@ height = 5
 [[keys.command]]
 key = "alt+p"
 type = "popup"
-command = "$HOME/.dotfiles/programs/herdr/bin/herdr-claude-pick"
+command = "@bin@/herdr-claude-pick"
 description = "claude sessions"
 width = "90%"
 height = "70%"
@@ -40,19 +40,19 @@ height = "70%"
 [[keys.command]]
 key = "alt+x"
 type = "shell"
-command = "$HOME/.dotfiles/programs/herdr/bin/herdr-close"
+command = "@bin@/herdr-close"
 description = "close pane, or put a Claude session to sleep"
 
 [[keys.command]]
 key = "shift+enter"
 type = "shell"
-command = "$HOME/.dotfiles/programs/herdr/bin/herdr-shift-enter"
+command = "@bin@/herdr-shift-enter"
 description = "newline in Claude"
 
 [[keys.command]]
 key = "alt+t"
 type = "shell"
-command = "$HOME/.dotfiles/programs/herdr/bin/herdr-new-shell"
+command = "@bin@/herdr-new-shell"
 description = "new shell"
 
 [[keys.command]]

@@ -2,7 +2,7 @@
 # pre-commit for this public repo (core.hooksPath is set in programs/git/default.nix).
 
 # Only GitHub noreply addresses may author or commit here, so no other identity
-# (a work account, a private address) reaches the public history. git var reports the
+# (another account, a private address) reaches the public history. git var reports the
 # identity this commit records, including --author, --amend and GIT_AUTHOR_EMAIL.
 for ident in GIT_AUTHOR_IDENT GIT_COMMITTER_IDENT; do
     case "$(git var "$ident")" in

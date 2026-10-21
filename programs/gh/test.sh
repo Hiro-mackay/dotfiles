@@ -26,11 +26,11 @@ case "$*" in
 "api user --jq .login") if [ -n "${GH_TOKEN:-}" ]; then echo "${GH_TOKEN#token-}"; else [ -n "$cur" ] && echo "$cur"; fi ;;
 "api users/"*" --jq .login")
     case "$(echo "${2#users/}" | tr A-Z a-z)" in
-    acme) echo Acme ;; acme-labs) echo acme-labs ;; hiro-mackay) echo Hiro-mackay ;; work-me) echo work-me ;;
+    acme) echo Acme ;; acme-labs) echo acme-labs ;; hiro-mackay) echo Hiro-mackay ;; other-me) echo other-me ;;
     ssoorg) echo "HTTP 403: Resource protected by organization SAML enforcement" >&2 && exit 1 ;;
     *) echo "HTTP 404: Not Found" >&2 && exit 1 ;;
     esac ;;
-"api user/orgs --jq "*) [ "$cur" = work-me ] && printf 'Acme\nacme-labs\nSsoOrg\n' ;;
+"api user/orgs --jq "*) [ "$cur" = other-me ] && printf 'Acme\nacme-labs\nSsoOrg\n' ;;
 "api user --jq "*@tsv*) printf '%s\t%s\n' "$cur" "7+$cur@users.noreply.github.com" ;;
 "api -i user") echo "X-Oauth-Scopes: gist, read:org, repo, workflow" ;;
 "auth switch -h github.com -u "*) for u in "$@"; do :; done; grep -qx "$u" $st/accts && echo "$u" >$st/active ;;
@@ -62,24 +62,24 @@ unset GH_TOKEN GITHUB_TOKEN GH_HOST GH_CONFIG_DIR
 echo Hiro-mackay >"$T/next"
 printf '\n' | "$setup" >/dev/null 2>&1
 check "base account signed in" Hiro-mackay "$(cat "$T/active")"
-echo work-me >"$T/next"
-printf 'work-me\nacme-labs acme\n\n\n' | "$setup" >/dev/null 2>&1
-check "other account file" work-me "$(git config --file "$HOME/.gitconfig.acme-labs" github.login)"
-check "noreply email by default" 7+work-me@users.noreply.github.com "$(git config --file "$HOME/.gitconfig.acme-labs" user.email)"
+echo other-me >"$T/next"
+printf 'other-me\nacme-labs acme\n\n\n' | "$setup" >/dev/null 2>&1
+check "other account file" other-me "$(git config --file "$HOME/.gitconfig.acme-labs" github.login)"
+check "noreply email by default" 7+other-me@users.noreply.github.com "$(git config --file "$HOME/.gitconfig.acme-labs" user.email)"
 check "gh back on the base account" Hiro-mackay "$(cat "$T/active")"
-check "conditions: acme-labs, Acme, acme, work-me x 3 URL forms" 12 "$(grep -c '^\[includeIf' "$HOME/.gitconfig.accounts")"
+check "conditions: acme-labs, Acme, acme, other-me x 3 URL forms" 12 "$(grep -c '^\[includeIf' "$HOME/.gitconfig.accounts")"
 # A hand-written condition for the same file survives a rerun that drops an owner.
 # shellcheck disable=SC2088 # written as gh-setup writes it, for git to expand
 git config --file "$HOME/.gitconfig.accounts" 'includeIf.gitdir:~/work/.path' '~/.gitconfig.acme-labs'
-printf 'work-me\nacme\n\n\n' | "$setup" >/dev/null 2>&1
+printf 'other-me\nacme\n\n\n' | "$setup" >/dev/null 2>&1
 check "file kept on rerun" "" "$(ls "$HOME/.gitconfig.acme" 2>/dev/null)"
 check "dropped owner's conditions removed" 0 "$(grep -c 'acme-labs/' "$HOME/.gitconfig.accounts")"
 check "hand-written condition kept" 1 "$(grep -c 'gitdir:~/work/' "$HOME/.gitconfig.accounts")"
-printf 'work-me\nacme ssoorg\n\n\n' | "$setup" >/dev/null 2>&1
+printf 'other-me\nacme ssoorg\n\n\n' | "$setup" >/dev/null 2>&1
 check "an organization refusing the lookup, spelled as a member" 1 "$(grep -c 'https://github.com/SsoOrg/' "$HOME/.gitconfig.accounts")"
-check "a misspelled owner is refused" 1 "$(printf 'work-me\nnosuchorg\n\n\n' | "$setup" 2>&1 | grep -c 'no GitHub user or organization named nosuchorg')"
-printf 'work-me\nacme\n\n\n' | "$setup" >/dev/null 2>&1
-check "base login refused as an owner" 1 "$(printf 'work-me\nHiro-mackay\n\n\n' | "$setup" 2>&1 | grep -c "base account's own")"
+check "a misspelled owner is refused" 1 "$(printf 'other-me\nnosuchorg\n\n\n' | "$setup" 2>&1 | grep -c 'no GitHub user or organization named nosuchorg')"
+printf 'other-me\nacme\n\n\n' | "$setup" >/dev/null 2>&1
+check "base login refused as an owner" 1 "$(printf 'other-me\nHiro-mackay\n\n\n' | "$setup" 2>&1 | grep -c "base account's own")"
 
 # A fake github.com that records the account in each request's credentials.
 cp /etc/hosts "$T/hosts.orig"
@@ -116,35 +116,35 @@ sent() { # sent <clone url>: the account git sends while cloning it
     [ -s "$T/auth" ] || sed 's/^/    | /' "$T/clone.err" >&2
     cut -d ' ' -f 2 "$T/auth" | sort -u
 }
-check "clone https acme" work-me "$(sent https://github.com/acme/a)"
-check "clone git@ Acme" work-me "$(sent git@github.com:Acme/b)"
-check "clone ssh:// acme" work-me "$(sent ssh://git@github.com/acme/c)"
-check "clone the account's own repo" work-me "$(sent https://github.com/work-me/d)"
+check "clone https acme" other-me "$(sent https://github.com/acme/a)"
+check "clone git@ Acme" other-me "$(sent git@github.com:Acme/b)"
+check "clone ssh:// acme" other-me "$(sent ssh://git@github.com/acme/c)"
+check "clone the account's own repo" other-me "$(sent https://github.com/other-me/d)"
 check "clone personal" Hiro-mackay "$(sent https://github.com/me/e)"
 check "clone a look-alike owner" Hiro-mackay "$(sent https://github.com/acme-labs/f)"
 
 repo() { git init -q "$T/r/$1" && git -C "$T/r/$1" remote add origin "$2" && mkdir -p "$T/r/$1/sub"; }
 repo work git@github.com:Acme/w
 repo own https://github.com/me/o
-check "work repo email" 7+work-me@users.noreply.github.com "$(git -C "$T/r/work/sub" config user.email)"
+check "work repo email" 7+other-me@users.noreply.github.com "$(git -C "$T/r/work/sub" config user.email)"
 check "own repo email" 43330841+Hiro-mackay@users.noreply.github.com "$(git -C "$T/r/own" config user.email)"
-echo work-me >"$T/active"
-check "gh in a work repo subdirectory" "as work-me" "$(cd "$T/r/work/sub" && ghw pr list)"
+echo other-me >"$T/active"
+check "gh in a work repo subdirectory" "as other-me" "$(cd "$T/r/work/sub" && ghw pr list)"
 check "gh in an own repo" "as Hiro-mackay" "$(cd "$T/r/own" && ghw pr list)"
-check "gh -R work outside" "as work-me" "$(cd "$T" && ghw pr list -R github.com/acme/x)"
-check "gh repo clone work outside" "as work-me" "$(cd "$T" && ghw repo clone --upstream-remote-name up ACME/x)"
+check "gh -R work outside" "as other-me" "$(cd "$T" && ghw pr list -R github.com/acme/x)"
+check "gh repo clone work outside" "as other-me" "$(cd "$T" && ghw repo clone --upstream-remote-name up ACME/x)"
 check "gh --body URL ignored" "as Hiro-mackay" "$(cd "$T/r/own" && ghw pr create --body https://github.com/acme/x/issues/1)"
 check "gh --template ignored" "as Hiro-mackay" "$(cd "$T" && ghw repo create --template acme/t me/n)"
 check "gh with GITHUB_TOKEN untouched" "as " "$(cd "$T/r/work" && GITHUB_TOKEN=x ghw pr list)"
-check "gh auth token follows the repository" token-work-me "$(cd "$T/r/work" && ghw auth token)"
+check "gh auth token follows the repository" token-other-me "$(cd "$T/r/work" && ghw auth token)"
 check "gh auth token elsewhere" token-Hiro-mackay "$(cd "$T/r/own" && ghw auth token)"
 check "gh auth token -u as given" token-Hiro-mackay "$(cd "$T/r/work" && ghw auth token -h github.com -u Hiro-mackay)"
-check "gh auth status names the account" 1 "$(cd "$T/r/work" && ghw auth status 2>&1 | grep -c 'for this repository: work-me')"
+check "gh auth status names the account" 1 "$(cd "$T/r/work" && ghw auth status 2>&1 | grep -c 'for this repository: other-me')"
 mkdir -p "$HOME/.config/gh"
 printf 'github.com:\n    user: Hiro-mackay\n' >"$HOME/.config/gh/hosts.yml"
 check "gh uses the active account as is" "as " "$(cd "$T/r/own" && ghw pr list)"
 rm "$HOME/.config/gh/hosts.yml"
-sed -i.bak '/^work-me$/d' "$T/accts"
+sed -i.bak '/^other-me$/d' "$T/accts"
 check "local commands need no account" "as " "$(cd "$T/r/work" && ghw config get git_protocol)"
 check "gh refuses a signed-out account" 1 "$(cd "$T/r/work" && ghw pr list 2>&1 | grep -c 'run gh-setup')"
 

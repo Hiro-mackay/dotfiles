@@ -1,4 +1,4 @@
-# mise manages languages and project-pinnable dev tools (company projects use it).
+# mise manages languages and project-pinnable dev tools.
 # Declared tools go to conf.d (read-only); `mise use -g` still writes the mutable
 # ~/.config/mise/config.toml, which is not tracked.
 {

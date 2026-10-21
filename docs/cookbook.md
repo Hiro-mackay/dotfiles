@@ -37,6 +37,10 @@ In those owners' repositories, git commits and pushes, and gh runs, as that acco
 elsewhere as the base one. `gh auth token` and `gh auth status` follow the same choice.
 Check with `git config --show-origin user.email` or `gh api user --jq .login`.
 
+Additional accounts can also be declared in Nix (from another flake, say):
+`dotfiles.github.accounts.<login> = { name; email; owners; }` gives the same switch
+without `~/.gitconfig.<owner>`. gh still needs that account signed in.
+
 Machine-only git settings go in `~/.gitconfig.accounts`. `~/.gitconfig` is not used: it
 would override all of the above, so `git config --global` fails on purpose (the settings
 are read-only), and the switch removes an empty `~/.gitconfig` and warns about one with
@@ -60,7 +64,7 @@ It creates the key if missing and prints the public key. Options: `-u` user, `-p
 
 ## Use from another flake
 
-Another flake (a work container, say) can build on this configuration instead of copying
+Another flake (another machine, say) can build on this configuration instead of copying
 it. It imports `homeModules.default` and sets only what differs:
 
 ```nix
@@ -71,7 +75,7 @@ home-manager.lib.homeManagerConfiguration {
     {
       home.username = "dev";
       home.homeDirectory = "/home/dev";
-      dotfiles.github.login = "work-account";   # options.nix lists the rest
+      dotfiles.github.login = "other-account";  # options.nix lists the rest
       programs.nix-index.enable = false;        # values set with lib.mkDefault
     }
   ];

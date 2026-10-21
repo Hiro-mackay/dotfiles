@@ -18,7 +18,7 @@ let
     "docker/tap/sbx" = null;
   };
 
-  # An app already installed outside Homebrew (company MDM, a manual install) keeps its
+  # An app already installed outside Homebrew (MDM, a manual install) keeps its
   # installer as the single owner, so its cask is skipped instead of colliding. Read at
   # (impure) evaluation.
   installedElsewhere =

@@ -2,7 +2,8 @@
 # options.dotfiles (options.nix).
 # ~/.gitconfig.accounts, a writable file created from ./gitconfig.accounts on the first
 # switch, holds which owners use which other account (gh-setup). It is included after
-# the settings here, so an account there overrides the base account.
+# the settings here, so an account there overrides the base account; an account declared
+# in options.dotfiles.github.accounts comes after it and wins.
 {
   config,
   lib,
@@ -11,6 +12,40 @@
 }:
 let
   inherit (config.dotfiles) github git repoRoot;
+  # The URL forms a remote can name GitHub with, as in gh-setup.
+  remoteUrls =
+    owner:
+    map (form: "${form}${owner}/**") [
+      "https://github.com/"
+      "git@github.com:"
+      "ssh://git@github.com/"
+    ];
+  # A declared account (options.nix): its identity and login for its owners' remotes,
+  # lowercase too, since git matches URLs case-sensitively and gh-wrapper.sh lowercases.
+  accountIncludes = lib.concatLists (
+    lib.mapAttrsToList (
+      login: account:
+      map
+        (url: {
+          condition = "hasconfig:remote.*.url:${url}";
+          contents = {
+            user = { inherit (account) name email; };
+            github.login = login;
+            credential."https://github.com".username = login;
+          };
+        })
+        (
+          lib.concatMap remoteUrls (
+            lib.unique (
+              lib.concatMap (o: [
+                o
+                (lib.toLower o)
+              ]) ([ login ] ++ account.owners)
+            )
+          )
+        )
+    ) github.accounts
+  );
   # This repository's owner, for its pre-commit hook below (not the base account).
   repoOwner = "Hiro-mackay";
   # git's credential helper for github.com: the token of the account in
@@ -76,6 +111,7 @@ in
     includes = [
       { path = "~/.gitconfig.accounts"; }
     ]
+    ++ accountIncludes
     # This public repo, wherever it is cloned: run its pre-commit hook.
     ++
       map

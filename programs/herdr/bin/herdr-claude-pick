@@ -32,7 +32,7 @@ case ${1:-} in
     | join("\u001f")' |
     while IFS=$'\x1f' read -r id st pid sid cwd name; do
       if [[ -z $pid ]] || ! kill -0 "$pid" 2>/dev/null; then st=sleeping; fi
-      case $st in blocked) rank=1 ;; working) rank=2 ;; *) rank=3 ;; esac
+      case $st in blocked) rank=1 ;; working) rank=2 ;; sleeping) rank=4 ;; *) rank=3 ;; esac
       printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$rank" "$st" "$id" "$sid" "$cwd" "$name"
     done | sort -t $'\x1f' -k1,1n -s |
     while IFS=$'\x1f' read -r rank st id sid cwd name; do
@@ -40,7 +40,7 @@ case ${1:-} in
         blocked) icon=$(c 254\;253\;194 ◐) group='Needs input' ;;
         working) icon=$(c 180\;250\;114 ●) group=Working ;;
         failed) icon=$(c 255\;130\;114 ✗) group=Completed ;;
-        sleeping) icon=$(c "$dim" ∙) group=Completed ;;
+        sleeping) icon=$(c "$dim" ∙) group=Sleeping ;;
         *) icon=✻ group=Completed ;;
       esac
       if [[ $group != "${last:-}" ]]; then

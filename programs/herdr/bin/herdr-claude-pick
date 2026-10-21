@@ -90,7 +90,8 @@ case ${1:-} in
 esac
 
 rm -f "$note" "$cursor"
-picked=$("$self" --list | fzf --ansi --delimiter '\t' --with-nth 2 --no-sort --layout reverse \
+# FZF_DEFAULT_OPTS from the shell's fzf setup (--height=40% --border) would shrink the popup.
+picked=$("$self" --list | FZF_DEFAULT_OPTS= fzf --ansi --delimiter '\t' --with-nth 2 --no-sort --layout reverse \
   --disabled --prompt "$new" --pointer '▌' --info inline-right --no-scrollbar --highlight-line --header "$("$self" --header)" \
   --color 'fg:#ffffff,fg+:#ffffff,bg+:#1f1f1f,hl:#00c2ff,hl+:#00c2ff,prompt:#00c2ff,pointer:#00c2ff,header:#8e8e8e,info:#8e8e8e,border:#1f1f1f,gutter:-1' \
   --bind 'load:pos(2)+unbind(load)' \

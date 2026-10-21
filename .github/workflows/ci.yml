@@ -118,6 +118,10 @@ jobs:
           # Both agents get the guardrails from programs/agents/guardrails.nix.
           jq -e '.permissions.deny | index("Bash(sudo:*)") and index("Read(~/.ssh/**)")' "$HOME/.claude/settings.json"
           codex execpolicy check --rules "$HOME/.codex/rules/guardrails.rules" sudo true | jq -e '.decision == "forbidden"'
+          # herdr's keys run the packaged scripts, not the checkout.
+          grep -q '"/nix/store/[^"]*-herdr-scripts/bin/herdr-new-claude"' "$HOME/.config/herdr/config.toml"
+          ! grep -q '@bin@' "$HOME/.config/herdr/config.toml"
+          command -v herdr-claude-sync
           # The status line must render reset times with GNU date, without errors.
           sl="$(jq -r .statusLine.command "$HOME/.claude/settings.json")"
           echo '{"rate_limits":{"five_hour":{"used_percentage":10,"resets_at":1800000000}}}' | "$sl" 2>"$RUNNER_TEMP/sl.err" | grep -q '[0-9][0-9]/[0-9][0-9] '

@@ -22,14 +22,6 @@ focus_pane_left = "alt+h"
 focus_pane_right = "alt+l"
 
 [[keys.command]]
-key = "alt+n"
-type = "popup"
-command = "@bin@/herdr-new-claude"
-description = "new claude"
-width = "70%"
-height = 5
-
-[[keys.command]]
 key = "alt+p"
 type = "popup"
 command = "@bin@/herdr-claude-pick"

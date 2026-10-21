@@ -27,7 +27,7 @@ pkgs.writeShellApplication {
     }
     # ~/.gitconfig is read after the dotfiles' git settings and overrides them, accounts
     # included. Without it, `git config --global` fails on the read-only settings instead
-    # of quietly writing there (e.g. an onboarding guide setting a work email for every
+    # of quietly writing there (e.g. an onboarding guide setting another email for every
     # repository). Checked on every run, activation or not: an empty one goes, one with
     # content is reported and left alone.
     if [ -f "$HOME/.gitconfig" ] && [ ! -L "$HOME/.gitconfig" ]; then

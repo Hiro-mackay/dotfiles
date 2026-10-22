@@ -9,10 +9,16 @@ fail() {
   read -r -s -n 1 -p '(press a key)' || true
   exit 1
 }
-read -e -r -p 'name › ' name
+id=$(herdr agent list | jq -r --arg p "$pane" 'first(.result.agents[] | select(.pane_id == $p) | .tokens.session // empty) // empty')
+# Start from the current name, the session's in a Claude tab, so it can be edited.
+if [[ -n $id ]]; then
+  current=$(claude agents --json --all | jq -r --arg i "$id" 'first(.[] | select(.id == $i) | .name // empty) // empty')
+else
+  current=$(herdr tab get "$tab" | jq -r '.result.tab.label // empty')
+fi
+read -e -r -i "$current" -p 'name › ' name
 [[ -n $name ]] || exit 0
 herdr tab rename "$tab" "$name" >/dev/null || fail "renaming the tab failed"
-id=$(herdr agent list | jq -r --arg p "$pane" 'first(.result.agents[] | select(.pane_id == $p) | .tokens.session // empty) // empty')
 [[ -n $id ]] || exit 0
 # Typed keys reach Claude only while herdr-claude-tab has it attached; its idle screen
 # would take the Enter as "resume".

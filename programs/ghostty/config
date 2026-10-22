@@ -13,6 +13,7 @@ keybind = super+shift+arrow_down=text:\x1bj
 keybind = super+shift+arrow_up=text:\x1bk
 keybind = super+j=text:\x1bs
 keybind = super+semicolon=text:\x1b;
+keybind = super+l=text:\x1br
 keybind = super+shift+bracket_right=text:\x1bw
 keybind = super+shift+bracket_left=text:\x1bq
 keybind = super+digit_1=text:\x1b1

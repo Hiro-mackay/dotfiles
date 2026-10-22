@@ -30,6 +30,14 @@ width = "90%"
 height = "70%"
 
 [[keys.command]]
+key = "alt+r"
+type = "popup"
+command = "@bin@/herdr-rename"
+description = "rename the tab and its Claude session"
+width = "70%"
+height = 5
+
+[[keys.command]]
 key = "alt+x"
 type = "shell"
 command = "@bin@/herdr-close"

@@ -40,6 +40,11 @@ keybind = super+shift+t=new_tab
 # so none glares (normal L 0.70 C 0.07, bright L 0.80 C 0.06), the same scale as
 # programs/herdr/config.toml. 13pt at about Warp's 1.2 line height, with room from
 # the window edge.
+# HackGen carries both the Latin and the Japanese glyphs, a Japanese glyph two cells
+# wide. The built-in JetBrains Mono has none, and the fallback face Ghostty picks for
+# them is resized to it, which lifted 、。 above the line. Console: symbols such as ○
+# and → are one cell wide, as the terminal counts them.
+font-family = HackGen Console
 font-size = 13
 adjust-cell-height = 20%
 window-padding-x = 16

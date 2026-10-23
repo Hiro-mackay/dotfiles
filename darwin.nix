@@ -72,6 +72,9 @@
     coreutils-prefixed # ghead for the cpb alias
   ];
 
+  # Ghostty's font (programs/ghostty/config).
+  fonts.packages = [ pkgs.hackgen-font ];
+
   system.activationScripts.postActivation.text = ''
     nvram SystemAudioVolume=" " 2>/dev/null || true
   '';

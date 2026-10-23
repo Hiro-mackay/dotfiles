@@ -107,9 +107,7 @@ git. On each personal device, once:
 Each device writes only files named after its host; set `VAULT_HOST` if two hosts
 share a name. Problems show at the next session start.
 
-## Pinned versions and security reports
+## Pinned versions
 
 Every Monday CI updates `flake.lock`; the update waits a week on the
 `flake-update/pending` branch before reaching `main` (delete the branch to skip it).
-Known CVSS 9+ vulnerabilities are reported in an issue; findings checked as false go in
-`.github/vulnix-whitelist.toml`.

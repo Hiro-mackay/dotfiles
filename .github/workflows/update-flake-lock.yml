@@ -4,8 +4,7 @@ name: update-flake-lock
 # can reach main, which leaves time for a compromised upstream release to be found;
 # deleting the branch drops the update. A week-old pending update is re-applied on
 # today's main, run through the full CI and merged into main through a pull request (the
-# main ruleset takes changes no other way). Then the next
-# update starts, and the main closure is scanned for known vulnerabilities.
+# main ruleset takes changes no other way). Then the next update starts.
 on:
   workflow_dispatch:
   schedule:
@@ -116,54 +115,4 @@ jobs:
           done
           if [ "$(git rev-parse HEAD)" != "$(cat "$RUNNER_TEMP/before")" ]; then
             git push -q "$remote" HEAD:refs/heads/flake-update/pending
-          fi
-
-  # Known vulnerabilities (CVSS 9+) in the macOS system closure on main, reported in
-  # one open issue. GitHub notifies on a new issue and on each new comment.
-  scan:
-    needs: promote
-    if: always()
-    runs-on: macos-latest
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: main
-      - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
-        with:
-          github-token: ""
-          extra-conf: |
-            extra-substituters = https://cache.numtide.com
-            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
-      - env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          system="$(nix build --impure --no-link --print-out-paths .#darwinConfigurations.default.system)"
-          # .github/vulnix-whitelist.toml lists the findings already checked as false.
-          # vulnix exits 2 when it finds something; any other failure (a broken whitelist)
-          # must fail the run rather than read as "nothing found".
-          # Exit 1 is an uncaught error, usually NVD not answering a feed download within
-          # vulnix's fixed 10 s timeout; vulnix does not retry, so try again a few times.
-          for attempt in 1 2 3; do
-            rc=0
-            nix run nixpkgs#vulnix -- --closure --json --whitelist .github/vulnix-whitelist.toml "$system" >vulnix.json || rc=$?
-            [ "$rc" = 1 ] && [ "$attempt" != 3 ] || break
-            sleep 60
-          done
-          [ "$rc" = 0 ] || [ "$rc" = 2 ] || { echo "vulnix failed with exit code $rc" >&2; exit 1; }
-          # Fail loudly (GitHub mails failed runs) if vulnix broke or its format changed.
-          jq -e 'length == 0 or any(.[]; has("cvssv3_basescore"))' vulnix.json >/dev/null
-          jq -r '.[] | . as $p | (.cvssv3_basescore // {}) | to_entries[] | select(.value >= 9)
-            | "- \($p.pname) \($p.version): \(.key) (CVSS \(.value))"' vulnix.json | sort -u >report.md
-          title="Vulnerable Nix packages (CVSS 9+)"
-          issue="$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty')"
-          if [ -s report.md ] && [ -z "$issue" ]; then
-            gh issue create --title "$title" --body-file report.md
-          elif [ -s report.md ] && [ "$(gh issue view "$issue" --json body --jq .body)" != "$(cat report.md)" ]; then
-            gh issue edit "$issue" --body-file report.md
-            gh issue comment "$issue" --body-file report.md
-          elif [ ! -s report.md ] && [ -n "$issue" ]; then
-            gh issue close "$issue" --comment "No CVSS 9+ findings this week."
           fi

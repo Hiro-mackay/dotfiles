@@ -144,8 +144,14 @@ jobs:
           # .github/vulnix-whitelist.toml lists the findings already checked as false.
           # vulnix exits 2 when it finds something; any other failure (a broken whitelist)
           # must fail the run rather than read as "nothing found".
-          rc=0
-          nix run nixpkgs#vulnix -- --closure --json --whitelist .github/vulnix-whitelist.toml "$system" >vulnix.json || rc=$?
+          # Exit 1 is an uncaught error, usually NVD not answering a feed download within
+          # vulnix's fixed 10 s timeout; vulnix does not retry, so try again a few times.
+          for attempt in 1 2 3; do
+            rc=0
+            nix run nixpkgs#vulnix -- --closure --json --whitelist .github/vulnix-whitelist.toml "$system" >vulnix.json || rc=$?
+            [ "$rc" = 1 ] && [ "$attempt" != 3 ] || break
+            sleep 60
+          done
           [ "$rc" = 0 ] || [ "$rc" = 2 ] || { echo "vulnix failed with exit code $rc" >&2; exit 1; }
           # Fail loudly (GitHub mails failed runs) if vulnix broke or its format changed.
           jq -e 'length == 0 or any(.[]; has("cvssv3_basescore"))' vulnix.json >/dev/null

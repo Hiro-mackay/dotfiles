@@ -3,7 +3,8 @@ name: update-flake-lock
 # Weekly. A flake.lock update waits a week on the flake-update/pending branch before it
 # can reach main, which leaves time for a compromised upstream release to be found;
 # deleting the branch drops the update. A week-old pending update is re-applied on
-# today's main, run through the full CI and fast-forwarded into main. Then the next
+# today's main, run through the full CI and merged into main through a pull request (the
+# main ruleset takes changes no other way). Then the next
 # update starts, and the main closure is scanned for known vulnerabilities.
 on:
   workflow_dispatch:
@@ -58,12 +59,27 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ needs.prepare.outputs.candidate }}
-      # Fast-forward only: if main moved since prepare, the push is rejected.
-      - run: git push -q origin HEAD:main
+      # Creating the pull request needs "Allow GitHub Actions to create and approve pull
+      # requests" in the repository's Actions settings.
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          repo="--repo=$GITHUB_REPOSITORY"
+          commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$CANDIDATE")"
+          # CI passed on the candidate as it sits on prepare's main; if main has moved
+          # since, merging would land a combination CI never saw.
+          if [ "$(jq -r '.parents[0].sha' <<<"$commit")" != "$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)" ]; then
+            echo "main moved since prepare; the pending update is retried next week" >&2
+            exit 1
+          fi
+          message="$(jq -r .commit.message <<<"$commit")"
+          subject="$(head -n 1 <<<"$message")"
+          body="$(tail -n +3 <<<"$message")"
+          gh pr create "$repo" --base main --head "$CANDIDATE" --title "$subject" --body "$body"
+          gh pr merge "$repo" "$CANDIDATE" --squash --subject "$subject" --body "$body" \
+            --match-head-commit "$(jq -r .sha <<<"$commit")"
 
   next:
     needs: [prepare, promote]

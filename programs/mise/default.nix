@@ -15,45 +15,34 @@ in
     enable = true;
     enableMutableConfig = true;
     globalConfig = {
-      tools = lib.mkMerge [
-        # A machine that leaves tools to each project's mise.toml sets this to { }.
-        (lib.mkDefault (
-          {
-            node = "latest";
-            python = "latest";
-            uv = "latest";
-            go = "latest";
-            pnpm = "latest";
-            terraform = "latest";
-            kubectl = "latest";
-            kind = "latest";
-            skaffold = "latest";
-            golangci-lint = "latest";
-            sqlc = "latest";
-            buf = "latest";
-            task = "latest";
-            lefthook = "latest";
-            "aqua:golang-migrate/migrate" = "latest";
-            "go:golang.org/x/tools/gopls" = "latest";
-          }
-          // lib.optionalAttrs isDarwin {
-            bun = "latest";
-            deno = "latest";
-            ni = "latest";
-            rust = "latest";
-            sops = "3.12.2";
-          }
-        ))
-        # The MCP server Claude Code and Codex run (programs/claude, programs/codex): kept
-        # when the tools above are cleared. allow_builds runs only its postinstall, which
-        # fetches its binary.
+      # A machine that leaves tools to each project's mise.toml sets this to { }.
+      tools = lib.mkDefault (
         {
-          "npm:codebase-memory-mcp" = {
-            version = "latest";
-            allow_builds = [ "codebase-memory-mcp" ];
-          };
+          node = "latest";
+          python = "latest";
+          uv = "latest";
+          go = "latest";
+          pnpm = "latest";
+          terraform = "latest";
+          kubectl = "latest";
+          kind = "latest";
+          skaffold = "latest";
+          golangci-lint = "latest";
+          sqlc = "latest";
+          buf = "latest";
+          task = "latest";
+          lefthook = "latest";
+          "aqua:golang-migrate/migrate" = "latest";
+          "go:golang.org/x/tools/gopls" = "latest";
         }
-      ];
+        // lib.optionalAttrs isDarwin {
+          bun = "latest";
+          deno = "latest";
+          ni = "latest";
+          rust = "latest";
+          sops = "3.12.2";
+        }
+      );
       settings = {
         idiomatic_version_file_enable_tools = [ "python" ];
         # Supply chain: ignore versions published in the last week (npm: dependencies too).

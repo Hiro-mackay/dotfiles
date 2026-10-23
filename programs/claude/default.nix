@@ -78,8 +78,8 @@ in
       warp = "${inputs.claude-code-warp}/plugins/warp";
     };
 
-    # By absolute path, as in programs/codex: apps started by launchd lack the mise shims.
-    mcpServers.codebase-memory-mcp.command = "${config.xdg.dataHome}/mise/shims/codebase-memory-mcp";
+    # By store path, as in programs/codex: apps started by launchd lack the profile's PATH.
+    mcpServers.codebase-memory-mcp.command = "${pkgs.codebase-memory-mcp}/bin/codebase-memory-mcp";
 
     settings = settings // {
       permissions = settings.permissions // {

@@ -37,8 +37,8 @@ in
           _: "deny"
         );
       };
-      # By absolute path: Codex.app started from the Dock has no mise shims on PATH.
-      mcp_servers.codebase-memory-mcp.command = "${config.xdg.dataHome}/mise/shims/codebase-memory-mcp";
+      # By store path: Codex.app started from the Dock lacks the profile's PATH.
+      mcp_servers.codebase-memory-mcp.command = "${pkgs.codebase-memory-mcp}/bin/codebase-memory-mcp";
       marketplaces = {
         ponytail = {
           source_type = "local";

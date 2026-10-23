@@ -44,6 +44,8 @@
     htmlq
     lazygit
     vim
+    # The MCP server Claude Code and Codex run (programs/claude, programs/codex).
+    codebase-memory-mcp
   ];
 
   # comma (`, cmd`) and command-not-found with a prebuilt nix-index database.

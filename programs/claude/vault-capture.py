@@ -173,8 +173,12 @@ def events(d: dict, host: str, tools: dict) -> list[dict]:
     return out
 
 
+def local_time(ts: str) -> datetime.datetime:
+    return datetime.datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone()
+
+
 def day_file(root: Path, ts: str, host: str) -> Path:
-    t = datetime.datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone()
+    t = local_time(ts)
     return root / ".depth" / "conversations" / f"{t:%Y}" / f"{t:%m}" / f"{t:%d}_{host}.jsonl"
 
 
@@ -211,11 +215,23 @@ def capture(claude: Path, vault: Path, state: dict, host: str, problems: list[st
             typed = sum(1 for d in lines if d.get("type") == "user" and isinstance((d.get("message") or {}).get("content"), str))
             if typed and not out:
                 problems.append(f"{typed} user lines but no events in {path.name}; the transcript format may have changed")
-            by_file: dict[Path, list[str]] = {}
+            by_file: dict[Path, list[dict]] = {}
             for e in out:
                 if e["ts"]:
-                    by_file.setdefault(day_file(vault, e["ts"], host), []).append(json.dumps(e, ensure_ascii=False))
-            for target, rows in by_file.items():
+                    by_file.setdefault(day_file(vault, e["ts"], host), []).append(e)
+            for target, evs in by_file.items():
+                # A resumed session's transcript starts with copies of the earlier
+                # session's lines, uuids unchanged; every event of a line shares its id.
+                written = set()
+                if target.is_file():
+                    for raw in target.read_text(encoding="utf-8").splitlines():
+                        try:
+                            written.add(json.loads(raw).get("id"))
+                        except ValueError:
+                            pass
+                rows = [json.dumps(e, ensure_ascii=False) for e in evs if not (e["id"] and e["id"] in written)]
+                if not rows:
+                    continue
                 target.parent.mkdir(parents=True, exist_ok=True)
                 with target.open("a", encoding="utf-8") as f:
                     f.write("\n".join(rows) + "\n")
@@ -315,7 +331,8 @@ def digest(files: list[Path]) -> str:
                 tail = prev.encode()[-REPLY_TAIL:].decode(errors="ignore")
                 out.append("  (直前の Claude の返答の末尾) " + tail.replace("\n", " "))
                 prev = None
-            head = f"[{(e.get('ts') or '')[:16]} {(e.get('sid') or '')[:8]} {e.get('cwd')}] {kind}"
+            when = f"{local_time(e['ts']):%Y-%m-%d %H:%M}" if e.get("ts") else ""
+            head = f"[{when} {(e.get('sid') or '')[:8]} {e.get('cwd')}] {kind}"
             if e.get("name"):
                 head += f" {e['name']}"
             body = e.get("text") or ""
@@ -426,6 +443,8 @@ def detach(mode: str, state_dir: Path) -> None:
 
 
 def self_test() -> None:
+    os.environ["TZ"] = "Asia/Tokyo"
+    time.tzset()
     tmp = Path(tempfile.mkdtemp())
     claude, vault, state = tmp / "claude", tmp / "vault", tmp / "state"
     vault.mkdir()
@@ -486,6 +505,10 @@ def self_test() -> None:
     again = files[0].read_text().splitlines()
     assert len(again) == len(got) + 1 and json.loads(again[-1])["text"] == "again"
 
+    (proj / "s4.jsonl").write_text("\n".join(rows[:2]) + "\n")  # a resumed session copies s1's lines
+    run("end", claude, vault, state, "h")
+    assert files[0].read_text().splitlines() == again
+
     mem = vault / ".depth" / "memory" / "h"
     assert (mem / "projects" / "-p" / "MEMORY.md").is_file()
     assert not (mem / "projects" / "-p" / "old.md").exists()
@@ -520,7 +543,7 @@ def self_test() -> None:
 
     # digest: the user's side, each user line with the end of the reply before it
     text = digest([files[0]])
-    assert "user: hello" in text and "Q: M? A: x, y" in text and "command /ship: 42" in text
+    assert "[2026-10-08 10:00 s1 /w] user: hello" in text and "Q: M? A: x, y" in text and "command /ship: 42" in text
     assert "(直前の Claude の返答の末尾) hi\n" in text and text.count("直前の Claude") == 1
     assert "echo" not in text
 

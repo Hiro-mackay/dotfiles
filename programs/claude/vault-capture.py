@@ -365,7 +365,7 @@ def agent(claude_bin: str, name: str, prompt: str, vault: Path, dirs: list[Path]
                               text=True, timeout=AGENT_TIMEOUT).returncode
 
 
-def daily(claude: Path, vault: Path, state_dir: Path, host: str, claude_bin: str | None,
+def daily(vault: Path, state_dir: Path, host: str, claude_bin: str | None,
           problems: list[str], today: datetime.date | None = None, every: int = 1) -> None:
     """At most once a day per device: the observer and the minutes agent read this device's records.
 
@@ -397,7 +397,7 @@ def daily(claude: Path, vault: Path, state_dir: Path, host: str, claude_bin: str
     material.write_text(text, encoding="utf-8")
     log = state_dir / "daily.log"
     prompt = f"Read {material} (this device's conversation records, {len(files)} day(s)) and do your job."
-    failed = [name for name, dirs in (("observer", [state_dir, claude / "agent-memory"]), ("minutes", [state_dir]))
+    failed = [name for name, dirs in (("observer", [state_dir]), ("minutes", [state_dir]))
               if agent(claude_bin, name, prompt, vault, dirs, log)]
     if failed:
         problems.append(f"daily agents failed: {', '.join(failed)} (see {log})")
@@ -426,7 +426,7 @@ def after(mode: str, claude: Path, vault: Path, state_dir: Path, host: str, rclo
                 sync(mode, vault, host, rclone, remote, problems)
             git_sync(vault, problems)
             if mode == "start" and not work:
-                daily(claude, vault, state_dir, host, claude_bin, problems, every=every)
+                daily(vault, state_dir, host, claude_bin, problems, every=every)
                 with (state_dir / "lock").open("w") as main_lock:
                     fcntl.flock(main_lock, fcntl.LOCK_EX)
                     mirror(claude, vault, host)
@@ -562,25 +562,25 @@ def self_test() -> None:
     fake.chmod(0o755)
     os.environ["CLAUDECODE"] = "1"
     problems = []
-    daily(claude, vault, state, "h", str(fake), problems, today=d(2026, 10, 9))
+    daily(vault, state, "h", str(fake), problems, today=d(2026, 10, 9))
     got_calls = calls.read_text().splitlines()
     assert problems == [] and len(got_calls) == 2, (problems, got_calls)
     assert "--agent observer" in got_calls[0] and "--agent minutes" in got_calls[1]
     assert all("| 1 | Read " in c and "daily-input.txt" in c for c in got_calls)
     assert "user: hello" in (state / "daily-input.txt").read_text()
     assert (state / "daily-last").read_text() == "2026-10-08"
-    daily(claude, vault, state, "h", str(fake), problems, today=d(2026, 10, 9))
+    daily(vault, state, "h", str(fake), problems, today=d(2026, 10, 9))
     assert len(calls.read_text().splitlines()) == 2  # once a day
     os.environ["FAKE_RC"] = "1"
     (state / "daily-last").write_text("2026-10-01")
-    daily(claude, vault, state, "h", str(fake), problems, today=d(2026, 10, 10))
+    daily(vault, state, "h", str(fake), problems, today=d(2026, 10, 10))
     assert "observer, minutes" in problems[0] and (state / "daily-last").read_text() == "2026-10-01"
     del os.environ["FAKE_RC"]
     # every=N waits until N days are unread
     (state / "daily-last").write_text("2026-10-07")
-    daily(claude, vault, state, "h", str(fake), problems, today=d(2026, 10, 11), every=4)
+    daily(vault, state, "h", str(fake), problems, today=d(2026, 10, 11), every=4)
     assert len(calls.read_text().splitlines()) == 4 and (state / "daily-last").read_text() == "2026-10-07"
-    daily(claude, vault, state, "h", str(fake), problems, today=d(2026, 10, 12), every=4)
+    daily(vault, state, "h", str(fake), problems, today=d(2026, 10, 12), every=4)
     assert len(calls.read_text().splitlines()) == 6 and (state / "daily-last").read_text() == "2026-10-11"
     del os.environ["CLAUDECODE"]
 

@@ -1,7 +1,7 @@
 # Global Instructions
 
 ## Communication
-- Write to me in Japanese (常体), including reports and PR or issue descriptions. Code, comments, and commit messages are in English; other repository files follow the repository's language
+- Write to me in Japanese (常体), including reports and PR or issue descriptions. Code identifiers are in English; comments, commit messages, and other repository files follow the repository's language
 - Use plain words: no coined labels, metaphors, hype, or emojis
 - When offering options, lead with the recommendation and what decides it
 - Close a task with a short recap that stands on its own: the outcome, what was not verified and what would settle it, and what is next

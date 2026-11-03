@@ -66,7 +66,7 @@ SECRETS = [
         r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(-----END [A-Z ]*PRIVATE KEY-----|\Z)",
         r"(?i)(?<=bearer )[A-Za-z0-9._~+/=-]{16,}",
         r"(?<=://)[^/\s:@]+:[^/\s@]+(?=@)",
-        r"(?i)(?<=password=)\S+|(?<=passwd=)\S+|(?<=secret=)\S+|(?<=token=)\S+|(?<=api_key=)\S+",
+        r"(?i)(?<=password=)\S+|(?<=password2=)\S+|(?<=passwd=)\S+|(?<=secret=)\S+|(?<=token=)\S+|(?<=api_key=)\S+",
         r"(?i)(?<=password = )\S+|(?<=password2 = )\S+|(?<=access_key_id = )\S+|(?<=secret_access_key = )\S+",
         r"^[`\"']?[a-z]{4} [a-z]{4} [a-z]{4} [a-z]{4}[`\"']?\s*$",
     )
@@ -450,6 +450,7 @@ def self_test() -> None:
     conf = "[r]\npassword = a1\npassword2 = b2\naccess_key_id = c3\nsecret_access_key = d4\nendpoint = https://e\n"
     assert redact(conf) == ("[r]\npassword = [REDACTED]\npassword2 = [REDACTED]\naccess_key_id = [REDACTED]\n"
                             "secret_access_key = [REDACTED]\nendpoint = https://e\n")
+    assert redact("password=a1 password2=b2") == "password=[REDACTED] password2=[REDACTED]"
     os.environ["TZ"] = "Asia/Tokyo"
     time.tzset()
     tmp = Path(tempfile.mkdtemp())

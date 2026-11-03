@@ -97,12 +97,13 @@ template.
 
 Claude Code's hooks copy conversations and memory into the vault's `.depth/`
 (`programs/claude/vault-capture.py`). Conversations sync through object storage, not
-git. On each personal device, once:
+git. Once per device:
 
-1. In `rclone config`, create an S3 remote for the Cloudflare R2 bucket, then a crypt
-   remote named `vault-depth` on top of it. Use the same crypt passwords on every
-   device. Leave this out on the work Mac: its conversations stay there.
-2. On the Mac that runs the observer each morning: `mkdir -p ~/.config/vault && touch ~/.config/vault/observer`.
+1. On each personal device, in `rclone config`, create an S3 remote for the Cloudflare R2
+   bucket, then a crypt remote named `vault-depth` on top of it. Use the same crypt
+   passwords on every device.
+2. On the work Mac, instead: `mkdir -p ~/.config/vault && touch ~/.config/vault/work`.
+   Its conversations stay there, and the daily agents do not run there.
 
 Each device writes only files named after its host; set `VAULT_HOST` if two hosts
 share a name. Problems show at the next session start.

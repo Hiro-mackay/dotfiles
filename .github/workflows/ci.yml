@@ -48,7 +48,7 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
         with:
           extra-conf: |
-            extra-substituters = https://cache.numtide.com
+            extra-substituters = https://cache.numtide.com?priority=50
             extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
       - name: Check that the darwin configuration comes from binary caches
         run: |

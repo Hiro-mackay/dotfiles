@@ -34,7 +34,7 @@ if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     # The numtide binary cache serves Codex prebuilt; without it Nix compiles Codex from
     # source. On macOS nix-darwin keeps it in determinateNix.customSettings afterwards.
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
-        sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com
+        sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com?priority=50
 extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
 fi
 # shellcheck disable=SC1091

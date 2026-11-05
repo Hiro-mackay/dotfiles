@@ -21,6 +21,7 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
 
     # Claude Code plugins, pinned here instead of installed from their marketplaces.
+    # The weekly update leaves these out; update one with `nix flake update <name>`.
     ponytail = {
       url = "github:DietrichGebert/ponytail";
       flake = false;

@@ -103,8 +103,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rev-parse HEAD >"$RUNNER_TEMP/before"
-          # The commit message lists every input with its old and new revision.
-          nix flake update --commit-lock-file
+          # The commit message lists every input with its old and new revision. The
+          # plugin inputs (flake.nix) run their code in every agent session, so they are
+          # left out and updated by hand after reading their diff.
+          nix flake update --commit-lock-file \
+            nixpkgs nix-darwin home-manager determinate nix-homebrew nix-index-database llm-agents
       - env:
           TOKEN: ${{ github.token }}
         run: |

@@ -81,16 +81,18 @@ gbclean() {
 
   local merged_prs
   merged_prs=$(gh pr list --state merged --limit 200 \
-    --json headRefName --jq '.[].headRefName')
+    --json headRefName,headRefOid --jq '.[] | "\(.headRefName) \(.headRefOid)"')
 
+  # A for loop, not `while read ... <<<`: the prompt below must read the terminal.
+  # A merged PR counts only when its head is this branch's tip, not just its name.
   local branch reply
-  while IFS= read -r branch; do
+  for branch in ${(f)gone_branches}; do
     if git branch -d -q "$branch" 2>/dev/null; then
       echo "deleted: $branch"
       continue
     fi
 
-    if grep -Fxq "$branch" <<< "$merged_prs"; then
+    if grep -Fxq "$branch $(git rev-parse "$branch")" <<< "$merged_prs"; then
       git branch -D -q "$branch"
       echo "deleted (merged via PR): $branch"
       continue
@@ -105,7 +107,7 @@ gbclean() {
       s|S) echo "aborted"; return 0 ;;
       *)   echo "skipped: $branch" ;;
     esac
-  done <<< "$gone_branches"
+  done
 }
 
 gfb() {
@@ -396,6 +398,12 @@ gwr() {
     git worktree prune 2>/dev/null
     echo "Worktree for '$branch' is already clean."
     return 0
+  fi
+
+  # The fallbacks below rm -rf; only ever on a worktree of this repository.
+  if ! git -C "$main_path" worktree list --porcelain | grep -Fqx "worktree $abs_target"; then
+    echo "error: $abs_target is not a worktree of $main_path" >&2
+    return 1
   fi
 
   if [[ "$(realpath "$PWD")/" == "$abs_target/"* ]]; then

@@ -37,6 +37,7 @@ case "$*" in
 "auth login"*) cp $st/next $st/active && cat $st/next >>$st/accts ;;
 "auth token -h github.com -u "*) for u in "$@"; do :; done; grep -qx "$u" $st/accts && echo "token-$u" ;;
 "config set -h github.com git_protocol https") ;;
+"pr comment --body-file -") cat ;;
 *) echo "as ${GH_TOKEN#token-}" ;;
 esac
 EOF
@@ -141,8 +142,9 @@ check "gh auth token elsewhere" token-Hiro-mackay "$(cd "$T/r/own" && ghw auth t
 check "gh auth token -u as given" token-Hiro-mackay "$(cd "$T/r/other" && ghw auth token -h github.com -u Hiro-mackay)"
 check "gh auth status names the account" 1 "$(cd "$T/r/other" && ghw auth status 2>&1 | grep -c 'for this repository: other-me')"
 mkdir -p "$HOME/.config/gh"
-printf 'github.com:\n    user: Hiro-mackay\n' >"$HOME/.config/gh/hosts.yml"
+printf 'github.com:\n    user: Hiro-mackay\n    oauth_token: token-Hiro-mackay\n' >"$HOME/.config/gh/hosts.yml"
 check "gh uses the active account as is" "as " "$(cd "$T/r/own" && ghw pr list)"
+check "gh keeps stdin for the active account" body "$(cd "$T/r/own" && echo body | ghw pr comment --body-file -)"
 rm "$HOME/.config/gh/hosts.yml"
 sed -i.bak '/^other-me$/d' "$T/accts"
 check "local commands need no account" "as " "$(cd "$T/r/other" && ghw config get git_protocol)"

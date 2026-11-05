@@ -81,13 +81,8 @@ if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
     done
 fi
 
-# After GitHub sign-in, so mise reads GitHub releases with the base account's token
-# instead of the 60-an-hour limit shared by everyone behind the same IP.
+# After GitHub sign-in, so mise's credential_command (programs/mise) finds a token.
 log "Installing tools with mise"
-if [ -z "${MISE_GITHUB_TOKEN:-}${GITHUB_TOKEN:-}" ] &&
-    token=$(gh auth token -h github.com -u "$(cd / && git config github.login)" 2>/dev/null); then
-    export MISE_GITHUB_TOKEN="$token"
-fi
 (cd && mise install --yes) || {
     echo "error: mise install failed (see above); fix it, then run 'mise install'. A GitHub API rate limit is fixed by signing in with gh-setup." >&2
     exit 1

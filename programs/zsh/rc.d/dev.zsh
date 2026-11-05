@@ -38,15 +38,10 @@ dotup() {
   case ${1:-} in --no-upgrade | -nu) upgrade= ;; esac
   git -C "$DOTFILES_DIR" pull --ff-only && nix run "$DOTFILES_DIR#switch" || return
   if [[ -n $upgrade ]] && command -v brew >/dev/null; then brew upgrade || return; fi
-  # mise reads GitHub releases; without a token it shares 60 requests an hour with
-  # everyone behind the same IP. Use the base account's token. From $HOME, so only
-  # the global tools are handled, not those of the project dotup was run from.
+  # From $HOME, so only the global tools are handled, not those of the project dotup
+  # was run from.
   (
     cd || exit
-    if [[ -z ${MISE_GITHUB_TOKEN:-}${GITHUB_TOKEN:-} ]] &&
-      token=$(gh auth token -h github.com -u "$(cd / && git config github.login)" 2>/dev/null); then
-      export MISE_GITHUB_TOKEN=$token
-    fi
     mise install --yes && { [[ -z $upgrade ]] || mise upgrade --yes; }
   )
 }

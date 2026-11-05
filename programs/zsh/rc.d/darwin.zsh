@@ -63,6 +63,7 @@ sbxc() {
 # directory -- never anywhere a destructive command (rm -rf, etc.) or a prompt
 # injection could do real damage without anyone watching.
 ccgo() {
+  setopt local_options local_traps   # the INT/TERM traps end with the function
   trap 'sudo pmset -a disablesleep 0; sudo pmset -b powernap 1' EXIT INT TERM
   sudo pmset -a disablesleep 1   # stay awake lid-closed
   sudo pmset -b powernap 0       # no background wake during the session

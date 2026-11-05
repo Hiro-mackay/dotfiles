@@ -65,10 +65,12 @@ esac
 
 # Already the active account: no token to look up.
 hosts=${GH_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/gh}/hosts.yml
-if [ -r "$hosts" ]; then
-    while IFS= read -r line; do
-        case "$line" in "    user: $account") exec "$gh" "$@" ;; esac
-    done <"$hosts"
+# Not a `while read ... done <"$hosts"` loop: exec inside it hands gh hosts.yml as its
+# stdin, so `--body-file -` would post the token on the next line. Only the user under
+# github.com: counts; another host's user of the same name is a different account.
+if [ -r "$hosts" ] && awk -v u="    user: $account" '/^[^ ]/ { h = $0 == "github.com:" }
+    h && $0 == u { f = 1 } END { exit !f }' "$hosts"; then
+    exec "$gh" "$@"
 fi
 token=$("$gh" auth token -h github.com -u "$account" 2>/dev/null) || {
     echo "gh: not signed in as $account, the account for this repository; run gh-setup" >&2

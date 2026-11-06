@@ -411,7 +411,12 @@ gwr() {
   fi
 
   # Check for uncommitted changes before removal
-  if [[ -n "$(git -C "$abs_target" status --porcelain 2>/dev/null)" ]]; then
+  local changes
+  if ! changes=$(git -C "$abs_target" status --porcelain); then
+    echo "error: cannot check '$branch' for uncommitted changes; not removing it" >&2
+    return 1
+  fi
+  if [[ -n "$changes" ]]; then
     echo "error: '$branch' has uncommitted changes" >&2
     git -C "$abs_target" status --short >&2
     return 1

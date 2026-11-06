@@ -29,13 +29,23 @@ if [ "$OS" = Darwin ] && ! xcode-select -p >/dev/null 2>&1; then
     fi
 fi
 
+# An extra-substituters line naming the numtide cache without a priority.
+numtide_unranked='^[[:space:]]*extra-substituters[[:space:]]*=.*https://cache\.numtide\.com/?([[:space:]]|$)'
 if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     log "Installing Determinate Nix"
     # The numtide binary cache serves Codex prebuilt; without it Nix compiles Codex from
     # source. On macOS nix-darwin keeps it in determinateNix.customSettings afterwards.
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
-        sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com
+        sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com?priority=50
 extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+elif [ "$OS" = Linux ] && grep -Eq "$numtide_unranked" /etc/nix/nix.custom.conf 2>/dev/null; then
+    # Installed before the priority: numtide's key is accepted for any path, so it should
+    # be asked only after cache.nixos.org (priority 40).
+    log "Asking the numtide cache after cache.nixos.org"
+    sudo sed -i -E "\,$numtide_unranked, s#(https://cache\.numtide\.com)/?([[:space:]]|\$)#\1?priority=50\2#" \
+        /etc/nix/nix.custom.conf
+    # Without systemd there may be no daemon, and Nix reads the file on every run.
+    sudo systemctl restart nix-daemon || log "Restart the Nix daemon to apply it"
 fi
 # shellcheck disable=SC1091
 . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
@@ -81,13 +91,8 @@ if [ -t 1 ] && (: </dev/tty) 2>/dev/null; then
     done
 fi
 
-# After GitHub sign-in, so mise reads GitHub releases with the base account's token
-# instead of the 60-an-hour limit shared by everyone behind the same IP.
+# After GitHub sign-in, so mise's credential_command (programs/mise) finds a token.
 log "Installing tools with mise"
-if [ -z "${MISE_GITHUB_TOKEN:-}${GITHUB_TOKEN:-}" ] &&
-    token=$(gh auth token -h github.com -u "$(cd / && git config github.login)" 2>/dev/null); then
-    export MISE_GITHUB_TOKEN="$token"
-fi
 (cd && mise install --yes) || {
     echo "error: mise install failed (see above); fix it, then run 'mise install'. A GitHub API rate limit is fixed by signing in with gh-setup." >&2
     exit 1

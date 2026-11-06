@@ -30,7 +30,14 @@ jobs:
           ref: main
       - id: prepare
         run: |
-          git fetch -q origin flake-update/pending 2>/dev/null || exit 0
+          git fetch -q --depth=2 origin flake-update/pending 2>/dev/null || exit 0
+          # Copying the pending flake.lock would undo an input updated by hand on main
+          # since then; start the update over from main instead (next does it).
+          git diff --quiet FETCH_HEAD~1 HEAD -- flake.lock || {
+            [ $? -eq 1 ] || exit 1
+            echo "flake.lock changed on main since the pending update; starting over" >&2
+            exit 0
+          }
           # A week, less half a day so a late scheduled run still counts.
           if [ $(($(date +%s) - $(git log -1 --format=%ct FETCH_HEAD))) -lt $((7 * 86400 - 43200)) ]; then
             echo waiting=true >>"$GITHUB_OUTPUT"
@@ -103,8 +110,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rev-parse HEAD >"$RUNNER_TEMP/before"
-          # The commit message lists every input with its old and new revision.
-          nix flake update --commit-lock-file
+          # The commit message lists every input with its old and new revision. The
+          # plugin inputs (flake = false in flake.nix) run their code in every agent
+          # session, so they are left out and updated by hand after reading their diff.
+          inputs=$(nix flake metadata --json | jq -r '.locks.nodes as $n
+            | .locks.nodes.root.inputs | to_entries[] | select($n[.value].flake != false) | .key')
+          # With no names nix flake update would take every input, the plugins too.
+          [ -n "$inputs" ]
+          # shellcheck disable=SC2086
+          nix flake update --commit-lock-file $inputs
       - env:
           TOKEN: ${{ github.token }}
         run: |

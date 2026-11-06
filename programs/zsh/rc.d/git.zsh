@@ -73,7 +73,13 @@ gbclean() {
   fi
 
   local gone_branches
-  gone_branches=$(git branch -vv | awk '/: gone\]/ {sub(/^\* /,""); print $1}')
+  # git cannot delete a branch checked out in a worktree, this one included.
+  gone_branches=$(git for-each-ref refs/heads \
+    --format='%(upstream:track)%09%(worktreepath)%09%(refname:lstrip=2)' |
+    awk -F '\t' '$1 == "[gone]" {
+      if ($2 != "") print "skipped (checked out): " $3 > "/dev/stderr"
+      else print $3
+    }')
   if [[ -z "$gone_branches" ]]; then
     echo "no gone branches"
     return 0
@@ -81,31 +87,32 @@ gbclean() {
 
   local merged_prs
   merged_prs=$(gh pr list --state merged --limit 200 \
-    --json headRefName --jq '.[].headRefName')
+    --json headRefName,headRefOid --jq '.[] | "\(.headRefName) \(.headRefOid)"')
 
+  # A for loop, not `while read ... <<<`: the prompt below must read the terminal.
+  # A merged PR counts only when its head is this branch's tip, not just its name.
   local branch reply
-  while IFS= read -r branch; do
+  for branch in ${(f)gone_branches}; do
     if git branch -d -q "$branch" 2>/dev/null; then
       echo "deleted: $branch"
       continue
     fi
 
-    if grep -Fxq "$branch" <<< "$merged_prs"; then
-      git branch -D -q "$branch"
-      echo "deleted (merged via PR): $branch"
+    if grep -Fxq "$branch $(git rev-parse "refs/heads/$branch")" <<< "$merged_prs"; then
+      git branch -D -q "$branch" && echo "deleted (merged via PR): $branch"
       continue
     fi
 
     echo ""
     echo "── $branch has unmerged commits:"
-    git log --oneline --no-decorate "$default_branch..$branch" | head -10
+    git log --oneline --no-decorate "origin/$default_branch..refs/heads/$branch" | head -10
     read "reply?delete? [y/N/s=skip all remaining] "
     case "$reply" in
       y|Y) git branch -D -q "$branch" && echo "deleted (forced): $branch" ;;
       s|S) echo "aborted"; return 0 ;;
       *)   echo "skipped: $branch" ;;
     esac
-  done <<< "$gone_branches"
+  done
 }
 
 gfb() {
@@ -398,12 +405,23 @@ gwr() {
     return 0
   fi
 
+  # The fallbacks below rm -rf; only ever on a worktree of this repository.
+  if ! git -C "$main_path" worktree list --porcelain | grep -Fqx "worktree $abs_target"; then
+    echo "error: $abs_target is not a worktree of $main_path" >&2
+    return 1
+  fi
+
   if [[ "$(realpath "$PWD")/" == "$abs_target/"* ]]; then
     cd "$main_path"
   fi
 
   # Check for uncommitted changes before removal
-  if [[ -n "$(git -C "$abs_target" status --porcelain 2>/dev/null)" ]]; then
+  local changes
+  if ! changes=$(git -C "$abs_target" status --porcelain); then
+    echo "error: cannot check '$branch' for uncommitted changes; not removing it" >&2
+    return 1
+  fi
+  if [[ -n "$changes" ]]; then
     echo "error: '$branch' has uncommitted changes" >&2
     git -C "$abs_target" status --short >&2
     return 1

@@ -36,6 +36,12 @@ if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
         sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com?priority=50
 extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+elif [ "$OS" = Linux ] && grep -qx 'extra-substituters = https://cache.numtide.com' /etc/nix/nix.custom.conf 2>/dev/null; then
+    # Installed before the priority: numtide's key is accepted for any path, so it should
+    # be asked only after cache.nixos.org (priority 40).
+    log "Asking the numtide cache after cache.nixos.org"
+    sudo sed -i 's|^extra-substituters = https://cache.numtide.com$|&?priority=50|' /etc/nix/nix.custom.conf
+    sudo systemctl restart nix-daemon
 fi
 # shellcheck disable=SC1091
 . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh

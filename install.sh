@@ -41,7 +41,8 @@ elif [ "$OS" = Linux ] && grep -qx 'extra-substituters = https://cache.numtide.c
     # be asked only after cache.nixos.org (priority 40).
     log "Asking the numtide cache after cache.nixos.org"
     sudo sed -i 's|^extra-substituters = https://cache.numtide.com$|&?priority=50|' /etc/nix/nix.custom.conf
-    sudo systemctl restart nix-daemon
+    # Without systemd there may be no daemon, and Nix reads the file on every run.
+    sudo systemctl restart nix-daemon || log "Restart the Nix daemon to apply it"
 fi
 # shellcheck disable=SC1091
 . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh

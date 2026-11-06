@@ -73,7 +73,7 @@ gbclean() {
   fi
 
   local gone_branches
-  gone_branches=$(git branch -vv | awk '/: gone\]/ {sub(/^\* /,""); print $1}')
+  gone_branches=$(git branch -vv | awk '/: gone\]/ {sub(/^[*+] /,""); print $1}')
   if [[ -z "$gone_branches" ]]; then
     echo "no gone branches"
     return 0
@@ -92,7 +92,7 @@ gbclean() {
       continue
     fi
 
-    if grep -Fxq "$branch $(git rev-parse "$branch")" <<< "$merged_prs"; then
+    if grep -Fxq "$branch $(git rev-parse "refs/heads/$branch")" <<< "$merged_prs"; then
       git branch -D -q "$branch"
       echo "deleted (merged via PR): $branch"
       continue

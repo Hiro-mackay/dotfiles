@@ -40,7 +40,6 @@
     ".config/rclone"
     ".git-credentials"
     ".config/git/credentials"
-    "Library/Keychains"
     ".config/gcloud"
     ".config/sops"
     ".codex/auth.json"

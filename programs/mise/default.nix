@@ -47,11 +47,12 @@ in
         idiomatic_version_file_enable_tools = [ "python" ];
         # Supply chain: ignore versions published in the last week (npm: dependencies too).
         minimum_release_age = "7d";
-        # The base account's token (gh outside a repository), so mise does not share the
-        # anonymous 60-an-hour GitHub limit. mise asks for it itself; an exported
-        # MISE_GITHUB_TOKEN would reach every installer it runs, npm scripts included.
-        # Only for github.com: mise also asks for other GitHub hosts.
-        github.credential_command = ''[ "$MISE_CREDENTIAL_HOST" = github.com ] && cd / && gh auth token'';
+        # The base account's token, so mise does not share the anonymous 60-an-hour
+        # GitHub limit. mise asks for it itself; an exported MISE_GITHUB_TOKEN would reach
+        # every installer it runs, npm scripts included. Only for github.com: mise also
+        # asks for other GitHub hosts. Host and account are named, so neither GH_HOST nor
+        # gh's active account picks another token.
+        github.credential_command = ''[ "$MISE_CREDENTIAL_HOST" = github.com ] && cd / && gh auth token -h github.com -u "$(git config github.login)"'';
       };
     };
   };

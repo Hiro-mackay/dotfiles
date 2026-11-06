@@ -73,11 +73,13 @@ gbclean() {
   fi
 
   local gone_branches
-  # git cannot delete a branch checked out here (*) or in another worktree (+).
-  gone_branches=$(git branch -vv | awk '/: gone\]/ {
-    if (/^[*+] /) print "skipped (checked out): " $2 > "/dev/stderr"
-    else print $1
-  }')
+  # git cannot delete a branch checked out in a worktree, this one included.
+  gone_branches=$(git for-each-ref refs/heads \
+    --format='%(upstream:track)%09%(worktreepath)%09%(refname:lstrip=2)' |
+    awk -F '\t' '$1 == "[gone]" {
+      if ($2 != "") print "skipped (checked out): " $3 > "/dev/stderr"
+      else print $3
+    }')
   if [[ -z "$gone_branches" ]]; then
     echo "no gone branches"
     return 0
@@ -97,14 +99,13 @@ gbclean() {
     fi
 
     if grep -Fxq "$branch $(git rev-parse "refs/heads/$branch")" <<< "$merged_prs"; then
-      git branch -D -q "$branch"
-      echo "deleted (merged via PR): $branch"
+      git branch -D -q "$branch" && echo "deleted (merged via PR): $branch"
       continue
     fi
 
     echo ""
     echo "── $branch has unmerged commits:"
-    git log --oneline --no-decorate "$default_branch..refs/heads/$branch" | head -10
+    git log --oneline --no-decorate "origin/$default_branch..refs/heads/$branch" | head -10
     read "reply?delete? [y/N/s=skip all remaining] "
     case "$reply" in
       y|Y) git branch -D -q "$branch" && echo "deleted (forced): $branch" ;;

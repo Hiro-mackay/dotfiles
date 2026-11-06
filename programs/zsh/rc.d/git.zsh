@@ -73,7 +73,11 @@ gbclean() {
   fi
 
   local gone_branches
-  gone_branches=$(git branch -vv | awk '/: gone\]/ {sub(/^[*+] /,""); print $1}')
+  # git cannot delete a branch checked out here (*) or in another worktree (+).
+  gone_branches=$(git branch -vv | awk '/: gone\]/ {
+    if (/^[*+] /) print "skipped (checked out): " $2 > "/dev/stderr"
+    else print $1
+  }')
   if [[ -z "$gone_branches" ]]; then
     echo "no gone branches"
     return 0
@@ -100,7 +104,7 @@ gbclean() {
 
     echo ""
     echo "── $branch has unmerged commits:"
-    git log --oneline --no-decorate "$default_branch..$branch" | head -10
+    git log --oneline --no-decorate "$default_branch..refs/heads/$branch" | head -10
     read "reply?delete? [y/N/s=skip all remaining] "
     case "$reply" in
       y|Y) git branch -D -q "$branch" && echo "deleted (forced): $branch" ;;

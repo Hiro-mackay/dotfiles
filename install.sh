@@ -29,6 +29,8 @@ if [ "$OS" = Darwin ] && ! xcode-select -p >/dev/null 2>&1; then
     fi
 fi
 
+# An extra-substituters line naming the numtide cache without a priority.
+numtide_unranked='^[[:space:]]*extra-substituters[[:space:]]*=.*https://cache\.numtide\.com/?([[:space:]]|$)'
 if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     log "Installing Determinate Nix"
     # The numtide binary cache serves Codex prebuilt; without it Nix compiles Codex from
@@ -36,11 +38,12 @@ if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
         sh -s -- install --no-confirm --extra-conf "extra-substituters = https://cache.numtide.com?priority=50
 extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
-elif [ "$OS" = Linux ] && grep -qx 'extra-substituters = https://cache.numtide.com' /etc/nix/nix.custom.conf 2>/dev/null; then
+elif [ "$OS" = Linux ] && grep -Eq "$numtide_unranked" /etc/nix/nix.custom.conf 2>/dev/null; then
     # Installed before the priority: numtide's key is accepted for any path, so it should
     # be asked only after cache.nixos.org (priority 40).
     log "Asking the numtide cache after cache.nixos.org"
-    sudo sed -i 's|^extra-substituters = https://cache.numtide.com$|&?priority=50|' /etc/nix/nix.custom.conf
+    sudo sed -i -E "\,$numtide_unranked, s#(https://cache\.numtide\.com)/?([[:space:]]|\$)#\1?priority=50\2#" \
+        /etc/nix/nix.custom.conf
     # Without systemd there may be no daemon, and Nix reads the file on every run.
     sudo systemctl restart nix-daemon || log "Restart the Nix daemon to apply it"
 fi

@@ -111,10 +111,14 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rev-parse HEAD >"$RUNNER_TEMP/before"
           # The commit message lists every input with its old and new revision. The
-          # plugin inputs (flake.nix) run their code in every agent session, so they are
-          # left out and updated by hand after reading their diff.
-          nix flake update --commit-lock-file \
-            nixpkgs nix-darwin home-manager determinate nix-homebrew nix-index-database llm-agents
+          # plugin inputs (flake = false in flake.nix) run their code in every agent
+          # session, so they are left out and updated by hand after reading their diff.
+          inputs=$(nix flake metadata --json | jq -r '.locks.nodes as $n
+            | .locks.nodes.root.inputs | to_entries[] | select($n[.value].flake != false) | .key')
+          # With no names nix flake update would take every input, the plugins too.
+          [ -n "$inputs" ]
+          # shellcheck disable=SC2086
+          nix flake update --commit-lock-file $inputs
       - env:
           TOKEN: ${{ github.token }}
         run: |

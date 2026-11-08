@@ -112,3 +112,6 @@ share a name. Problems show at the next session start.
 
 Every Monday CI updates `flake.lock`; the update waits a week on the
 `flake-update/pending` branch before reaching `main` (delete the branch to skip it).
+The Claude Code and Codex plugins are left out: read an update's diff, then run
+`nix flake update <name>` (names in `flake.nix`). A `flake.lock` changed on `main` while
+an update waits makes the next Monday's run drop that update and start a new one.

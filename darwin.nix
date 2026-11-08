@@ -48,7 +48,8 @@
   determinateNix = {
     enable = true;
     customSettings = {
-      extra-substituters = [ "https://cache.numtide.com" ];
+      # Asked after cache.nixos.org (priority 40), so it serves only what that one lacks.
+      extra-substituters = [ "https://cache.numtide.com?priority=50" ];
       extra-trusted-public-keys = [ "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=" ];
     };
   };

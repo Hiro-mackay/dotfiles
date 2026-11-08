@@ -41,6 +41,9 @@ in
   # The same rclone the capture hook runs, so `rclone config` sets up its remote.
   home.packages = lib.optional config.dotfiles.vault.enable pkgs.rclone;
 
+  # i-have-adhd's SessionStart hook injects its rules only while this file exists.
+  home.file."${config.programs.claude-code.configDir}/.i-have-adhd-always".text = "";
+
   programs.claude-code = {
     enable = true;
     # A machine that installs Claude Code some other way sets this to null.
@@ -51,11 +54,9 @@ in
 
     # One directory link per skill (an attrset, not a path) so tool-owned entries such
     # as skills/synced keep living next to them. critique is for Codex only.
-    skills =
-      lib.mapAttrs (name: _: skills + "/${name}") (removeAttrs (builtins.readDir skills) [ "critique" ])
-      // {
-        i-have-adhd = "${inputs.i-have-adhd}/skills/i-have-adhd";
-      };
+    skills = lib.mapAttrs (name: _: skills + "/${name}") (
+      removeAttrs (builtins.readDir skills) [ "critique" ]
+    );
 
     # Marketplace plugins pinned through flake inputs, loaded as personal plugins.
     plugins = {
@@ -76,6 +77,31 @@ in
       codex = "${inputs.codex-plugin-cc}/plugins/codex";
       # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
       warp = "${inputs.claude-code-warp}/plugins/warp";
+      # caveman and i-have-adhd hooks run node from PATH; point them at Nix's node
+      # instead, as the capture hook does. caveman already stays off in print-mode
+      # runs (CLAUDE_CODE_ENTRYPOINT=sdk-*), such as the vault's daily agents;
+      # i-have-adhd is made to skip them too so it does not shape their notes.
+      caveman = pkgs.runCommand "caveman-plugin" { } ''
+        cp -r ${inputs.caveman} $out
+        chmod -R u+w $out
+        sed -i -e 's#command -v node >/dev/null 2>&1 || exit 0; ##' \
+          -e 's#; node \\"\$HOOK_ROOT#; ${pkgs.nodejs}/bin/node \\"$HOOK_ROOT#' \
+          $out/.claude-plugin/plugin.json
+        test "$(grep -c '${pkgs.nodejs}/bin/node' $out/.claude-plugin/plugin.json)" = 4
+        ! grep -q 'command -v node' $out/.claude-plugin/plugin.json
+        # Plugin skills can't be turned off one by one (skillOverrides skips them), so
+        # drop what isn't wanted: the Caveman Cloud skills need the proxy CLI, and the
+        # rest would run on Haiku or rewrite reviews, commits and CLAUDE.md on their own.
+        rm -r $out/skills/{cavecrew,caveman-explore,caveman-review,caveman-commit,caveman-compress,caveman-setup,caveman-discover,caveman-manage,caveman-optimize,caveman-evidence-review,caveman-learn} \
+          $out/agents/cavecrew-*.md
+      '';
+      i-have-adhd = pkgs.runCommand "i-have-adhd-plugin" { nativeBuildInputs = [ pkgs.jq ]; } ''
+        cp -r ${inputs.i-have-adhd} $out
+        chmod -R u+w $out
+        jq --arg cmd 'case "$CLAUDE_CODE_ENTRYPOINT" in sdk-*) exit 0 ;; esac; exec ${pkgs.nodejs}/bin/node '"$out"'/hooks/always-on.mjs' \
+          '.hooks.SessionStart[0].hooks[0].command = $cmd' \
+          ${inputs.i-have-adhd}/hooks/hooks.json > $out/hooks/hooks.json
+      '';
     };
 
     # By store path, as in programs/codex: apps started by launchd lack the profile's PATH.

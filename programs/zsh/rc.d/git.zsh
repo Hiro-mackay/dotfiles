@@ -81,7 +81,7 @@ gbclean() {
       else print $3
     }')
   if [[ -z "$gone_branches" ]]; then
-    echo "no gone branches"
+    echo "nothing to delete"
     return 0
   fi
 
@@ -91,7 +91,7 @@ gbclean() {
 
   # A for loop, not `while read ... <<<`: the prompt below must read the terminal.
   # A merged PR counts only when its head is this branch's tip, not just its name.
-  local branch reply
+  local branch reply unmerged
   for branch in ${(f)gone_branches}; do
     if git branch -d -q "$branch" 2>/dev/null; then
       echo "deleted: $branch"
@@ -103,9 +103,13 @@ gbclean() {
       continue
     fi
 
+    if ! unmerged=$(git log --oneline --no-decorate "origin/$default_branch..refs/heads/$branch" 2>/dev/null); then
+      echo "skipped (no origin/$default_branch to compare with): $branch" >&2
+      continue
+    fi
     echo ""
     echo "── $branch has unmerged commits:"
-    git log --oneline --no-decorate "origin/$default_branch..refs/heads/$branch" | head -10
+    head -10 <<< "$unmerged"
     read "reply?delete? [y/N/s=skip all remaining] "
     case "$reply" in
       y|Y) git branch -D -q "$branch" && echo "deleted (forced): $branch" ;;

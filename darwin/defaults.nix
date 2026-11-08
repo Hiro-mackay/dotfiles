@@ -73,7 +73,6 @@ in
         DSDontWriteUSBStores = true;
       };
       "com.apple.CrashReporter".DialogType = "none";
-      "com.apple.systempreferences".NSQuitAlwaysKeepsWindows = false;
     };
 
     CustomSystemPreferences."/Library/Preferences/com.apple.loginwindow".AdminHostInfo = "HostName";

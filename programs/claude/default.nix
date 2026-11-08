@@ -89,6 +89,11 @@ in
           $out/.claude-plugin/plugin.json
         test "$(grep -c '${pkgs.nodejs}/bin/node' $out/.claude-plugin/plugin.json)" = 4
         ! grep -q 'command -v node' $out/.claude-plugin/plugin.json
+        # Plugin skills can't be turned off one by one (skillOverrides skips them), so
+        # drop what isn't wanted: the Caveman Cloud skills need the proxy CLI, and the
+        # rest would run on Haiku or rewrite reviews, commits and CLAUDE.md on their own.
+        rm -r $out/skills/{cavecrew,caveman-explore,caveman-review,caveman-commit,caveman-compress,caveman-setup,caveman-discover,caveman-manage,caveman-optimize,caveman-evidence-review,caveman-learn} \
+          $out/agents/cavecrew-*.md
       '';
       i-have-adhd = pkgs.runCommand "i-have-adhd-plugin" { nativeBuildInputs = [ pkgs.jq ]; } ''
         cp -r ${inputs.i-have-adhd} $out

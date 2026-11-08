@@ -42,7 +42,7 @@ in
   home.packages = lib.optional config.dotfiles.vault.enable pkgs.rclone;
 
   # i-have-adhd's SessionStart hook injects its rules only while this file exists.
-  home.file.".claude/.i-have-adhd-always".text = "";
+  home.file."${config.programs.claude-code.configDir}/.i-have-adhd-always".text = "";
 
   programs.claude-code = {
     enable = true;

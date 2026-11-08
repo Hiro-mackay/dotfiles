@@ -36,7 +36,8 @@
       url = "github:ayghri/i-have-adhd";
       flake = false;
     };
-    # The whole Claude Code plugin; its proxy CLI (npx @caveman-ai/cli) is not installed.
+    # Claude Code plugin, minus the skills dropped in programs/claude; its proxy CLI
+    # (npx @caveman-ai/cli) is not installed.
     caveman = {
       url = "github:JuliusBrussee/caveman";
       flake = false;

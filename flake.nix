@@ -30,8 +30,8 @@
       url = "github:openai/codex-plugin-cc";
       flake = false;
     };
-    # Opt-in output-shaping skill (/i-have-adhd), shared by Claude Code and Codex.
-    # Only the skill is used; the repo's always-on SessionStart hook is not.
+    # Output-shaping skill (/i-have-adhd). Claude Code loads the whole plugin with its
+    # always-on SessionStart hook; Codex uses only the skill.
     i-have-adhd = {
       url = "github:ayghri/i-have-adhd";
       flake = false;

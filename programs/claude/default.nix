@@ -41,6 +41,9 @@ in
   # The same rclone the capture hook runs, so `rclone config` sets up its remote.
   home.packages = lib.optional config.dotfiles.vault.enable pkgs.rclone;
 
+  # i-have-adhd's SessionStart hook injects its rules only while this file exists.
+  home.file.".claude/.i-have-adhd-always".text = "";
+
   programs.claude-code = {
     enable = true;
     # A machine that installs Claude Code some other way sets this to null.
@@ -51,11 +54,9 @@ in
 
     # One directory link per skill (an attrset, not a path) so tool-owned entries such
     # as skills/synced keep living next to them. critique is for Codex only.
-    skills =
-      lib.mapAttrs (name: _: skills + "/${name}") (removeAttrs (builtins.readDir skills) [ "critique" ])
-      // {
-        i-have-adhd = "${inputs.i-have-adhd}/skills/i-have-adhd";
-      };
+    skills = lib.mapAttrs (name: _: skills + "/${name}") (
+      removeAttrs (builtins.readDir skills) [ "critique" ]
+    );
 
     # Marketplace plugins pinned through flake inputs, loaded as personal plugins.
     plugins = {
@@ -77,6 +78,7 @@ in
       # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
       warp = "${inputs.claude-code-warp}/plugins/warp";
       caveman = inputs.caveman;
+      i-have-adhd = inputs.i-have-adhd;
     };
 
     # By store path, as in programs/codex: apps started by launchd lack the profile's PATH.

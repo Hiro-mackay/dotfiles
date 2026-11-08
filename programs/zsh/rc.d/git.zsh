@@ -107,6 +107,11 @@ gbclean() {
       echo "skipped (no origin/$default_branch to compare with): $branch" >&2
       continue
     fi
+    # All in origin, though git branch -d (which compares with HEAD) refused it.
+    if [[ -z "$unmerged" ]]; then
+      git branch -D -q "$branch" && echo "deleted (in origin/$default_branch): $branch"
+      continue
+    fi
     echo ""
     echo "── $branch has unmerged commits:"
     head -10 <<< "$unmerged"

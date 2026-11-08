@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# ⌘P: start a Claude session, or list every one as agent view does, grouped by what
-# needs you first. A task typed at the "new" prompt starts a session (herdr-new-claude);
-# Enter on an empty prompt goes to the selected session's tab, opening one (which wakes
-# a sleeping session) when it has none. Ctrl+F switches the prompt to filtering the
-# list, and Ctrl+X deletes the selected session.
+# ⌘P: start a Claude session, or list them as agent view does, grouped by what needs
+# you first, leaving out completed and sleeping ones idle for over two weeks. A task
+# typed at the "new" prompt starts a session (herdr-new-claude); Enter on an empty
+# prompt goes to the selected session's tab, opening one (which wakes a sleeping
+# session) when it has none. Ctrl+F switches the prompt to filtering the list, and
+# Ctrl+X deletes the selected session.
 set -euo pipefail
 self=$0 here=$(dirname "$0")
 note=${TMPDIR:-/tmp}/herdr-claude-pick.note
@@ -35,6 +36,7 @@ case ${1:-} in
   # \x1f, not a tab: read collapses empty fields between whitespace separators.
   # Within a group, the last exchange first: when the transcript was last written, or
   # when the session started if it has none yet.
+  cutoff=$(($(date +%s) - 14 * 86400))
   claude agents --json --all | jq -r '.[] | select(.id)
     | [.id, .state, (.pid // "" | tostring), (.sessionId // ""), (.cwd // ""), (.name // .id), (.startedAt / 1000 | floor | tostring)]
     | join("\u001f")' |
@@ -43,6 +45,7 @@ case ${1:-} in
       case $st in blocked) rank=1 ;; working) rank=2 ;; sleeping) rank=4 ;; *) rank=3 ;; esac
       f=$(transcript "$sid" "$cwd")
       [[ -z $f ]] || at=$(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f")
+      ((rank < 3 || at >= cutoff)) || continue
       printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$rank" "$at" "$st" "$id" "$cwd" "$name" "$f"
     done | sort -t $'\x1f' -k1,1n -k2,2nr |
     while IFS=$'\x1f' read -r rank at st id cwd name f; do

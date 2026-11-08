@@ -36,6 +36,11 @@
       url = "github:ayghri/i-have-adhd";
       flake = false;
     };
+    # The whole Claude Code plugin; its proxy CLI (npx @caveman-ai/cli) is not installed.
+    caveman = {
+      url = "github:JuliusBrussee/caveman";
+      flake = false;
+    };
     # Warp notifications for Claude Code (the Codex counterpart is codex-warp below).
     claude-code-warp = {
       url = "github:warpdotdev/claude-code-warp";

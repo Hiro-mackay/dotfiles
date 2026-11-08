@@ -76,6 +76,7 @@ in
       codex = "${inputs.codex-plugin-cc}/plugins/codex";
       # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
       warp = "${inputs.claude-code-warp}/plugins/warp";
+      caveman = inputs.caveman;
     };
 
     # By store path, as in programs/codex: apps started by launchd lack the profile's PATH.

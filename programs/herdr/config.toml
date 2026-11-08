@@ -79,7 +79,7 @@ confirm_close = false
 agent_panel_sort = "priority"
 
 [ui.toast]
-delivery = "system"
+delivery = "terminal"
 
 [ui.sound]
 enabled = false

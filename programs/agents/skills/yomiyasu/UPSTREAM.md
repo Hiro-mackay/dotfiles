@@ -1,11 +1,11 @@
 # Upstream
 
 - Source: https://github.com/nanaism/yomiyasu (`skills/yomiyasu/`)
-- Vendored commit: `f03aecd9c4c4a69e229f3848ecba66c3871f734c` (v1.0.2)
-- License: MIT (`LICENSE`)
+- Vendored commit: `29d67ccb05e370b5958d72920a9cd1aa829dee80` (v2.5.0)
+- License: MIT (`LICENSE`)、同梱の Unicode データは `UNICODE-LICENSE.txt`
 
-`.claude-plugin/` と `assets/` は取り込んでいない。
+`.codex-plugin/` と `assets/` は取り込んでいない。
 プラグイン配布用のメタデータとロゴであって、スキルの動作には要らない。
 
-更新するときは upstream の `skills/yomiyasu/` から
-`SKILL.md` / `scripts/` / `references/` を上書きコピーし、このファイルのコミットを書き換える。
+更新するときは upstream の `skills/yomiyasu/` を、上の2つを除いてフォルダごと入れ替え、このファイルのコミットを書き換える。
+v2.x では references と scripts のファイルが版ごとに増減するので、上書きではなく入れ替える。

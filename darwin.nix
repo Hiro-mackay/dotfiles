@@ -69,7 +69,6 @@
     emacs-nox
     shellcheck
     watch
-    terminal-notifier
     coreutils-prefixed # ghead for the cpb alias
   ];
 

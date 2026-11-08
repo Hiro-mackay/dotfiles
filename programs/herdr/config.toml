@@ -78,8 +78,11 @@ confirm_close = false
 # What needs you first, as ⌘P groups them; ⌘⇧↓ walks the same order.
 agent_panel_sort = "priority"
 
+# Ghostty posts the notification (OSC 9), and drops it while its window has focus.
+# Not "system": herdr waits for terminal-notifier on the client's main thread with no
+# timeout, and terminal-notifier 2.0.0 never exited, which froze the whole client.
 [ui.toast]
-delivery = "system"
+delivery = "terminal"
 
 [ui.sound]
 enabled = false

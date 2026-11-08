@@ -77,8 +77,26 @@ in
       codex = "${inputs.codex-plugin-cc}/plugins/codex";
       # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
       warp = "${inputs.claude-code-warp}/plugins/warp";
-      caveman = inputs.caveman;
-      i-have-adhd = inputs.i-have-adhd;
+      # caveman and i-have-adhd hooks run node from PATH; point them at Nix's node
+      # instead, as the capture hook does. caveman already stays off in print-mode
+      # runs (CLAUDE_CODE_ENTRYPOINT=sdk-*), such as the vault's daily agents;
+      # i-have-adhd is made to skip them too so it does not shape their notes.
+      caveman = pkgs.runCommand "caveman-plugin" { } ''
+        cp -r ${inputs.caveman} $out
+        chmod -R u+w $out
+        sed -i -e 's#command -v node >/dev/null 2>&1 || exit 0; ##' \
+          -e 's#; node \\"\$HOOK_ROOT#; ${pkgs.nodejs}/bin/node \\"$HOOK_ROOT#' \
+          $out/.claude-plugin/plugin.json
+        test "$(grep -c '${pkgs.nodejs}/bin/node' $out/.claude-plugin/plugin.json)" = 4
+        ! grep -q 'command -v node' $out/.claude-plugin/plugin.json
+      '';
+      i-have-adhd = pkgs.runCommand "i-have-adhd-plugin" { nativeBuildInputs = [ pkgs.jq ]; } ''
+        cp -r ${inputs.i-have-adhd} $out
+        chmod -R u+w $out
+        jq --arg cmd 'case "$CLAUDE_CODE_ENTRYPOINT" in sdk-*) exit 0 ;; esac; exec ${pkgs.nodejs}/bin/node '"$out"'/hooks/always-on.mjs' \
+          '.hooks.SessionStart[0].hooks[0].command = $cmd' \
+          ${inputs.i-have-adhd}/hooks/hooks.json > $out/hooks/hooks.json
+      '';
     };
 
     # By store path, as in programs/codex: apps started by launchd lack the profile's PATH.

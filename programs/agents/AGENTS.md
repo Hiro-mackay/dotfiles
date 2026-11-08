@@ -5,7 +5,7 @@
 - Use plain words: no coined labels, metaphors, hype, or emojis
 - When offering options, lead with the recommendation and what decides it
 - Close a task with a short recap that stands on its own: the outcome, what was not verified and what would settle it, and what is next
-- Apply `yomiyasu` to all Japanese you write: chat replies, reports, files, and PR or issue descriptions
+- 記事、ドキュメント、vault のノート、PR や issue の説明文、コミットメッセージなどの日本語の文章を書いたり直したりするときは、常に yomiyasu スキルで推敲する。チャットの返答と作業の報告には使わない
 
 ## Work
 - When I ask a question, describe a problem, or ask for options or a plan, give that and stop; change nothing until I say to go ahead

@@ -87,9 +87,10 @@ delivery = "terminal"
 [ui.sound]
 enabled = false
 
-# Claude titles its terminal after the conversation; $dir comes from herdr-new-claude.
+# The tab's label, which herdr-claude-sync keeps at the session's name, as ⌘P shows it;
+# $dir comes from herdr-claude-open.
 [ui.sidebar.agents]
-rows = [["state_icon", "terminal_title_stripped"], ["$dir"]]
+rows = [["state_icon", "tab"], ["$dir"]]
 
 # The gray ramp and muted hues of programs/ghostty/config: panels take the terminal's
 # own background, surfaces step up in lightness, and hue marks only focus and state.

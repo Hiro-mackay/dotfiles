@@ -1,15 +1,30 @@
 #!/usr/bin/env bash
 # Give every running background Claude session a tab, so the sidebar lists what Claude
-# runs no matter where the session was started. Sessions that sleep or are deleted
-# close their own tab (herdr-claude-tab). Runs until killed.
+# runs no matter where the session was started, and keep each tab's label at the
+# session's name, which Claude picks after the first exchange or /rename changes.
+# Sessions that sleep or are deleted close their own tab (herdr-claude-tab). Runs
+# until killed.
 set -uo pipefail
 here=$(dirname "$0")
 while sleep 5; do
-  agents=$(herdr agent list 2>/dev/null) || continue
-  shown=$(jq -r '.result.agents[].tokens.session // empty' <<<"$agents") || continue
-  claude agents --json 2>/dev/null | jq -r '.[] | select(.kind == "background" and .pid) | "\(.id) \(.pid)"' |
+  panes=$(herdr pane list 2>/dev/null) || continue
+  tabs=$(herdr tab list 2>/dev/null) || continue
+  sessions=$(claude agents --json --all 2>/dev/null) || continue
+  shown=$(jq -r '.result.panes[].tokens.session? // empty' <<<"$panes")
+  jq -r '.[] | select(.kind == "background" and .pid) | "\(.id) \(.pid)"' <<<"$sessions" |
     while read -r id pid; do
       kill -0 "$pid" 2>/dev/null || continue
       grep -qx "$id" <<<"$shown" || "$here/herdr-claude-open" "$id" --no-focus >/dev/null
+    done
+  # Cut to 24 characters, as herdr-claude-open labels a new tab.
+  jq -r --argjson panes "$panes" --argjson tabs "$tabs" '
+    (map({key: .id, value: .name}) | from_entries) as $name
+    | ($tabs.result.tabs | map({key: .tab_id, value: .label}) | from_entries) as $label
+    | $panes.result.panes[] | select(.tokens.session?)
+    | ($name[.tokens.session] // empty | .[0:24]) as $want
+    | select($want != "" and $want != $label[.tab_id])
+    | "\(.tab_id)\t\($want)"' <<<"$sessions" |
+    while IFS=$'\t' read -r tab name; do
+      herdr tab rename "$tab" "$name" >/dev/null
     done
 done

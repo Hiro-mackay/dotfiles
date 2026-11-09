@@ -4,12 +4,26 @@
 set -euo pipefail
 id=$1 focus=${2:---focus}
 here=$(dirname "$0")
+# herdr-new-claude and herdr-claude-sync can open a new session at the same moment:
+# one at a time per session, each checking first whether a tab already has it. A run
+# takes well under a second, so a lock held for 5 seconds is taken as left behind by a
+# killed run and taken over, and removed on exit like one this run made.
+lock=${TMPDIR:-/tmp}/herdr-claude-open.$id
+for _ in {1..50}; do mkdir "$lock" 2>/dev/null && break; sleep 0.1; done
+trap 'rmdir "$lock" 2>/dev/null' EXIT
+open=$(herdr pane list | jq -c --arg i "$id" 'first(.result.panes[] | select(.tokens.session? == $i)) // empty')
+if [[ -n $open ]]; then
+  [[ $focus == --no-focus ]] || herdr tab focus "$(jq -r .tab_id <<<"$open")" >/dev/null
+  jq -r .pane_id <<<"$open"
+  exit
+fi
 s=$(claude agents --json --all | jq -c --arg i "$id" 'first(.[] | select(.id == $i)) // empty')
 [[ -n $s ]] || { echo "no Claude session $id" >&2; exit 1; }
-cwd=$(jq -r '.cwd // empty' <<<"$s") name=$(jq -r '.name // empty' <<<"$s")
+# Cut to 24 characters as herdr-claude-sync does, so the label stays put.
+cwd=$(jq -r '.cwd // empty' <<<"$s") name=$(jq -r '(.name // "")[0:24]' <<<"$s")
 repo=${cwd%%/.claude/worktrees/*}
-pane=$("$here/herdr-workspace-tab" claude "${cwd:-$HOME}" "${name:0:24}" "$focus")
-# Tagged before the tab starts, so herdr-claude-sync never opens the session twice.
+pane=$("$here/herdr-workspace-tab" claude "${cwd:-$HOME}" "$name" "$focus")
+# Tagged before the lock is released, so the check above sees this tab.
 herdr pane report-metadata "$pane" --source herdr-claude-tab --token "session=$id" --token "dir=${repo##*/}" >/dev/null
 herdr pane run "$pane" "HERDR_AGENT=claude ${HERDR_CLAUDE_DETACH_AFTER:+HERDR_CLAUDE_DETACH_AFTER=$HERDR_CLAUDE_DETACH_AFTER }exec $here/herdr-claude-tab $id" >/dev/null
 printf '%s\n' "$pane"

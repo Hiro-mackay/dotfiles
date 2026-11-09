@@ -18,10 +18,13 @@ else
 fi
 read -e -r -i "$current" -p 'name › ' name
 [[ -n $name ]] || exit 0
+if [[ -n $id ]]; then
+  # Typed keys reach Claude only while herdr-claude-tab has it attached; its idle screen
+  # would take the Enter as "resume". The tab follows within 5 seconds: herdr-claude-sync
+  # labels it with the session's name once Claude has applied /rename.
+  pgrep -f "^claude attach $id\$" >/dev/null || fail "not renamed: press enter in the tab to resume the session, then rename again"
+  herdr pane send-text "$pane" "/rename $name" >/dev/null
+  herdr pane send-keys "$pane" enter >/dev/null
+  exit
+fi
 herdr tab rename "$tab" "$name" >/dev/null || fail "renaming the tab failed"
-[[ -n $id ]] || exit 0
-# Typed keys reach Claude only while herdr-claude-tab has it attached; its idle screen
-# would take the Enter as "resume".
-pgrep -f "^claude attach $id\$" >/dev/null || fail "renamed the tab only: press enter in it to resume the session, then rename again"
-herdr pane send-text "$pane" "/rename $name" >/dev/null
-herdr pane send-keys "$pane" enter >/dev/null

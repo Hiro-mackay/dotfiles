@@ -18,7 +18,7 @@ while sleep 5; do
     done
   # Cut to 24 characters, as herdr-claude-open labels a new tab.
   jq -r --argjson panes "$panes" --argjson tabs "$tabs" '
-    (map({key: .id, value: .name}) | from_entries) as $name
+    (map(select(.id) | {key: .id, value: .name}) | from_entries) as $name
     | ($tabs.result.tabs | map({key: .tab_id, value: .label}) | from_entries) as $label
     | $panes.result.panes[] | select(.tokens.session?)
     | ($name[.tokens.session] // empty | .[0:24]) as $want

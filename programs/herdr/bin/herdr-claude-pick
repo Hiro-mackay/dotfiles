@@ -43,6 +43,10 @@ case ${1:-} in
     while IFS=$'\x1f' read -r id st pid sid cwd name at; do
       if [[ -z $pid ]] || ! kill -0 "$pid" 2>/dev/null; then st=sleeping; fi
       case $st in blocked) rank=1 ;; working) rank=2 ;; sleeping) rank=4 ;; *) rank=3 ;; esac
+      # After /clear a job goes on in a new session, recorded as resumeSessionId; while
+      # the job sleeps, claude agents reports its first session instead.
+      job=${CLAUDE_CONFIG_DIR:-$HOME/.claude}/jobs/$id/state.json
+      [[ ! -f $job ]] || sid=$(jq -r --arg s "$sid" '.resumeSessionId // $s' "$job")
       f=$(transcript "$sid" "$cwd")
       [[ -z $f ]] || at=$(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f")
       ((rank < 3 || at >= cutoff)) || continue

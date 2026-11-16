@@ -44,6 +44,9 @@ in
   # i-have-adhd's SessionStart hook injects its rules only while this file exists.
   home.file."${config.programs.claude-code.configDir}/.i-have-adhd-always".text = "";
 
+  # pstack's per-role model overrides, loaded by the @ line at the end of CLAUDE.md.
+  home.file."${config.programs.claude-code.configDir}/pstack-models.md".source = ./pstack-models.md;
+
   programs.claude-code = {
     enable = true;
     # A machine that installs Claude Code some other way sets this to null.

@@ -16,3 +16,5 @@ When the user's way of thinking shows in a conversation, save it as a `user` mem
 
 - Quote the user's words that support it, verbatim, with the date and session.
 - Never translate the user's words.
+
+@~/.claude/pstack-models.md

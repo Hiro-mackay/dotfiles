@@ -98,6 +98,8 @@ in
         # rest would run on Haiku or rewrite reviews, commits and CLAUDE.md on their own.
         rm -r $out/skills/{cavecrew,caveman-explore,caveman-review,caveman-commit,caveman-compress,caveman-setup,caveman-discover,caveman-manage,caveman-optimize,caveman-evidence-review,caveman-learn} \
           $out/agents/cavecrew-*.md
+        # caveman-init pipes a script from the upstream main branch into node, past the pin.
+        rm $out/commands/caveman-init.*
       '';
       i-have-adhd = pkgs.runCommand "i-have-adhd-plugin" { nativeBuildInputs = [ pkgs.jq ]; } ''
         cp -r ${inputs.i-have-adhd} $out

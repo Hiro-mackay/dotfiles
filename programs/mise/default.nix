@@ -40,7 +40,7 @@ in
           deno = "latest";
           ni = "latest";
           rust = "latest";
-          sops = "3.12.2";
+          sops = "3.13.3";
         }
       );
       settings = {

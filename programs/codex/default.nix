@@ -10,6 +10,16 @@
 }:
 let
   guardrails = import ../agents/guardrails.nix;
+  # ponytail's marketplace manifest names its plugin by git URL at `main`, so Codex clones
+  # the latest upstream instead of using the pinned input. "./" is the marketplace root.
+  ponytailMarketplace =
+    pkgs.runCommand "ponytail-codex-marketplace" { nativeBuildInputs = [ pkgs.jq ]; }
+      ''
+        cp -r ${inputs.ponytail} $out
+        chmod -R u+w $out
+        jq '.plugins[].source = "./"' ${inputs.ponytail}/.agents/plugins/marketplace.json \
+          > $out/.agents/plugins/marketplace.json
+      '';
 in
 {
   programs.codex = {
@@ -42,7 +52,7 @@ in
       marketplaces = {
         ponytail = {
           source_type = "local";
-          source = "${inputs.ponytail}";
+          source = "${ponytailMarketplace}";
         };
         codex-warp = {
           source_type = "local";

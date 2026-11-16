@@ -13,7 +13,7 @@ in
 {
   programs.mise = {
     enable = true;
-    enableMutableConfig = true;
+    mutableSettings = true;
     globalConfig = {
       # A machine that leaves tools to each project's mise.toml sets this to { }.
       tools = lib.mkDefault (

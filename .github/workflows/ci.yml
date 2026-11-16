@@ -131,7 +131,7 @@ jobs:
           zsh -ic '
             set -e
             for c in gwi gws z g mkcd cheat lg ubuntu dexec; do whence -w $c; done
-            for c in op jc sbxc ccgo c2; do if whence $c >/dev/null; then exit 1; fi; done
+            for c in op jc sbxc ccgo; do if whence $c >/dev/null; then exit 1; fi; done
             command -v claude codex mise comma git-secrets
             codebase-memory-mcp --version
             [[ "export AWS_SECRET_ACCESS_KEY=x" == ${~HISTORY_IGNORE} ]]

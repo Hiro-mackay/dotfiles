@@ -4,7 +4,6 @@ let
   # Cask -> the app it installs in /Applications (null: no app, e.g. a CLI).
   casks = {
     hammerspoon = "Hammerspoon.app";
-    warp = "Warp.app";
     docker-desktop = "Docker.app";
     bettertouchtool = "BetterTouchTool.app";
     visual-studio-code = "Visual Studio Code.app";

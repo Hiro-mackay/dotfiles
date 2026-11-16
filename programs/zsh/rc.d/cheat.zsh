@@ -217,13 +217,11 @@ SHEET
   CLAUDE CODE
     ccode          claude (auto mode)
     ccconf         cd to claude config dir
-    c1..c6         open N claude sessions in Warp
     sbxc           claude in an sbx sandbox named after this dir
 
   CODEX
     cx             codex
     cxconf         cd to codex config dir
-    cx1..cx6       open N codex sessions in Warp
 
   TUI TOOLS
     lg             lazygit   (visual git)

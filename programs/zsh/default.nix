@@ -21,7 +21,6 @@ let
   ]
   ++ lib.optionals isDarwin [
     "darwin"
-    "warp-code"
   ];
 in
 {

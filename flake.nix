@@ -48,16 +48,6 @@
       url = "github:michael-denyer/pstack-claude";
       flake = false;
     };
-    # Warp notifications for Claude Code (the Codex counterpart is codex-warp below).
-    claude-code-warp = {
-      url = "github:warpdotdev/claude-code-warp";
-      flake = false;
-    };
-    # Codex plugin marketplace, pinned here instead of fetched by Codex from git.
-    codex-warp = {
-      url = "github:warpdotdev/codex-warp";
-      flake = false;
-    };
   };
 
   outputs =

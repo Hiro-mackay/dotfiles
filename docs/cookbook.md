@@ -2,7 +2,7 @@
 
 ## After installing
 
-Sign in to `claude` and `codex`. On macOS, also allow Hammerspoon and Warp under
+Sign in to `claude` and `codex`. On macOS, also allow Hammerspoon under
 Accessibility, open Docker Desktop and run `sbx login`, and import
 `programs/bettertouchtool/Default.bttpreset` in BetterTouchTool. On Linux, log in again
 so the `docker` group applies.

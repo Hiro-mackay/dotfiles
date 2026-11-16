@@ -32,8 +32,6 @@ in
           buf = "latest";
           task = "latest";
           lefthook = "latest";
-          # gt, for stacked PRs in pstack's orchestrate playbook.
-          graphite = "latest";
           "aqua:golang-migrate/migrate" = "latest";
           "go:golang.org/x/tools/gopls" = "latest";
         }

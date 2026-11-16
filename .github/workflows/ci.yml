@@ -39,7 +39,9 @@ jobs:
     # caches what building it would take. Everything must be downloadable except the
     # configuration's own small files (written by a single build command) and a few
     # helper scripts nix-darwin, home-manager and nix-homebrew make from local
-    # sources. Anything else would be compiled from source on the Mac.
+    # sources, nix-darwin's CA bundle (nixpkgs' cacert with nix-darwin's blocklist, so
+    # no cache has it; it only repacks certificates) and determinate-nixd (a downloaded
+    # binary copied into place). Anything else would be compiled from source on the Mac.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -59,7 +61,7 @@ jobs:
             | select((.outputs | map(has("hash") or has("method")) | any | not)
               and ((.env.buildCommand // .structuredAttrs.buildCommand) == null))
             | .name' "$RUNNER_TEMP/drv.json" |
-            grep -vxE 'brew|builder\.pl|check-link-targets\.sh|darwin-(option|rebuild|version)|nuke-homebrew-repository' || true)
+            grep -vxE 'brew|builder\.pl|check-link-targets\.sh|darwin-(option|rebuild|version)|nuke-homebrew-repository|nss-cacert-[0-9.]+|determinate-nixd-[0-9.]+' || true)
           if [ -n "$compiled" ]; then
             echo "::error::Not in a binary cache, so a Mac would compile: $(printf '%s' "$compiled" | tr '\n' ' ')"
             exit 1

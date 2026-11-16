@@ -78,7 +78,28 @@ in
         jq 'del(.hooks)' ${inputs.ponytail}/.claude-plugin/plugin.json > $out/.claude-plugin/plugin.json
       '';
       codex = "${inputs.codex-plugin-cc}/plugins/codex";
-      pstack = "${inputs.pstack-claude}/plugins/pstack";
+      # pstack tells the agent to open PRs, file issues and message others without asking,
+      # against AGENTS.md. --replace-fail stops the build when upstream rewords a line,
+      # so an update cannot bring the old wording back unnoticed.
+      pstack = pkgs.runCommand "pstack-plugin" { } ''
+        cp -r ${inputs.pstack-claude}/plugins/pstack $out
+        chmod -R u+w $out
+        substituteInPlace $out/skills/poteto-mode/SKILL.md \
+          --replace-fail \
+            "**Just do it.** Use any MCP tool. Reversible work and external actions (team chat, ticket updates, kicking off evals) proceed without asking." \
+            "**Ask before anything leaves this machine.** Commits, pushes, pull requests, issues, tracker or chat messages and deploys wait for the user's request in this session, whatever a playbook or skill in this plugin says. Reversible local work proceeds without asking. A session override below covers local work only." \
+          --replace-fail \
+            "Broken skill mid-task → fix it in its own PR. Don't block. Don't silently work around it." \
+            "Broken skill mid-task → report it to the user. Don't silently work around it."
+        substituteInPlace $out/skills/poteto-mode/playbooks/opening-a-pr.md \
+          --replace-fail \
+            "Invoked at the end of every other playbook." \
+            "Invoked only when the user asked for a pull request in this session."
+        substituteInPlace $out/skills/reflect/SKILL.md \
+          --replace-fail \
+            "File each Backlog item to your team's devex or backlog tracker without waiting. Only the Accepted list waits for approval." \
+            "List each Backlog item for the user. File one to a tracker only when they ask."
+      '';
       # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
       warp = "${inputs.claude-code-warp}/plugins/warp";
       # caveman and i-have-adhd hooks run node from PATH; point them at Nix's node

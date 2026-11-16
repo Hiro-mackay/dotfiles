@@ -31,19 +31,29 @@ jobs:
       - id: prepare
         run: |
           git fetch -q --depth=2 origin flake-update/pending 2>/dev/null || exit 0
-          # Copying the pending flake.lock would undo an input updated by hand on main
-          # since then; start the update over from main instead (next does it).
-          git diff --quiet FETCH_HEAD~1 HEAD -- flake.lock || {
-            [ $? -eq 1 ] || exit 1
-            echo "flake.lock changed on main since the pending update; starting over" >&2
+          # The plugin inputs (flake = false) are not in the weekly update and are
+          # updated by hand on main, so they are taken from main. Any other input
+          # changed on main since the pending update would be undone by it; start the
+          # update over from main instead (next does it).
+          lock='def plugins: .nodes as $n | .nodes.root.inputs
+              | with_entries(select((.value | type) == "string" and $n[.value].flake == false));
+            def others: plugins as $p | del(.nodes[$p[]])
+              | .nodes.root.inputs |= with_entries(select(.key | in($p) | not));'
+          git show FETCH_HEAD~1:flake.lock | jq -S "$lock others" >"$RUNNER_TEMP/base"
+          if ! jq -S "$lock others" flake.lock | cmp -s "$RUNNER_TEMP/base" -; then
+            echo "an input other than a plugin changed on main since the pending update; starting over" >&2
             exit 0
-          }
+          fi
           # A week, less half a day so a late scheduled run still counts.
           if [ $(($(date +%s) - $(git log -1 --format=%ct FETCH_HEAD))) -lt $((7 * 86400 - 43200)) ]; then
             echo waiting=true >>"$GITHUB_OUTPUT"
             exit 0
           fi
-          git checkout FETCH_HEAD -- flake.lock
+          git show FETCH_HEAD:flake.lock | jq -S --indent 2 --slurpfile main flake.lock "$lock"'
+            ($main[0] | plugins) as $p | others | .nodes.root.inputs += $p
+            | .nodes += ($main[0].nodes | with_entries(select(.key | IN($p[]))))' >"$RUNNER_TEMP/lock"
+          mv "$RUNNER_TEMP/lock" flake.lock
+          git add flake.lock
           git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

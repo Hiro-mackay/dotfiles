@@ -75,6 +75,7 @@ in
         jq 'del(.hooks)' ${inputs.ponytail}/.claude-plugin/plugin.json > $out/.claude-plugin/plugin.json
       '';
       codex = "${inputs.codex-plugin-cc}/plugins/codex";
+      pstack = "${inputs.pstack-claude}/plugins/pstack";
       # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
       warp = "${inputs.claude-code-warp}/plugins/warp";
       # caveman and i-have-adhd hooks run node from PATH; point them at Nix's node

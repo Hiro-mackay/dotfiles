@@ -42,6 +42,12 @@
       url = "github:JuliusBrussee/caveman";
       flake = false;
     };
+    # Unofficial Claude Code port of Cursor's pstack. orch and watch-pr need bun,
+    # which is not installed.
+    pstack-claude = {
+      url = "github:michael-denyer/pstack-claude";
+      flake = false;
+    };
     # Warp notifications for Claude Code (the Codex counterpart is codex-warp below).
     claude-code-warp = {
       url = "github:warpdotdev/claude-code-warp";

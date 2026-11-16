@@ -516,6 +516,22 @@
         "type": "github"
       }
     },
+    "pstack-claude": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794585184,
+        "narHash": "sha256-3DHKsSIdqyNjGEnCNbOnp2JZLkVnLIOB8jFqqGMJIIU=",
+        "owner": "michael-denyer",
+        "repo": "pstack-claude",
+        "rev": "a12b04786023e762f12f5de7bb5fafb8c23f8c36",
+        "type": "github"
+      },
+      "original": {
+        "owner": "michael-denyer",
+        "repo": "pstack-claude",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "caveman": "caveman",
@@ -530,7 +546,8 @@
         "nix-homebrew": "nix-homebrew",
         "nix-index-database": "nix-index-database",
         "nixpkgs": "nixpkgs_4",
-        "ponytail": "ponytail"
+        "ponytail": "ponytail",
+        "pstack-claude": "pstack-claude"
       }
     },
     "systems": {

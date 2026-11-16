@@ -54,10 +54,6 @@ in
           source_type = "local";
           source = "${ponytailMarketplace}";
         };
-        codex-warp = {
-          source_type = "local";
-          source = "${inputs.codex-warp}";
-        };
       };
     };
     mutableSettings = true;

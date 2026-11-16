@@ -84,22 +84,6 @@
         "type": "github"
       }
     },
-    "claude-code-warp": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1791231456,
-        "narHash": "sha256-YR5mYRBjSEXt24uLOWDWqzcP8KaCY1Van5neWtsUgrw=",
-        "owner": "warpdotdev",
-        "repo": "claude-code-warp",
-        "rev": "f8c6287bf4372ae22580be1d31a9a294768a2d61",
-        "type": "github"
-      },
-      "original": {
-        "owner": "warpdotdev",
-        "repo": "claude-code-warp",
-        "type": "github"
-      }
-    },
     "codex-plugin-cc": {
       "flake": false,
       "locked": {
@@ -113,22 +97,6 @@
       "original": {
         "owner": "openai",
         "repo": "codex-plugin-cc",
-        "type": "github"
-      }
-    },
-    "codex-warp": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1790795835,
-        "narHash": "sha256-zdXQTVu8aZuDTc0VGt53tQfEAF63ZrWUy6vACVJCnCo=",
-        "owner": "warpdotdev",
-        "repo": "codex-warp",
-        "rev": "c181c8fe9614c68b31e8f054b41724260b3cf7bf",
-        "type": "github"
-      },
-      "original": {
-        "owner": "warpdotdev",
-        "repo": "codex-warp",
         "type": "github"
       }
     },
@@ -535,9 +503,7 @@
     "root": {
       "inputs": {
         "caveman": "caveman",
-        "claude-code-warp": "claude-code-warp",
         "codex-plugin-cc": "codex-plugin-cc",
-        "codex-warp": "codex-warp",
         "determinate": "determinate",
         "home-manager": "home-manager",
         "i-have-adhd": "i-have-adhd",

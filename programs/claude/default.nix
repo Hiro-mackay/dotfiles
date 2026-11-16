@@ -67,8 +67,8 @@ in
       # plugin store path individually, so hooks/ stays a symlink to the flake
       # input's own store path. ponytail's manifest points "hooks" at an explicit
       # file (./hooks/claude-codex-hooks.json); Claude Code resolves that through
-      # the symlink and rejects it as outside the plugin directory. codex and warp
-      # don't hit this because they rely on the default hooks/hooks.json location
+      # the symlink and rejects it as outside the plugin directory. codex
+      # doesn't hit this because it relies on the default hooks/hooks.json location
       # instead of naming a path. Copy the source and rename the hooks file to the
       # default so ponytail resolves the same way.
       ponytail = pkgs.runCommand "ponytail-plugin" { nativeBuildInputs = [ pkgs.jq ]; } ''
@@ -100,8 +100,6 @@ in
             "File each Backlog item to your team's devex or backlog tracker without waiting. Only the Accepted list waits for approval." \
             "List each Backlog item for the user. File one to a tracker only when they ask."
       '';
-      # Notifications go through Warp (OSC 777, also over SSH); preferredNotifChannel is off.
-      warp = "${inputs.claude-code-warp}/plugins/warp";
       # caveman and i-have-adhd hooks run node from PATH; point them at Nix's node
       # instead, as the capture hook does. caveman already stays off in print-mode
       # runs (CLAUDE_CODE_ENTRYPOINT=sdk-*), such as the vault's daily agents;

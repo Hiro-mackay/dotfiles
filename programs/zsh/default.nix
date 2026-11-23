@@ -92,7 +92,7 @@ in
           fpath=($HOME/.docker/completions $fpath)
         fi
       '')
-      # Homebrew (casks such as zed, and sbx) is appended so a cask binary never
+      # Homebrew (casks such as sbx) is appended so a cask binary never
       # shadows the Nix one, and before rc.d so its command checks see it.
       (lib.mkIf isDarwin (
         lib.mkOrder 900 ''

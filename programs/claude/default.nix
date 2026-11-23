@@ -133,6 +133,11 @@ in
     mcpServers.codebase-memory-mcp.command = "${pkgs.codebase-memory-mcp}/bin/codebase-memory-mcp";
 
     settings = settings // {
+      # Bash tool commands run in the login shell (zsh) by default, where the model's
+      # bash-style unquoted expansions and globs misbehave. macOS /bin/bash is 3.2.
+      env = settings.env // {
+        CLAUDE_CODE_SHELL = "${pkgs.bashInteractive}/bin/bash";
+      };
       permissions = settings.permissions // {
         deny =
           settings.permissions.deny

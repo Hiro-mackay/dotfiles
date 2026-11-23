@@ -58,21 +58,5 @@ pkgs.writeShellApplication {
     else
       nh home switch --no-nom --show-activation-logs "path:$src" -c "$(uname -m)-linux" -b backup -- --impure 2>&1 | log_window "$log" || failed
     fi
-
-    # VS Code extensions: after activation, as this user, missing ones only, with a time
-    # limit. Run from activation (root, then sudo -u) the Electron CLI can wait forever
-    # for a GUI session, holding up the whole switch.
-    if [ "$(uname -s)" = Darwin ] && command -v code >/dev/null; then
-      missing=$(comm -23 \
-        <(grep -v '^$' "$src/programs/vscode/extensions" | tr '[:upper:]' '[:lower:]' | sort -u) \
-        <(${pkgs.coreutils}/bin/timeout 60 code --list-extensions 2>/dev/null | tr '[:upper:]' '[:lower:]' | sort -u))
-      if [ -n "$missing" ]; then
-        args=()
-        for ext in $missing; do args+=(--install-extension "$ext"); done
-        echo "Installing $(echo "$missing" | wc -l | tr -d ' ') VS Code extensions..."
-        ${pkgs.coreutils}/bin/timeout 600 code "''${args[@]}" >/dev/null ||
-          echo "warning: VS Code extensions were not installed (code failed or took over 10 minutes); open VS Code once, then run dotup" >&2
-      fi
-    fi
   '';
 }

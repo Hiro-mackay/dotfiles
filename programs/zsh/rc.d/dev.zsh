@@ -21,12 +21,6 @@ export NI_DEFAULT_AGENT="pnpm"
 export NI_GLOBAL_AGENT="pnpm"
 
 # -----------------
-#  VS Code
-# -----------------
-# Snapshot installed extensions into dotfiles (run after adding/removing one).
-(( $+commands[code] )) && alias codeexport="code --list-extensions | sort > $DOTFILES_DIR/programs/vscode/extensions"
-
-# -----------------
 #  Dotfiles
 # -----------------
 # Pull this repo and apply it (Nix packages pinned in flake.lock; activation only when

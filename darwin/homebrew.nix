@@ -6,7 +6,6 @@ let
     hammerspoon = "Hammerspoon.app";
     docker-desktop = "Docker.app";
     bettertouchtool = "BetterTouchTool.app";
-    visual-studio-code = "Visual Studio Code.app";
     google-chrome = "Google Chrome.app";
     obsidian = "Obsidian.app";
     ghostty = "Ghostty.app";

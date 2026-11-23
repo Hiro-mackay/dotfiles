@@ -211,7 +211,6 @@ SHEET
     gh-setup       set up a GitHub account (asks which one)
 
   EDITORS
-    co             open VS Code here
     em             emacs
 
   CLAUDE CODE

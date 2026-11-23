@@ -17,7 +17,7 @@ so the `docker` group applies.
 | List the shell shortcuts | `cheat` (topics: `git`, `docker`, `fzf`, `nav`, `util`, `dev`) |
 
 Each tool's settings live in `programs/<tool>/`; edit them there and apply. The settings
-screens of Claude Code and VS Code cannot save, because their files come from this repo.
+screen of Claude Code cannot save, because its file comes from this repo.
 
 ## GitHub accounts
 

@@ -16,11 +16,6 @@ alias e="exit"
 alias howlong='fc -lDt "%Y-%m-%d %H:%M:%S" -1'
 
 # -----------------
-#  editor
-# -----------------
-(( $+commands[code] )) && alias co="code ."
-
-# -----------------
 #  Claude
 # -----------------
 alias ccode="claude --permission-mode auto"
@@ -36,7 +31,6 @@ alias cxconf="cd $DOTFILES_DIR/programs/codex"
 # -----------------
 #  zsh config
 # -----------------
-(( $+commands[code] )) && alias edzsh="code $DOTFILES_DIR/programs/zsh"
 alias sozsh="source $ZDOTDIR/.zshrc"
 
 # -----------------

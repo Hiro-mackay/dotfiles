@@ -16,7 +16,6 @@
     ./programs/mise
     ./programs/claude
     ./programs/codex
-    ./programs/vscode
     ./programs/hammerspoon
     ./programs/ghostty
     ./programs/herdr

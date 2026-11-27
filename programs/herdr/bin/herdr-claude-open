@@ -25,5 +25,5 @@ repo=${cwd%%/.claude/worktrees/*}
 pane=$("$here/herdr-workspace-tab" claude "${cwd:-$HOME}" "$name" "$focus")
 # Tagged before the lock is released, so the check above sees this tab.
 herdr pane report-metadata "$pane" --source herdr-claude-tab --token "session=$id" --token "dir=${repo##*/}" >/dev/null
-herdr pane run "$pane" "HERDR_AGENT=claude ${HERDR_CLAUDE_DETACH_AFTER:+HERDR_CLAUDE_DETACH_AFTER=$HERDR_CLAUDE_DETACH_AFTER }exec $here/herdr-claude-tab $id" >/dev/null
+herdr pane run "$pane" "HERDR_AGENT=claude exec $here/herdr-claude-tab $id" >/dev/null
 printf '%s\n' "$pane"

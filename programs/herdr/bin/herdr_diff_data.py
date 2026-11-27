@@ -22,31 +22,51 @@ def git(*args):
 
 
 def refs():
-    local = git("for-each-ref", "--sort=-committerdate", "--format=%(refname:short)", "refs/heads").split()
-    remote = git("for-each-ref", "--format=%(refname:short)", "refs/remotes/origin/develop",
-                 "refs/remotes/origin/dynamic-qa", "refs/remotes/origin/dynamic-dev").split()
-    return local + remote
+    """Local branches, then remote ones, each newest first"""
+    out = []
+    for kind in ("refs/heads", "refs/remotes"):
+        for line in git("for-each-ref", "--sort=-committerdate", "--format=%(refname:short) %(symref)", kind).splitlines():
+            name, _, symref = line.partition(" ")
+            if not symref:
+                out.append(name)
+    return out
 
 
-def is_ancestor(a, b):
-    return subprocess.run(["git", "merge-base", "--is-ancestor", "--end-of-options", a, b], capture_output=True).returncode == 0
+def default_branch():
+    return git("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD").strip()
 
 
-def nearest_base(target, candidates):
-    """The candidate contained in target with the fewest commits to it; ties go to the earlier one."""
-    best, best_n = None, None
-    for c in candidates:
-        if c == target or not is_ancestor(c, target):
-            continue
-        n = int(git("rev-list", "--count", "--end-of-options", f"{c}..{target}") or 0)
-        if n > 0 and (best_n is None or n < best_n):
-            best, best_n = c, n
-    return best
+def branch_base(target):
+    """The branch target most likely started from: walking target's first-parent line, the first
+    commit that is another branch's tip, or the default branch once the walk reaches the point
+    where target left it (diffs use base...target, so the default branch is exact from there on,
+    even after it has moved)."""
+    default = default_branch()
+    fork = git("merge-base", "--end-of-options", default, target).strip() if default else ""
+    remotes = git("remote").split()
+
+    def name_of(ref):
+        head, _, rest = ref.partition("/")
+        return rest if head in remotes else ref
+
+    cmd = ["git", "log", "--first-parent", "--decorate=short", "--decorate-refs=refs/heads",
+           "--decorate-refs=refs/remotes", "--decorate-refs-exclude=refs/remotes/*/HEAD", "--format=%H %D",
+           "--end-of-options", target]
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True) as p:
+        for line in p.stdout:
+            commit, _, refs_ = line.partition(" ")
+            # target's own remote copy (pushed earlier) is not where it started.
+            names = [n.removeprefix("HEAD -> ").strip() for n in refs_.split(",")]
+            names = [n for n in names if n and n != "HEAD" and name_of(n) != name_of(target)]
+            if commit == fork or names:
+                p.kill()
+                return default if commit == fork or default in names else names[0]
+    return default
 
 
 def numstat(base, target):
     rows = []
-    for line in git("diff", "--no-renames", "--numstat", "--end-of-options", base, target).splitlines():
+    for line in git("diff", "--no-renames", "--numstat", "--end-of-options", f"{base}...{target}").splitlines():
         a, d, path = line.split("\t", 2)
         rows.append((int(a) if a.isdigit() else 0, int(d) if d.isdigit() else 0, path))
     return sorted(rows, key=lambda r: r[2].startswith(GENERATED))

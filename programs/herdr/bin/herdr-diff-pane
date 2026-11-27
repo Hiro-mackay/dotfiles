@@ -41,7 +41,9 @@ cwd=${cwd:-${HERDR_ACTIVE_PANE_CWD:-$(jq -r --arg p "$src" '.result.panes[] | se
 
 viewer_pid() {
   herdr pane process-info --pane "$1" 2>/dev/null |
-    jq -r 'first(.result.process_info.foreground_processes[] | select(.cmdline | contains("herdr-diff-view"))) | .pid // empty'
+    jq -r 'first(.result.process_info.foreground_processes[]
+      | select((.argv[0] // "" | test("python[0-9.]*$")) and (.argv[1] // "" | endswith("/herdr-diff-view"))))
+      | .pid // empty'
 }
 found=() pids=()
 for p in $(herdr pane layout --pane "$src" 2>/dev/null |
@@ -55,7 +57,8 @@ for p in "${found[@]:1}"; do herdr pane close "$p" >/dev/null 2>&1; done
 if [[ ${#found[@]} -gt 0 ]]; then
   pane=${found[0]} pid=${pids[0]}
   jq -n --arg cwd "$cwd" --arg base "$base" --arg compare "$compare" \
-    '{cwd: $cwd, base: ($base | select(. != "")), compare: ($compare | select(. != ""))}' >"$requests/$pid.json"
+    '{cwd: $cwd, base: (if $base == "" then null else $base end), compare: (if $compare == "" then null else $compare end)}' \
+    >"$requests/$pid.json"
   kill -USR1 "$pid" 2>/dev/null
   for _ in 1 2 3 4 5 6 7 8 9 10; do [[ -e $requests/$pid.json ]] || break; sleep 0.2; done
   if kill -0 "$pid" 2>/dev/null && [[ ! -e $requests/$pid.json ]]; then
@@ -69,8 +72,9 @@ fi
 out=$(herdr pane split "$src" --direction right --ratio 0.35 --cwd "$cwd" 2>&1)
 pane=$(jq -r '.result.pane.pane_id // .result.pane_id // empty' <<<"$out" 2>/dev/null)
 [[ -n $pane ]] || fail "split に失敗: $out"
-cmd="exec '$here/herdr-diff-view' --cwd '$cwd'"
-[[ -n $base ]] && cmd+=" --base '$base'"
-[[ -n $compare ]] && cmd+=" --compare '$compare'"
+# Branch names may hold quotes and $(...): quote every value for the pane's shell.
+printf -v cmd 'exec %q --cwd %q' "$here/herdr-diff-view" "$cwd"
+[[ -z $base ]] || printf -v cmd '%s --base %q' "$cmd" "$base"
+[[ -z $compare ]] || printf -v cmd '%s --compare %q' "$cmd" "$compare"
 herdr pane run "$pane" "$cmd" >/dev/null 2>>"$log" || fail "pane run に失敗"
 echo "$pane"

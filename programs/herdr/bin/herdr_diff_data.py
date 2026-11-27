@@ -29,7 +29,7 @@ def refs():
 
 
 def is_ancestor(a, b):
-    return subprocess.run(["git", "merge-base", "--is-ancestor", a, b], capture_output=True).returncode == 0
+    return subprocess.run(["git", "merge-base", "--is-ancestor", "--end-of-options", a, b], capture_output=True).returncode == 0
 
 
 def nearest_base(target, candidates):
@@ -38,7 +38,7 @@ def nearest_base(target, candidates):
     for c in candidates:
         if c == target or not is_ancestor(c, target):
             continue
-        n = int(git("rev-list", "--count", f"{c}..{target}") or 0)
+        n = int(git("rev-list", "--count", "--end-of-options", f"{c}..{target}") or 0)
         if n > 0 and (best_n is None or n < best_n):
             best, best_n = c, n
     return best
@@ -46,7 +46,7 @@ def nearest_base(target, candidates):
 
 def numstat(base, target):
     rows = []
-    for line in git("diff", "--no-renames", "--numstat", base, target).splitlines():
+    for line in git("diff", "--no-renames", "--numstat", "--end-of-options", base, target).splitlines():
         a, d, path = line.split("\t", 2)
         rows.append((int(a) if a.isdigit() else 0, int(d) if d.isdigit() else 0, path))
     return sorted(rows, key=lambda r: r[2].startswith(GENERATED))
@@ -126,7 +126,10 @@ def read_request():
     try:
         with open(path) as f:
             req = json.load(f)
-        os.remove(path)
-        return req
     except (OSError, ValueError):
-        return None
+        req = None
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+    return req

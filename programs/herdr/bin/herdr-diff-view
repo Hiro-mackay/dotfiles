@@ -55,7 +55,7 @@ class App:
         ok = self.base.value and self.target.value
         self.rows = numstat(self.base.value, self.target.value) if ok else []
         blocks, path = {}, None
-        for line in (git("diff", "--no-renames", self.base.value, self.target.value) if self.rows else "").splitlines():
+        for line in (git("diff", "--no-renames", "--end-of-options", self.base.value, self.target.value) if self.rows else "").splitlines():
             if line.startswith("diff --git "):
                 path = line.split(" b/", 1)[-1]
                 blocks[path] = []
@@ -475,7 +475,7 @@ if __name__ == "__main__":
     ARGS = parser.parse_args()
     os.chdir(ARGS.cwd or os.environ.get("HERDR_ACTIVE_PANE_CWD") or os.getcwd())
     for ref in (ARGS.base, ARGS.compare):
-        if ref and not git("rev-parse", "--verify", "--quiet", ref):
+        if ref and not git("rev-parse", "--verify", "--quiet", "--end-of-options", ref):
             print(f"ブランチが見つかりません: {ref}")
             sys.exit(1)
     if not git("rev-parse", "--git-dir"):

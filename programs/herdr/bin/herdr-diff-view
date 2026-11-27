@@ -24,7 +24,7 @@ from herdr_diff_ansi import (  # noqa: E402
     read_escape, width,
 )
 from herdr_diff_data import (  # noqa: E402
-    GENERATED, Picker, copy_to_clipboard, delta_line_numbers, git, nearest_base, numstat,
+    GENERATED, Picker, branch_base, copy_to_clipboard, delta_line_numbers, git, numstat,
     raw_line_numbers, read_request, refs, summary,
 )
 
@@ -42,7 +42,7 @@ class App:
                 self.all_refs.insert(0, ref)
         head = git("rev-parse", "--abbrev-ref", "HEAD").strip()
         target = compare or (head if head in self.all_refs else (self.all_refs[0] if self.all_refs else ""))
-        self.base = Picker("base", self.all_refs, base or nearest_base(target, self.all_refs) or "")
+        self.base = Picker("base", self.all_refs, base or branch_base(target) or "")
         self.target = Picker("compare", self.all_refs, target)
         self.focus = FILES
         self.dropdown = None
@@ -55,7 +55,7 @@ class App:
         ok = self.base.value and self.target.value
         self.rows = numstat(self.base.value, self.target.value) if ok else []
         blocks, path = {}, None
-        for line in (git("diff", "--no-renames", "--end-of-options", self.base.value, self.target.value) if self.rows else "").splitlines():
+        for line in (git("diff", "--no-renames", "--end-of-options", f"{self.base.value}...{self.target.value}") if self.rows else "").splitlines():
             if line.startswith("diff --git "):
                 path = line.split(" b/", 1)[-1]
                 blocks[path] = []
@@ -469,7 +469,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="base と compare のブランチの差分を見る")
-    parser.add_argument("--base", help="基準のブランチ。省略すると compare に一番近いブランチ")
+    parser.add_argument("--base", help="基準のブランチ。省略すると compare を作った元のブランチ")
     parser.add_argument("--compare", help="比べる先のブランチ。省略すると今のブランチ")
     parser.add_argument("--cwd", help="git のフォルダ。省略すると herdr の今のペインのフォルダ")
     ARGS = parser.parse_args()

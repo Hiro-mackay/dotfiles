@@ -1,0 +1,35 @@
+#!/data/data/com.termux/files/usr/bin/sh
+BIN=/data/data/com.termux/files/usr/bin
+release_if_done() {
+  "$BIN/tmux" has-session -t vault 2>/dev/null || "$BIN/termux-wake-unlock" 2>/dev/null
+}
+# Claude Code wraps long lines itself, so the URL can be split across lines
+# that tmux -J cannot rejoin.
+RC_URL_AWK='
+cont {
+  if ($0 ~ /^[[:space:]]*[A-Za-z0-9_\/.]+[[:space:]]*$/) { gsub(/[[:space:]]/, ""); s = s $0; next }
+  cont = 0
+}
+match($0, /https:\/\/claude\.ai[^[:space:]]*/) {
+  s = substr($0, RSTART, RLENGTH)
+  cont = (substr($0, RSTART + RLENGTH) ~ /^[[:space:]]*$/)
+  if (cont) next
+}
+s ~ /^https:\/\/claude\.ai\/code\/session_[A-Za-z0-9]+$/ { url = s }
+END { if (url != "") print url }
+'
+open_in_app() {
+  url=
+  i=0
+  while [ "$i" -lt 30 ]; do
+    url=$("$BIN/tmux" capture-pane -p -S - -t vault 2>/dev/null | "$BIN/awk" "$RC_URL_AWK")
+    [ -n "$url" ] && break
+    sleep 1
+    i=$((i + 1))
+  done
+  "$BIN/termux-open-url" "${url:-https://claude.ai/code}"
+}
+trap release_if_done EXIT HUP INT TERM
+release_if_done
+open_in_app >/dev/null 2>&1 &
+"$BIN/tmux" new-session -A -D -s vault "$BIN/vault-session"

@@ -1,0 +1,28 @@
+#!/data/data/com.termux/files/usr/bin/sh
+# After an hour with no prompt, tool run or finished reply, close the tmux pane,
+# which ends Claude Code. The hooks run inside proot and reach the stamp through
+# the /termux_home bind.
+BIN=/data/data/com.termux/files/usr/bin
+STAMP=$HOME/.vault-last-activity
+IDLE_SEC=${VAULT_IDLE_SEC:-3600}
+TOUCH='{"hooks":[{"type":"command","command":"touch /termux_home/.vault-last-activity"}]}'
+HOOKS="{\"hooks\":{\"UserPromptSubmit\":[$TOUCH],\"PostToolUse\":[$TOUCH],\"Stop\":[$TOUCH]}}"
+
+touch "$STAMP"
+if [ -n "$TMUX_PANE" ]; then
+  pane=$TMUX_PANE
+  (
+    while "$BIN/tmux" has-session -t "$pane" 2>/dev/null; do
+      sleep 60
+      if [ $(( $(date +%s) - $(stat -c %Y "$STAMP") )) -ge "$IDLE_SEC" ]; then
+        "$BIN/tmux" kill-pane -t "$pane"
+        exit
+      fi
+    done
+  ) >/dev/null 2>&1 &
+fi
+
+exec proot-distro login debian \
+  --bind /data/data/com.termux/files/home:/termux_home \
+  --work-dir /mnt/sdcard/ObsidianVault \
+  -- /root/.local/bin/claude --permission-mode auto --remote-control --settings "$HOOKS" "$@"

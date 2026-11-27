@@ -28,7 +28,10 @@ in
     package = lib.mkDefault inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
     context = ../agents/AGENTS.md;
     skills =
-      lib.mapAttrs (name: _: ../agents/skills + "/${name}") (builtins.readDir ../agents/skills)
+      # local-diff-review finds the conversation pane by the Claude job id, so it is Claude only.
+      lib.mapAttrs (name: _: ../agents/skills + "/${name}") (
+        removeAttrs (builtins.readDir ../agents/skills) [ "local-diff-review" ]
+      )
       // {
         i-have-adhd = "${inputs.i-have-adhd}/skills/i-have-adhd";
       };

@@ -1,0 +1,495 @@
+#!/usr/bin/env python3
+"""Show the diff between two branches, laid out like GitHub's compare page.
+
+The base and compare buttons at the top open a searchable branch list. Below, the files are
+listed on the left and the whole diff runs on the right. Clicking a diff line copies "path:N",
+dragging or Shift+clicking copies "path:A-B", and clicking a file header copies the path.
+
+herdr-diff-pane swaps the branches of a running viewer: it writes <state>/<pid>.json and sends
+SIGUSR1. HERDR_DIFF_VIEW_DUMP=<file> writes the screen there after each draw, and the copied
+text to <file>.clip, for tests.
+"""
+import bisect
+import curses
+import locale
+import os
+import signal
+import subprocess
+import sys
+from concurrent.futures import ThreadPoolExecutor
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+from herdr_diff_ansi import (  # noqa: E402
+    DELTA, Palette, box, button, clip, diff_attr, draw_dropdown, highlight_gutter, parse_ansi,
+    read_escape, width,
+)
+from herdr_diff_data import (  # noqa: E402
+    GENERATED, Picker, copy_to_clipboard, delta_line_numbers, git, nearest_base, numstat,
+    raw_line_numbers, read_request, refs, summary,
+)
+
+
+
+BASE, COMPARE, FILES, DIFF = 0, 1, 2, 3
+
+
+class App:
+
+    def __init__(self, base=None, compare=None):
+        self.all_refs = refs()
+        for ref in (base, compare):
+            if ref and ref not in self.all_refs:
+                self.all_refs.insert(0, ref)
+        head = git("rev-parse", "--abbrev-ref", "HEAD").strip()
+        target = compare or (head if head in self.all_refs else (self.all_refs[0] if self.all_refs else ""))
+        self.base = Picker("base", self.all_refs, base or nearest_base(target, self.all_refs) or "")
+        self.target = Picker("compare", self.all_refs, target)
+        self.focus = FILES
+        self.dropdown = None
+        self.file_cursor = self.file_top = self.scroll = 0
+        self.rects, self.drop_rect = {}, None
+        self.load()
+
+    def load(self):
+        """Split the diff per file, in the order of the file list"""
+        ok = self.base.value and self.target.value
+        self.rows = numstat(self.base.value, self.target.value) if ok else []
+        blocks, path = {}, None
+        for line in (git("diff", "--no-renames", "--end-of-options", self.base.value, self.target.value) if self.rows else "").splitlines():
+            if line.startswith("diff --git "):
+                path = line.split(" b/", 1)[-1]
+                blocks[path] = []
+            if path is not None:
+                blocks[path].append(line)
+        self.blocks = ["\n".join(blocks.get(r[2], [])) + "\n" for r in self.rows]
+        self.file_cursor = self.scroll = 0
+        self.rendered, self.rendered_width, self.offsets, self.lines = [], None, [], []
+        self.sel, self.dragging, self.status = None, False, ""
+
+    def render(self, w, palette):
+        """Join all files into one diff, colored by delta when present. offsets holds each file's
+        first row, lines each row's (file, old line, new line)"""
+        if self.rendered_width == w:
+            return
+        self.rendered_width = w
+        use_delta = DELTA and curses.COLORS >= 256
+
+        def one(block):
+            if use_delta:
+                r = subprocess.run(
+                    [DELTA, "--paging=never", f"--width={w}", "--line-numbers", "--true-color=never",
+                     "--hunk-header-decoration-style=none"],
+                    input=block, capture_output=True, text=True,
+                )
+                if r.returncode == 0:
+                    return r.stdout.splitlines()
+            return None
+
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            outputs = list(pool.map(one, self.blocks))
+        self.rendered, self.offsets, self.lines = [], [], []
+        for index, (block, out) in enumerate(zip(self.blocks, outputs)):
+            self.offsets.append(len(self.rendered))
+            if out is None:
+                self.rendered += [[(line, diff_attr(line))] for line in block.splitlines()]
+                self.lines += raw_line_numbers(index, block)
+            else:
+                rows = [parse_ansi(line, palette) for line in out]
+                self.rendered += rows
+                self.lines += delta_line_numbers(index, rows)
+            self.rendered.append([])
+            self.lines.append((index, None, None))
+
+    def select_rows(self, start, end):
+        """Select rows start..end and copy "path:line"; rows of other files than the first are left out"""
+        self.sel = (start, end)
+        text = self.selection_label()
+        if text:
+            copy_to_clipboard(text)
+            self.status = f"コピーした: {text}"
+
+    def selection_label(self):
+        start, end = sorted(self.sel)
+        index = self.lines[self.sel[0]][0]
+        picked = [ln for ln in self.lines[start:end + 1] if ln[0] == index]
+        path = self.rows[index][2]
+        new = [n for _, _, n in picked if n]
+        old = [o for _, o, _ in picked if o]
+        if new:
+            nums, note = new, ""
+        elif old:
+            nums, note = old, "（削除された行。番号は base 側）"
+        else:
+            return path
+        lo, hi = min(nums), max(nums)
+        return f"{path}:{lo}" + (f"-{hi}" if hi != lo else "") + note
+
+    def row_at(self, my):
+        """The diff row at screen row my, clamped to the diff area"""
+        y, _, h, _ = self.rects[DIFF]
+        row = self.scroll + min(max(my - (y + 1), 0), h - 3)
+        return min(row, len(self.lines) - 1) if self.lines else None
+
+    def view_len(self):
+        return len(self.rendered)
+
+    def scroll_to(self, line):
+        """Scroll to line and select the file that contains it"""
+        self.scroll = max(0, min(line, max(self.view_len() - 1, 0)))
+        if self.offsets:
+            self.file_cursor = max(0, bisect.bisect_right(self.offsets, self.scroll) - 1)
+
+    def picker_of(self, pane):
+        return self.base if pane == BASE else self.target
+
+    def open_dropdown(self, pane):
+        picker = self.picker_of(pane)
+        picker.query = ""
+        shown = picker.shown()
+        picker.cursor = shown.index(picker.value) if picker.value in shown else 0
+        self.focus, self.dropdown = pane, picker
+
+    def pick(self, name):
+        """Set the picked branch and close the list; after base, focus moves to compare"""
+        picker = self.dropdown
+        picker.value, self.dropdown = name, None
+        self.load()
+        self.focus = COMPARE if picker is self.base else FILES
+
+    def select_file(self, index):
+        if not self.rows:
+            return
+        self.file_cursor = max(0, min(index, len(self.rows) - 1))
+        if self.file_cursor < len(self.offsets):
+            self.scroll = self.offsets[self.file_cursor]
+
+    def dropdown_key(self, ch):
+        picker = self.dropdown
+        shown = picker.shown()
+        if ch == "\x1b":
+            self.dropdown = None
+        elif ch in (10, curses.KEY_ENTER):
+            if shown:
+                self.pick(shown[picker.cursor])
+        elif ch == curses.KEY_DOWN:
+            picker.cursor = min(picker.cursor + 1, max(len(shown) - 1, 0))
+        elif ch == curses.KEY_UP:
+            picker.cursor = max(picker.cursor - 1, 0)
+        elif ch in (curses.KEY_BACKSPACE, 127):
+            picker.query, picker.cursor = picker.query[:-1], 0
+        elif isinstance(ch, str) and ch.isprintable():
+            picker.query, picker.cursor = picker.query + ch, 0
+
+    def on_key(self, ch, page):
+        """False closes the viewer"""
+        if self.dropdown:
+            self.dropdown_key(ch)
+            return True
+        if ch == "\x1b" or (ch == "q" and self.focus in (FILES, DIFF)):
+            return False
+        left, right, up, down = curses.KEY_LEFT, curses.KEY_RIGHT, curses.KEY_UP, curses.KEY_DOWN
+        if ch == "\t":
+            self.focus = (self.focus + 1) % 4
+        elif ch == curses.KEY_BTAB:
+            self.focus = (self.focus - 1) % 4
+        elif self.focus in (BASE, COMPARE):
+            if ch in (10, curses.KEY_ENTER, " "):
+                self.open_dropdown(self.focus)
+            elif ch == left:
+                self.focus = BASE
+            elif ch == right:
+                self.focus = COMPARE
+            elif ch == down:
+                self.focus = FILES if self.focus == BASE else DIFF
+        elif self.focus == FILES:
+            if ch in (right, 10):
+                self.focus = DIFF
+            elif ch == up and self.file_cursor == 0:
+                self.focus = BASE
+            elif ch == up:
+                self.select_file(self.file_cursor - 1)
+            elif ch == down:
+                self.select_file(self.file_cursor + 1)
+        else:
+            last = max(self.view_len() - 1, 0)
+            if ch == left:
+                self.focus = FILES
+            elif ch == up and self.scroll == 0:
+                self.focus = COMPARE
+            elif ch == up:
+                self.scroll_to(self.scroll - 1)
+            elif ch == down:
+                self.scroll_to(self.scroll + 1)
+            elif ch in (curses.KEY_NPAGE, " "):
+                self.scroll_to(self.scroll + page)
+            elif ch == curses.KEY_PPAGE:
+                self.scroll_to(self.scroll - page)
+            elif ch == curses.KEY_HOME:
+                self.scroll_to(0)
+            elif ch == curses.KEY_END:
+                self.scroll_to(last)
+        return True
+
+    def on_mouse(self, my, mx, bstate):
+        """Presses and the wheel act; releases and motion only end or extend a drag"""
+        wheel_up = bstate & curses.BUTTON4_PRESSED
+        wheel_down = bstate & getattr(curses, "BUTTON5_PRESSED", 0x200000)
+        pressed = bstate & (curses.BUTTON1_PRESSED | curses.BUTTON1_CLICKED)
+        released = bstate & (curses.BUTTON1_RELEASED | curses.BUTTON1_CLICKED)
+        if self.dragging and bstate & curses.REPORT_MOUSE_POSITION and not released:
+            row = self.row_at(my)
+            if row is not None:
+                self.sel = (self.sel[0], row)
+            return
+        if self.dragging and released:
+            self.dragging = False
+            row = self.row_at(my)
+            if row is not None:
+                self.select_rows(self.sel[0], row)
+            return
+        if not (wheel_up or wheel_down or pressed):
+            return
+        step = -3 if wheel_up else 3
+
+        if self.dropdown:
+            y, x, h, w = self.drop_rect
+            picker = self.dropdown
+            shown = picker.shown()
+            inside = y <= my < y + h and x <= mx < x + w
+            if wheel_up or wheel_down:
+                picker.cursor = max(0, min(picker.cursor + step, max(len(shown) - 1, 0)))
+            elif not inside:
+                self.dropdown = None
+            else:
+                index = picker.top + my - (y + 2)
+                if my >= y + 2 and 0 <= index < len(shown):
+                    self.pick(shown[index])
+            return
+
+        pane = next((i for i, (y, x, h, w) in self.rects.items()
+                     if y <= my < y + h and x <= mx < x + w), None)
+        if pane is None:
+            return
+        if wheel_up or wheel_down:
+            if pane == DIFF:
+                self.scroll_to(self.scroll + step)
+            elif pane == FILES:
+                self.select_file(self.file_cursor + (-1 if wheel_up else 1))
+            return
+        if pane in (BASE, COMPARE):
+            self.open_dropdown(pane)
+            return
+        self.focus = pane
+        if pane == DIFF:
+            row = self.row_at(my)
+            if row is not None:
+                start = self.sel[0] if self.sel and bstate & curses.BUTTON_SHIFT else row
+                self.sel, self.dragging = (start, row), True
+                if bstate & curses.BUTTON1_CLICKED:
+                    self.dragging = False
+                    self.select_rows(start, row)
+        if pane == FILES:
+            y = self.rects[FILES][0]
+            index = self.file_top + my - (y + 1)
+            if my >= y + 1 and index < len(self.rows):
+                self.select_file(index)
+
+
+def draw(win, app):
+    """Redraw only the diff rows when just the scroll changed: erasing the whole screen makes
+    curses resend the file list too, which flickers"""
+    H, W = win.getmaxyx()
+    body_y, body_h = 2, H - 3
+    rows = body_h - 2
+    list_w = max(16, min(44, W // 4))
+    dx, dw = list_w, W - list_w
+    app.render(dw - 2, app.palette)
+
+    frame = (H, W, app.base.value, app.target.value, app.focus, app.file_cursor, len(app.rows),
+             app.dropdown is not None, app.status)
+    if app.dropdown or frame != getattr(app, "last_frame", None):
+        app.last_frame = frame
+        draw_frame(win, app, H, W, body_y, body_h, rows, list_w, dx, dw)
+
+    lo, hi = sorted(app.sel) if app.sel else (-1, -2)
+    for i in range(rows):
+        segs = app.rendered[app.scroll + i] if app.scroll + i < len(app.rendered) else []
+        if lo <= app.scroll + i <= hi:
+            segs = highlight_gutter(segs, app.palette)
+        x, room = dx + 1, dw - 2
+        for text, attr in segs:
+            text = clip(text, room)
+            if not text:
+                break
+            win.addstr(body_y + 1 + i, x, text, attr)
+            x += width(text)
+            room -= width(text)
+        if room > 0:
+            win.addstr(body_y + 1 + i, x, " " * room)
+
+    if app.dropdown:
+        bx = app.rects[BASE][1] if app.dropdown is app.base else app.rects[COMPARE][1]
+        draw_dropdown(win, app, bx, W, H)
+    win.noutrefresh()
+    curses.doupdate()
+    dump = os.environ.get("HERDR_DIFF_VIEW_DUMP")
+    if dump:
+        with open(dump, "w") as f:
+            f.write(f"focus={app.focus} dropdown={app.dropdown.title if app.dropdown else '-'} "
+                    f"base={app.base.value} compare={app.target.value} files={len(app.rows)} "
+                    f"file={app.file_cursor} scroll={app.scroll} sel={app.sel} status={app.status}\n")
+            for y in range(H):
+                f.write(win.instr(y, 0, W * 4).decode("utf-8", "replace").rstrip() + "\n")
+
+
+def draw_frame(win, app, H, W, body_y, body_h, rows, list_w, dx, dw):
+    win.erase()
+    x = 1
+    bw = button(win, 0, x, W // 2 - 4, "base", app.base.value, app.focus == BASE and not app.dropdown)
+    app.rects = {BASE: (0, x, 1, bw)}
+    win.addstr(0, x + bw + 1, "←", curses.color_pair(6))
+    cx = x + bw + 3
+    cw = button(win, 0, cx, W - cx - 1, "compare", app.target.value, app.focus == COMPARE and not app.dropdown)
+    app.rects[COMPARE] = (0, cx, 1, cw)
+
+    info = f" {summary(app.rows) if app.rows else '差分なし'}"
+    win.addstr(1, 0, clip(info, W - 1), curses.color_pair(6))
+
+    app.rects[FILES] = (body_y, 0, body_h, list_w)
+    app.rects[DIFF] = (body_y, dx, body_h, dw)
+
+    box(win, body_y, 0, body_h, list_w, "ファイル", app.focus == FILES)
+    entries = [(r[2], f"+{r[0]} -{r[1]}" + (" 生成" if r[2].startswith(GENERATED) else "")) for r in app.rows]
+    app.file_top = max(0, app.file_cursor - rows + 1)
+    for i, (path, stat) in enumerate(entries[app.file_top:app.file_top + rows]):
+        idx = app.file_top + i
+        attr = curses.A_REVERSE if idx == app.file_cursor else 0
+        stat_w = width(stat)
+        name = clip("/".join(path.split("/")[-2:]), list_w - 5 - stat_w)
+        win.addstr(body_y + 1 + i, 2, name, attr)
+        win.addstr(body_y + 1 + i, list_w - 2 - stat_w, stat, curses.color_pair(6))
+
+    title = f"差分（{len(app.rows)} files）" + (f"  いま: {app.rows[app.file_cursor][2]}" if app.rows else "")
+    box(win, body_y, dx, body_h, dw, title, app.focus == DIFF)
+    if app.dropdown:
+        help_ = " 打つ: 絞り込み  ↑↓: 移動  Enter・クリック: 決める  Esc: やめる"
+    else:
+        help_ = app.status and f" {app.status}" or (
+            " 矢印: 移動  Enter・クリック: 開く・決める  差分の行をクリック・ドラッグ: 「パス:行」をコピー  Esc: 閉じる")
+    win.addstr(H - 1, 0, clip(help_, W - 1), curses.color_pair(6))
+
+
+RELOAD = {"pending": False}
+
+
+def on_reload_signal(signum, frame):
+    """Only set a flag: a signal does not wake curses' input wait, so the loop checks it every 0.2s"""
+    RELOAD["pending"] = True
+
+
+def main(win):
+    signal.signal(signal.SIGUSR1, on_reload_signal)
+    curses.curs_set(0)
+    curses.use_default_colors()
+    for i, c in enumerate([curses.COLOR_GREEN, curses.COLOR_RED, curses.COLOR_CYAN,
+                           curses.COLOR_YELLOW, curses.COLOR_BLUE, curses.COLOR_WHITE], 1):
+        curses.init_pair(i, c, -1)
+    # xterm-256color's XM enables only mode 1000, so the terminal sends no motion while a button
+    # is held. Mode 1002 (motion with a button down) lets the selection grow while dragging.
+    curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+    os.write(sys.stdout.fileno(), b"\x1b[?1002h")
+    curses.mouseinterval(0)
+    app = App(ARGS.base, ARGS.compare)
+    app.palette = Palette()
+    redraw = True
+    while True:
+        if redraw:
+            try:
+                draw(win, app)
+            except curses.error:
+                pass
+        win.timeout(200)
+        try:
+            ch = win.get_wch()
+        except curses.error:
+            ch = None
+        finally:
+            win.timeout(-1)
+        redraw = ch is not None
+        if RELOAD["pending"]:
+            RELOAD["pending"], redraw = False, True
+            req = read_request()
+            if req:
+                if req.get("cwd"):
+                    os.chdir(req["cwd"])
+                palette = app.palette
+                app = App(req.get("base"), req.get("compare"))
+                app.palette = palette
+            continue
+        if ch is None:
+            continue
+        if not handle(win, app, ch):
+            return
+        # Drain queued input (a burst of wheel events) before drawing.
+        while True:
+            win.nodelay(True)
+            try:
+                ch = win.get_wch()
+            except curses.error:
+                break
+            finally:
+                win.nodelay(False)
+            if not handle(win, app, ch):
+                return
+
+
+def handle(win, app, ch):
+    """Handle one input; False closes the viewer"""
+    if ch == "\x1b":
+        ch = read_escape(win)
+        if ch is None:
+            return True
+    if ch in ("\n", "\r"):
+        ch = 10
+    elif ch in ("\x7f", "\b"):
+        ch = 127
+    if ch == curses.KEY_RESIZE:
+        return True
+    if ch == curses.KEY_MOUSE:
+        try:
+            _, mx, my, _, bstate = curses.getmouse()
+        except curses.error:
+            return True
+        app.on_mouse(my, mx, bstate)
+        return True
+    H, _ = win.getmaxyx()
+    return app.on_key(ch, max(H // 2, 1))
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="base と compare のブランチの差分を見る")
+    parser.add_argument("--base", help="基準のブランチ。省略すると compare に一番近いブランチ")
+    parser.add_argument("--compare", help="比べる先のブランチ。省略すると今のブランチ")
+    parser.add_argument("--cwd", help="git のフォルダ。省略すると herdr の今のペインのフォルダ")
+    ARGS = parser.parse_args()
+    os.chdir(ARGS.cwd or os.environ.get("HERDR_ACTIVE_PANE_CWD") or os.getcwd())
+    for ref in (ARGS.base, ARGS.compare):
+        if ref and not git("rev-parse", "--verify", "--quiet", "--end-of-options", ref):
+            print(f"ブランチが見つかりません: {ref}")
+            sys.exit(1)
+    if not git("rev-parse", "--git-dir"):
+        print(f"git のフォルダではありません: {os.getcwd()}")
+        sys.exit(1)
+    locale.setlocale(locale.LC_ALL, "")
+    os.environ.setdefault("ESCDELAY", "25")
+    # A terminfo entry without line scrolling, built next to this script (programs/herdr/default.nix).
+    # To scroll the diff by a line, curses scrolls whole terminal lines, which moves the file list
+    # too and flickers; no curses setting stopped it.
+    terminfo = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "share", "terminfo")
+    if os.environ.get("TERM", "").startswith("xterm") and os.path.isdir(terminfo):
+        os.environ.update(TERMINFO=terminfo, TERM="xterm-256color-noscroll")
+    try:
+        curses.wrapper(main)
+    finally:
+        os.write(sys.stdout.fileno(), b"\x1b[?1002l")

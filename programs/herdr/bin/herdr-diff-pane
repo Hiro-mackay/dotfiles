@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Show the diff viewer (herdr-diff-view) beside a conversation pane.
+#
+#   herdr-diff-pane [--session ID] [--cwd DIR] [--base REF] [--compare REF]
+#
+# A viewer already running in the same tab gets the new base and compare in place, keeping its
+# position and width; of two or more, the widest stays and the rest close. Otherwise the
+# conversation pane is split to the right. The conversation pane is the active one when run from
+# a herdr key, else the pane of Claude session --session (the session token herdr-claude-sync
+# puts on its tabs), else the focused pane. Prints the viewer's pane ID.
+set -uo pipefail
+here=$(dirname "$(realpath "$0")")
+# Shared with herdr-diff-view, which reads <pid>.json from here.
+requests=${XDG_STATE_HOME:-$HOME/.local/state}/herdr-diff-view
+log=$requests/pane.log
+mkdir -p "$requests"
+session="" cwd="" base="" compare=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --session) session=$2; shift 2 ;;
+    --cwd) cwd=$2; shift 2 ;;
+    --base) base=$2; shift 2 ;;
+    --compare) compare=$2; shift 2 ;;
+    *) echo "知らない引数: $1" >&2; exit 2 ;;
+  esac
+done
+
+fail() { echo "$(date '+%F %T') $*" | tee -a "$log" >&2; exit 1; }
+
+panes=$(herdr pane list 2>&1) || fail "herdr pane list に失敗: $panes"
+if [[ -n ${HERDR_ACTIVE_PANE_ID:-} ]]; then
+  src=$HERDR_ACTIVE_PANE_ID
+elif [[ -n $session ]]; then
+  src=$(jq -r --arg s "$session" 'first(.result.panes[] | select((.tokens.session // "") | startswith($s))) | .pane_id // empty' <<<"$panes")
+  [[ -n $src ]] || fail "セッション $session のペインが見つかりません"
+else
+  src=$(jq -r 'first(.result.panes[] | select(.focused)) | .pane_id // empty' <<<"$panes")
+fi
+[[ -n $src ]] || fail "開く場所のペインが決まりません"
+cwd=${cwd:-${HERDR_ACTIVE_PANE_CWD:-$(jq -r --arg p "$src" '.result.panes[] | select(.pane_id == $p) | .cwd' <<<"$panes")}}
+
+viewer_pid() {
+  herdr pane process-info --pane "$1" 2>/dev/null |
+    jq -r 'first(.result.process_info.foreground_processes[]
+      | select((.argv[0] // "" | test("python[0-9.]*$")) and (.argv[1] // "" | endswith("/herdr-diff-view"))))
+      | .pid // empty'
+}
+found=() pids=()
+for p in $(herdr pane layout --pane "$src" 2>/dev/null |
+  jq -r --arg s "$src" '.result.layout.panes | sort_by(-.rect.width)[] | select(.pane_id != $s) | .pane_id'); do
+  pid=$(viewer_pid "$p")
+  [[ -n $pid ]] && { found+=("$p"); pids+=("$pid"); }
+done
+for p in "${found[@]:1}"; do herdr pane close "$p" >/dev/null 2>&1; done
+
+# A viewer that does not take the request within 2 seconds is closed and replaced.
+if [[ ${#found[@]} -gt 0 ]]; then
+  pane=${found[0]} pid=${pids[0]}
+  jq -n --arg cwd "$cwd" --arg base "$base" --arg compare "$compare" \
+    '{cwd: $cwd, base: (if $base == "" then null else $base end), compare: (if $compare == "" then null else $compare end)}' \
+    >"$requests/$pid.json"
+  kill -USR1 "$pid" 2>/dev/null
+  for _ in 1 2 3 4 5 6 7 8 9 10; do [[ -e $requests/$pid.json ]] || break; sleep 0.2; done
+  if kill -0 "$pid" 2>/dev/null && [[ ! -e $requests/$pid.json ]]; then
+    echo "$pane"
+    exit 0
+  fi
+  rm -f "$requests/$pid.json"
+  herdr pane close "$pane" >/dev/null 2>&1
+fi
+
+out=$(herdr pane split "$src" --direction right --ratio 0.35 --cwd "$cwd" 2>&1)
+pane=$(jq -r '.result.pane.pane_id // .result.pane_id // empty' <<<"$out" 2>/dev/null)
+[[ -n $pane ]] || fail "split に失敗: $out"
+# Branch names may hold quotes and $(...): quote every value for the pane's shell.
+printf -v cmd 'exec %q --cwd %q' "$here/herdr-diff-view" "$cwd"
+[[ -z $base ]] || printf -v cmd '%s --base %q' "$cmd" "$base"
+[[ -z $compare ]] || printf -v cmd '%s --compare %q' "$cmd" "$compare"
+herdr pane run "$pane" "$cmd" >/dev/null 2>>"$log" || fail "pane run に失敗"
+echo "$pane"

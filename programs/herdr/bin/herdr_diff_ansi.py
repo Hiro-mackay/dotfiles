@@ -195,3 +195,29 @@ def draw_dropdown(win, app, x, W, H):
         win.addstr(y + 2 + i, x + 2, clip(mark + name, w - 4).ljust(w - 4), attr)
     if not shown:
         win.addstr(y + 2, x + 2, "一致するブランチがありません", curses.color_pair(6))
+
+
+# The 256-color entry closest to VS Code's selection color #264f78.
+SELECTION_BG = 24
+
+
+def selection_attr(attr, palette):
+    """attr with its foreground kept and the selection background"""
+    pair = curses.pair_number(attr)
+    fg = curses.pair_content(pair)[0] if pair else -1
+    return palette.attr(fg, SELECTION_BG, attr & ~curses.A_COLOR & ~curses.A_REVERSE)
+
+
+def highlight_gutter(segs, palette):
+    """Give only the line-number gutter (up to the first │) the selection background; the code
+    keeps delta's colors"""
+    end = "".join(t for t, _ in segs).find("│") + 1
+    out = []
+    for text, attr in segs:
+        head, text = text[:end], text[end:]
+        if head:
+            out.append((head, selection_attr(attr, palette)))
+            end -= len(head)
+        if text:
+            out.append((text, attr))
+    return out

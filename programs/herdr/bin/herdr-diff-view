@@ -2,14 +2,15 @@
 """Show the diff between two branches, laid out like GitHub's compare page.
 
 The base and compare buttons at the top open a searchable branch list. Below, the files are
-listed on the left and the whole diff runs on the right.
+listed on the left and the whole diff runs on the right. Clicking a diff line copies "path:N",
+dragging or Shift+clicking copies "path:A-B", and clicking a file header copies the path.
 
 herdr-diff-pane swaps the branches of a running viewer: it writes <state>/<pid>.json and sends
-SIGUSR1. HERDR_DIFF_VIEW_DUMP=<file> writes the screen there after each draw, for tests.
+SIGUSR1. HERDR_DIFF_VIEW_DUMP=<file> writes the screen there after each draw, and the copied
+text to <file>.clip, for tests.
 """
 import bisect
 import curses
-import json
 import locale
 import os
 import signal
@@ -19,69 +20,14 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 from herdr_diff_ansi import (  # noqa: E402
-    DELTA, Palette, box, button, clip, diff_attr, draw_dropdown, parse_ansi, read_escape, width,
+    DELTA, Palette, box, button, clip, diff_attr, draw_dropdown, highlight_gutter, parse_ansi,
+    read_escape, width,
+)
+from herdr_diff_data import (  # noqa: E402
+    GENERATED, Picker, copy_to_clipboard, delta_line_numbers, git, nearest_base, numstat,
+    raw_line_numbers, read_request, refs, summary,
 )
 
-# Generated API clients (kingston-static): listed last and marked, and left out of one total.
-GENERATED = "src/clients/"
-
-
-def git(*args):
-    r = subprocess.run(["git", *args], capture_output=True, text=True)
-    return r.stdout if r.returncode == 0 else ""
-
-
-def refs():
-    local = git("for-each-ref", "--sort=-committerdate", "--format=%(refname:short)", "refs/heads").split()
-    remote = git("for-each-ref", "--format=%(refname:short)", "refs/remotes/origin/develop",
-                 "refs/remotes/origin/dynamic-qa", "refs/remotes/origin/dynamic-dev").split()
-    return local + remote
-
-
-def is_ancestor(a, b):
-    return subprocess.run(["git", "merge-base", "--is-ancestor", a, b], capture_output=True).returncode == 0
-
-
-def nearest_base(target, candidates):
-    """The candidate contained in target with the fewest commits to it; ties go to the earlier one."""
-    best, best_n = None, None
-    for c in candidates:
-        if c == target or not is_ancestor(c, target):
-            continue
-        n = int(git("rev-list", "--count", f"{c}..{target}") or 0)
-        if n > 0 and (best_n is None or n < best_n):
-            best, best_n = c, n
-    return best
-
-
-def numstat(base, target):
-    rows = []
-    for line in git("diff", "--no-renames", "--numstat", base, target).splitlines():
-        a, d, path = line.split("\t", 2)
-        rows.append((int(a) if a.isdigit() else 0, int(d) if d.isdigit() else 0, path))
-    return sorted(rows, key=lambda r: r[2].startswith(GENERATED))
-
-
-def summary(rows):
-    a = sum(r[0] for r in rows)
-    d = sum(r[1] for r in rows)
-    own = [r for r in rows if not r[2].startswith(GENERATED)]
-    text = f"{len(rows)} files +{a} -{d}"
-    if len(own) != len(rows):
-        text += f"（生成を除く {len(own)} files +{sum(r[0] for r in own)} -{sum(r[1] for r in own)}）"
-    return text
-
-
-class Picker:
-    def __init__(self, title, items, selected):
-        self.title, self.items, self.query = title, items, ""
-        self.value = selected
-        self.cursor = 0
-        self.top = 0
-
-    def shown(self):
-        q = self.query.lower()
-        return [i for i in self.items if q in i.lower()]
 
 
 BASE, COMPARE, FILES, DIFF = 0, 1, 2, 3
@@ -117,10 +63,12 @@ class App:
                 blocks[path].append(line)
         self.blocks = ["\n".join(blocks.get(r[2], [])) + "\n" for r in self.rows]
         self.file_cursor = self.scroll = 0
-        self.rendered, self.rendered_width, self.offsets = [], None, []
+        self.rendered, self.rendered_width, self.offsets, self.lines = [], None, [], []
+        self.sel, self.dragging, self.status = None, False, ""
 
     def render(self, w, palette):
-        """Join all files into one diff, colored by delta when present; offsets holds each file's first line"""
+        """Join all files into one diff, colored by delta when present. offsets holds each file's
+        first row, lines each row's (file, old line, new line)"""
         if self.rendered_width == w:
             return
         self.rendered_width = w
@@ -139,14 +87,48 @@ class App:
 
         with ThreadPoolExecutor(max_workers=8) as pool:
             outputs = list(pool.map(one, self.blocks))
-        self.rendered, self.offsets = [], []
-        for block, out in zip(self.blocks, outputs):
+        self.rendered, self.offsets, self.lines = [], [], []
+        for index, (block, out) in enumerate(zip(self.blocks, outputs)):
             self.offsets.append(len(self.rendered))
             if out is None:
                 self.rendered += [[(line, diff_attr(line))] for line in block.splitlines()]
+                self.lines += raw_line_numbers(index, block)
             else:
-                self.rendered += [parse_ansi(line, palette) for line in out]
+                rows = [parse_ansi(line, palette) for line in out]
+                self.rendered += rows
+                self.lines += delta_line_numbers(index, rows)
             self.rendered.append([])
+            self.lines.append((index, None, None))
+
+    def select_rows(self, start, end):
+        """Select rows start..end and copy "path:line"; rows of other files than the first are left out"""
+        self.sel = (start, end)
+        text = self.selection_label()
+        if text:
+            copy_to_clipboard(text)
+            self.status = f"コピーした: {text}"
+
+    def selection_label(self):
+        start, end = sorted(self.sel)
+        index = self.lines[self.sel[0]][0]
+        picked = [ln for ln in self.lines[start:end + 1] if ln[0] == index]
+        path = self.rows[index][2]
+        new = [n for _, _, n in picked if n]
+        old = [o for _, o, _ in picked if o]
+        if new:
+            nums, note = new, ""
+        elif old:
+            nums, note = old, "（削除された行。番号は base 側）"
+        else:
+            return path
+        lo, hi = min(nums), max(nums)
+        return f"{path}:{lo}" + (f"-{hi}" if hi != lo else "") + note
+
+    def row_at(self, my):
+        """The diff row at screen row my, clamped to the diff area"""
+        y, _, h, _ = self.rects[DIFF]
+        row = self.scroll + min(max(my - (y + 1), 0), h - 3)
+        return min(row, len(self.lines) - 1) if self.lines else None
 
     def view_len(self):
         return len(self.rendered)
@@ -249,10 +231,22 @@ class App:
         return True
 
     def on_mouse(self, my, mx, bstate):
-        """Only presses and the wheel count; releases and motion are ignored"""
+        """Presses and the wheel act; releases and motion only end or extend a drag"""
         wheel_up = bstate & curses.BUTTON4_PRESSED
         wheel_down = bstate & getattr(curses, "BUTTON5_PRESSED", 0x200000)
         pressed = bstate & (curses.BUTTON1_PRESSED | curses.BUTTON1_CLICKED)
+        released = bstate & (curses.BUTTON1_RELEASED | curses.BUTTON1_CLICKED)
+        if self.dragging and bstate & curses.REPORT_MOUSE_POSITION and not released:
+            row = self.row_at(my)
+            if row is not None:
+                self.sel = (self.sel[0], row)
+            return
+        if self.dragging and released:
+            self.dragging = False
+            row = self.row_at(my)
+            if row is not None:
+                self.select_rows(self.sel[0], row)
+            return
         if not (wheel_up or wheel_down or pressed):
             return
         step = -3 if wheel_up else 3
@@ -286,6 +280,14 @@ class App:
             self.open_dropdown(pane)
             return
         self.focus = pane
+        if pane == DIFF:
+            row = self.row_at(my)
+            if row is not None:
+                start = self.sel[0] if self.sel and bstate & curses.BUTTON_SHIFT else row
+                self.sel, self.dragging = (start, row), True
+                if bstate & curses.BUTTON1_CLICKED:
+                    self.dragging = False
+                    self.select_rows(start, row)
         if pane == FILES:
             y = self.rects[FILES][0]
             index = self.file_top + my - (y + 1)
@@ -304,13 +306,16 @@ def draw(win, app):
     app.render(dw - 2, app.palette)
 
     frame = (H, W, app.base.value, app.target.value, app.focus, app.file_cursor, len(app.rows),
-             app.dropdown is not None)
+             app.dropdown is not None, app.status)
     if app.dropdown or frame != getattr(app, "last_frame", None):
         app.last_frame = frame
         draw_frame(win, app, H, W, body_y, body_h, rows, list_w, dx, dw)
 
+    lo, hi = sorted(app.sel) if app.sel else (-1, -2)
     for i in range(rows):
         segs = app.rendered[app.scroll + i] if app.scroll + i < len(app.rendered) else []
+        if lo <= app.scroll + i <= hi:
+            segs = highlight_gutter(segs, app.palette)
         x, room = dx + 1, dw - 2
         for text, attr in segs:
             text = clip(text, room)
@@ -332,7 +337,7 @@ def draw(win, app):
         with open(dump, "w") as f:
             f.write(f"focus={app.focus} dropdown={app.dropdown.title if app.dropdown else '-'} "
                     f"base={app.base.value} compare={app.target.value} files={len(app.rows)} "
-                    f"file={app.file_cursor} scroll={app.scroll}\n")
+                    f"file={app.file_cursor} scroll={app.scroll} sel={app.sel} status={app.status}\n")
             for y in range(H):
                 f.write(win.instr(y, 0, W * 4).decode("utf-8", "replace").rstrip() + "\n")
 
@@ -369,12 +374,9 @@ def draw_frame(win, app, H, W, body_y, body_h, rows, list_w, dx, dw):
     if app.dropdown:
         help_ = " 打つ: 絞り込み  ↑↓: 移動  Enter・クリック: 決める  Esc: やめる"
     else:
-        help_ = " 矢印: 移動  Enter・クリック: 開く・決める  ホイール: スクロール  Esc: 閉じる"
+        help_ = app.status and f" {app.status}" or (
+            " 矢印: 移動  Enter・クリック: 開く・決める  差分の行をクリック・ドラッグ: 「パス:行」をコピー  Esc: 閉じる")
     win.addstr(H - 1, 0, clip(help_, W - 1), curses.color_pair(6))
-
-
-REQUEST_DIR = os.path.join(os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state"),
-                           "herdr-diff-view")
 
 
 RELOAD = {"pending": False}
@@ -385,18 +387,6 @@ def on_reload_signal(signum, frame):
     RELOAD["pending"] = True
 
 
-def read_request():
-    """Read and remove the request herdr-diff-pane wrote for this process"""
-    path = os.path.join(REQUEST_DIR, f"{os.getpid()}.json")
-    try:
-        with open(path) as f:
-            req = json.load(f)
-        os.remove(path)
-        return req
-    except (OSError, ValueError):
-        return None
-
-
 def main(win):
     signal.signal(signal.SIGUSR1, on_reload_signal)
     curses.curs_set(0)
@@ -404,7 +394,10 @@ def main(win):
     for i, c in enumerate([curses.COLOR_GREEN, curses.COLOR_RED, curses.COLOR_CYAN,
                            curses.COLOR_YELLOW, curses.COLOR_BLUE, curses.COLOR_WHITE], 1):
         curses.init_pair(i, c, -1)
-    curses.mousemask(curses.ALL_MOUSE_EVENTS)
+    # xterm-256color's XM enables only mode 1000, so the terminal sends no motion while a button
+    # is held. Mode 1002 (motion with a button down) lets the selection grow while dragging.
+    curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+    os.write(sys.stdout.fileno(), b"\x1b[?1002h")
     curses.mouseinterval(0)
     app = App(ARGS.base, ARGS.compare)
     app.palette = Palette()
@@ -496,4 +489,7 @@ if __name__ == "__main__":
     terminfo = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "share", "terminfo")
     if os.environ.get("TERM", "").startswith("xterm") and os.path.isdir(terminfo):
         os.environ.update(TERMINFO=terminfo, TERM="xterm-256color-noscroll")
-    curses.wrapper(main)
+    try:
+        curses.wrapper(main)
+    finally:
+        os.write(sys.stdout.fileno(), b"\x1b[?1002l")

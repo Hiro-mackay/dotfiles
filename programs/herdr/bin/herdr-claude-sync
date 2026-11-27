@@ -22,7 +22,15 @@ reset_tries=0
 # busy, waiting or finished, for a running session $1 in state $2. claude agents can
 # leave a session that ended its turn at working, so for working also read the job's
 # state.json. It is Claude Code's internal file: without it, working counts as busy.
+# Whatever the state, a session with background tasks or a queued prompt is busy, and
+# so is one whose state.json shows it active: $2 comes from the start of the pass,
+# which a slow pass can leave behind.
 class() {
+  if jq -e '.tempo == "active" or .inFlight.tasks > 0 or .inFlight.queued > 0' \
+    "$jobs/$1/state.json" >/dev/null 2>&1; then
+    echo busy
+    return
+  fi
   case $2 in
     blocked) echo waiting ;;
     done | failed) echo finished ;;
@@ -76,7 +84,7 @@ while sleep 5; do
   while read -r id pid st; do
     kill -0 "$pid" 2>/dev/null || continue
     live[$id]=1
-    grep -qx "$id" <<<"$shown" || "$here/herdr-claude-open" "$id" --no-focus >/dev/null </dev/null
+    grep -qx "$id" <<<"$shown" || timeout 30 "$here/herdr-claude-open" "$id" --no-focus >/dev/null </dev/null
     [[ $id != "$viewed" && -n ${seen[$id]:-} ]] || seen[$id]=$now
     c=$(class "$id" "$st")
     if ((reset)) && [[ $c != busy ]]; then

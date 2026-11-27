@@ -42,6 +42,8 @@
     jq
     htmlq
     lazygit
+    # Colors the diff in herdr-diff-view (programs/herdr).
+    delta
     vim
     # The MCP server Claude Code and Codex run (programs/claude, programs/codex).
     codebase-memory-mcp

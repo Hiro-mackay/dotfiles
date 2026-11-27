@@ -64,6 +64,20 @@ width = "80%"
 height = "80%"
 
 [[keys.command]]
+key = "prefix+g"
+type = "shell"
+command = "@bin@/herdr-diff-pane"
+description = "PR diff（右に並べる）"
+
+[[keys.command]]
+key = "prefix+shift+g"
+type = "popup"
+command = "@bin@/herdr-diff-view"
+description = "PR diff（全画面）"
+width = "100%"
+height = "100%"
+
+[[keys.command]]
 key = "alt+y"
 type = "popup"
 command = "cd \"${HERDR_ACTIVE_PANE_CWD:-$HOME}\" && lazygit"

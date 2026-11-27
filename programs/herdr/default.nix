@@ -3,9 +3,15 @@
 # The scripts are on PATH too: herdr-claude-sync is started outside herdr.
 { pkgs, ... }:
 let
-  scripts = pkgs.runCommandLocal "herdr-scripts" { } ''
-    mkdir -p $out
+  scripts = pkgs.runCommandLocal "herdr-scripts" { nativeBuildInputs = [ pkgs.ncurses ]; } ''
+    mkdir -p $out/share/terminfo
     cp -r ${./bin} $out/bin
+    chmod u+w $out/bin/herdr-diff-view
+    # macOS's /usr/bin/python3 is a stub that asks to install the Xcode tools.
+    substituteInPlace $out/bin/herdr-diff-view \
+      --replace-fail "#!/usr/bin/env python3" "#!${pkgs.python3}/bin/python3"
+    # herdr-diff-view looks for its terminfo entry in ../share/terminfo.
+    tic -x -o $out/share/terminfo ${./terminfo/noscroll.src}
   '';
 in
 {

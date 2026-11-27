@@ -17,6 +17,7 @@ sleep_after=${HERDR_CLAUDE_SLEEP_AFTER:-3600}
 jobs=${CLAUDE_CONFIG_DIR:-$HOME/.claude}/jobs
 reset_file=${XDG_STATE_HOME:-$HOME/.local/state}/herdr/daily-reset
 declare -A seen # session id -> when its tab was last in view, or first seen running
+reset_tries=0
 
 # busy, waiting or finished, for a running session $1 in state $2. claude agents can
 # leave a session that ended its turn at working, so for working also read the job's
@@ -75,7 +76,7 @@ while sleep 5; do
   while read -r id pid st; do
     kill -0 "$pid" 2>/dev/null || continue
     live[$id]=1
-    grep -qx "$id" <<<"$shown" || "$here/herdr-claude-open" "$id" --no-focus >/dev/null
+    grep -qx "$id" <<<"$shown" || "$here/herdr-claude-open" "$id" --no-focus >/dev/null </dev/null
     [[ $id != "$viewed" && -n ${seen[$id]:-} ]] || seen[$id]=$now
     c=$(class "$id" "$st")
     if ((reset)) && [[ $c != busy ]]; then
@@ -85,7 +86,7 @@ while sleep 5; do
     else
       continue
     fi
-    if out=$(timeout 30 claude stop "$id" 2>&1); then
+    if out=$(timeout 30 claude stop "$id" 2>&1 </dev/null); then
       echo "$(date '+%F %T') stopped $id ($c, $why)"
     else
       failed=1
@@ -95,8 +96,15 @@ while sleep 5; do
   # A session woken later starts its time out of view afresh.
   for id in "${!seen[@]}"; do [[ -n ${live[$id]:-} ]] || unset 'seen[$id]'; done
   unset live
-  # Recorded only once every stop has gone through, so a failed one is tried again.
-  ((reset && !failed)) && echo "$now" >"$reset_file"
+  # A failed stop retries the whole reset, which would also stop sessions started since;
+  # after 12 passes (a minute) it is recorded as done anyway.
+  if ((reset)); then
+    if ((!failed || ++reset_tries >= 12)); then
+      echo "$now" >"$reset_file"
+      ((!failed)) || echo "$(date '+%F %T') daily reset recorded with stops still failing"
+      reset_tries=0
+    fi
+  fi
   # Cut to 24 characters, as herdr-claude-open labels a new tab.
   jq -r --argjson panes "$panes" --argjson tabs "$tabs" '
     (map(select(.id) | {key: .id, value: .name}) | from_entries) as $name

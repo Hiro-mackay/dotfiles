@@ -2,20 +2,117 @@
 # Give every running background Claude session a tab, so the sidebar lists what Claude
 # runs no matter where the session was started, and keep each tab's label at the
 # session's name, which Claude picks after the first exchange or /rename changes.
-# Sessions that sleep or are deleted close their own tab (herdr-claude-tab). Runs
-# until killed.
+# It is also the one place that puts sessions to sleep (claude stop, which keeps the
+# conversation for claude attach <id>):
+# - a finished session whose tab has been out of view for HERDR_CLAUDE_SLEEP_AFTER
+#   seconds;
+# - with HERDR_DAILY_RESET=1, once the clock passes 05:00, every session not working
+#   right now, waiting on you included. The last reset is kept in $reset_file, so a
+#   machine asleep at 05:00 resets within seconds of waking.
+# A sleeping session's process is gone, and its tab closes itself (herdr-claude-tab).
+# Runs until killed.
 set -uo pipefail
 here=$(dirname "$0")
+sleep_after=${HERDR_CLAUDE_SLEEP_AFTER:-3600}
+jobs=${CLAUDE_CONFIG_DIR:-$HOME/.claude}/jobs
+reset_file=${XDG_STATE_HOME:-$HOME/.local/state}/herdr/daily-reset
+declare -A seen # session id -> when its tab was last in view, or first seen running
+reset_tries=0
+
+# busy, waiting or finished, for a running session $1 in state $2. claude agents can
+# leave a session that ended its turn at working, so for working also read the job's
+# state.json. It is Claude Code's internal file: without it, working counts as busy.
+# Whatever the state, a session with background tasks or a queued prompt is busy, and
+# so is one whose state.json shows it active: $2 comes from the start of the pass,
+# which a slow pass can leave behind.
+class() {
+  if jq -e '.tempo == "active" or .inFlight.tasks > 0 or .inFlight.queued > 0' \
+    "$jobs/$1/state.json" >/dev/null 2>&1; then
+    echo busy
+    return
+  fi
+  case $2 in
+    blocked) echo waiting ;;
+    done | failed) echo finished ;;
+    working)
+      if jq -e '.tempo == "idle" and .inFlight.tasks == 0 and .inFlight.queued == 0' \
+        "$jobs/$1/state.json" >/dev/null 2>&1; then
+        echo finished
+      else
+        echo busy
+      fi ;;
+    *) echo busy ;;
+  esac
+}
+
+# The latest 05:00 at or before epoch $1, in local time.
+last_five() {
+  local h m s since
+  printf -v h '%(%H)T' "$1"
+  printf -v m '%(%M)T' "$1"
+  printf -v s '%(%S)T' "$1"
+  since=$((10#$h * 3600 + 10#$m * 60 + 10#$s - 5 * 3600))
+  ((since >= 0)) || since=$((since + 86400))
+  echo $(($1 - since))
+}
+
+# Whether the daily reset is due at epoch $1. The first run only records the time, so
+# turning this on does not put everything to sleep at once.
+reset_due() {
+  [[ ${HERDR_DAILY_RESET:-} == 1 ]] || return 1
+  local last
+  if ! last=$(cat "$reset_file" 2>/dev/null) || [[ ! $last =~ ^[0-9]+$ ]]; then
+    mkdir -p "${reset_file%/*}" && echo "$1" >"$reset_file"
+    return 1
+  fi
+  ((last < $(last_five "$1")))
+}
+
+[[ ${BASH_SOURCE[0]} == "$0" ]] || return 0
+
 while sleep 5; do
   panes=$(herdr pane list 2>/dev/null) || continue
   tabs=$(herdr tab list 2>/dev/null) || continue
-  sessions=$(claude agents --json --all 2>/dev/null) || continue
+  sessions=$(timeout 30 claude agents --json --all 2>/dev/null) || continue
+  now=$(date +%s)
   shown=$(jq -r '.result.panes[].tokens.session? // empty' <<<"$panes")
-  jq -r '.[] | select(.kind == "background" and .pid) | "\(.id) \(.pid)"' <<<"$sessions" |
-    while read -r id pid; do
-      kill -0 "$pid" 2>/dev/null || continue
-      grep -qx "$id" <<<"$shown" || "$here/herdr-claude-open" "$id" --no-focus >/dev/null
-    done
+  viewed=$(jq -r 'first(.result.panes[] | select(.focused) | .tokens.session? // empty) // empty' <<<"$panes")
+  reset=0
+  reset_due "$now" && reset=1
+  failed=0
+  declare -A live=()
+  while read -r id pid st; do
+    kill -0 "$pid" 2>/dev/null || continue
+    live[$id]=1
+    grep -qx "$id" <<<"$shown" || timeout 30 "$here/herdr-claude-open" "$id" --no-focus >/dev/null </dev/null
+    [[ $id != "$viewed" && -n ${seen[$id]:-} ]] || seen[$id]=$now
+    c=$(class "$id" "$st")
+    if ((reset)) && [[ $c != busy ]]; then
+      why='daily reset'
+    elif [[ $c == finished ]] && ((now - seen[$id] >= sleep_after)); then
+      why="out of view for $((now - seen[$id]))s"
+    else
+      continue
+    fi
+    if out=$(timeout 30 claude stop "$id" 2>&1 </dev/null); then
+      echo "$(date '+%F %T') stopped $id ($c, $why)"
+    else
+      failed=1
+      echo "$(date '+%F %T') stopping $id failed: $out"
+    fi
+  done < <(jq -r '.[] | select(.kind == "background" and .pid) | "\(.id) \(.pid) \(.state // "")"' <<<"$sessions")
+  # A session woken later starts its time out of view afresh.
+  for id in "${!seen[@]}"; do [[ -n ${live[$id]:-} ]] || unset 'seen[$id]'; done
+  unset live
+  # A failed stop retries the whole reset, which would also stop sessions started since;
+  # after 12 passes (a minute) it is recorded as done anyway.
+  if ((reset)); then
+    if ((!failed || ++reset_tries >= 12)); then
+      echo "$now" >"$reset_file"
+      ((!failed)) || echo "$(date '+%F %T') daily reset recorded with stops still failing"
+      reset_tries=0
+    fi
+  fi
   # Cut to 24 characters, as herdr-claude-open labels a new tab.
   jq -r --argjson panes "$panes" --argjson tabs "$tabs" '
     (map(select(.id) | {key: .id, value: .name}) | from_entries) as $name

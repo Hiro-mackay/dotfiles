@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
-# Keep the background Claude session $1 in this pane for as long as its process runs.
-# It stays attached while Claude works, waits on you, or the pane is in view. Once it
-# is done (or failed) and the pane has been out of view for HERDR_CLAUDE_DETACH_AFTER
-# seconds, it detaches so Claude can put the session to sleep, as it does with
-# sessions nobody has open. When the process is gone (asleep, or stopped by ⌘W) the
-# tab closes.
+# Keep the background Claude session $1 attached in this pane for as long as its
+# process runs. herdr-claude-sync decides when a session sleeps; when the process is
+# gone (asleep, stopped by ⌘W, or deleted) the tab closes. A client detached by hand
+# shows an idle screen until Enter or the session starting work brings Claude back.
 # Started with HERDR_AGENT=claude, so herdr still lists the pane as Claude while
 # detached.
 set -uo pipefail
 id=$1
 pane=${HERDR_PANE_ID:?}
-detach_after=${HERDR_CLAUDE_DETACH_AFTER:-1800}
 
 session() { claude agents --json --all 2>/dev/null | jq -c --arg i "$id" 'first(.[] | select(.id == $i)) // empty'; }
 running() {
@@ -18,7 +15,6 @@ running() {
   pid=$(jq -r '.pid // empty' <<<"$1")
   [[ -n $pid ]] && kill -0 "$pid" 2>/dev/null
 }
-in_view() { herdr pane get "$pane" 2>/dev/null | jq -e '.result.pane.focused' >/dev/null; }
 state() { jq -r '.state // empty' <<<"$1"; }
 
 # A killed attach client leaves its terminal modes on (mouse reporting, bracketed
@@ -39,19 +35,6 @@ idle_screen() {
   printf '%*s\033[38;2;142;142;142m%s\033[0m\n' $(((cols - ${#hint}) / 2)) '' "$hint"
 }
 
-# Runs beside the attached client and ends it when the session may sleep.
-watch_attached() {
-  local away=0 s
-  while sleep 5; do
-    if in_view; then away=0; else away=$((away + 5)); fi
-    s=$(session)
-    if [[ $(state "$s") =~ ^(done|failed)$ ]] && ((away >= detach_after)); then
-      pkill -TERM -P "$1" -f "claude attach $id"
-      return
-    fi
-  done
-}
-
 # Claude titles the terminal only now and then, and not at all while detached; the
 # sidebar shows this title, so start from the session's name.
 set_title() { printf '\033]2;%s\007' "$(jq -r '.name // .id' <<<"$1")"; }
@@ -59,10 +42,7 @@ set_title() { printf '\033]2;%s\007' "$(jq -r '.name // .id' <<<"$1")"; }
 # Attaching wakes a sleeping session, so only a deleted one ends the loop here.
 while s=$(session) && [[ -n $s ]]; do
   set_title "$s"
-  watch_attached $$ &
-  watcher=$!
   claude attach "$id"
-  kill "$watcher" 2>/dev/null
   s=$(session)
   [[ -n $s ]] && running "$s" || break
   reset_terminal
